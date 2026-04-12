@@ -53,42 +53,40 @@
         #errorMsg.suggestion-active { background: rgba(46, 204, 113, 0.2); border-color: var(--success); }
         .suggestion-link { text-decoration: none; color: var(--gold); cursor: pointer; padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 4px; }
 
-        /* Compact Guess List */
+        /* Compact Guess List - TEXT ENLARGED */
         #feedback { flex: 1; overflow-y: auto; margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
         .guess-row { 
-            padding: 10px 15px; border-radius: 10px; 
+            padding: 12px 15px; border-radius: 10px; 
             display: flex; justify-content: space-between; align-items: center;
-            font-weight: 700; color: #000; font-size: 13px;
+            font-weight: 800; color: #000; 
+            font-size: 16px; /* Enlarged font */
             flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .guess-row .dist-text { font-size: 14px; opacity: 0.9; }
 
-        /* --- COMPACT MAP MARKER STYLES --- */
+        /* --- MAP MARKER STYLES --- */
         .custom-marker { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; }
-        .marker-dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5); z-index: 2; }
+        .marker-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5); z-index: 2; }
         
         .marker-bubble {
             background: rgba(255, 255, 255, 0.95);
             color: #222;
-            padding: 2px 6px;
-            border-radius: 6px;
-            font-size: 10px; /* Smaller text */
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 13px; /* Enlarged */
             font-weight: 800;
             white-space: nowrap;
             display: flex;
             align-items: center;
-            gap: 4px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            border: 1px solid #ccc;
-            margin-bottom: 2px;
+            gap: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            border: 2px solid #ccc;
+            margin-bottom: 4px;
         }
 
-        .marker-dist { font-size: 9px; color: #666; font-weight: normal; }
-        .marker-arrow { font-size: 11px; display: inline-block; line-height: 1; }
-
         /* Overlays */
-        #setup-overlay, #how-to-play-overlay, #victory-overlay { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; backdrop-filter: blur(8px); padding: 20px; }
+        .overlay { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; backdrop-filter: blur(8px); padding: 20px; }
         #setup-overlay { background: radial-gradient(circle at center, #1a2a6c, #000); }
-        #how-to-play-overlay { background: rgba(0,0,0,0.85); display: none; }
         .game-logo { font-size: clamp(35px, 8vw, 60px); font-weight: 900; letter-spacing: 4px; margin-bottom: 5px; }
         .btn-main { padding: 14px; background: var(--accent); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; width: 100%; max-width: 250px; margin-top: 10px; transition: 0.2s; }
         input { padding: 15px; border: 2px solid transparent; border-radius: 12px; background: rgba(255,255,255,0.15); font-size: 16px; color: white; width: 100%; box-sizing: border-box; outline: none; }
@@ -96,7 +94,14 @@
         .life-container { display: flex; justify-content: center; gap: 6px; }
         .life-circle { width: 10px; height: 10px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 8px var(--gold); transition: 0.3s; }
         .life-circle.lost { background: rgba(255,255,255,0.1); transform: scale(0.7); box-shadow: none; }
-        .modal { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 350px; color: #333; }
+        
+        .modal { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 350px; color: #333; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .stat-box { background: #f8f9fa; padding: 10px; border-radius: 10px; }
+        .stat-val { display: block; font-size: 20px; font-weight: 900; color: var(--primary); }
+        .stat-lbl { font-size: 11px; color: #777; }
 
         @media (max-width: 850px) {
             #sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 50vh; transform: translateY(100%); border-radius: 20px 20px 0 0; padding: 15px; }
@@ -108,14 +113,14 @@
 </head>
 <body>
 
-<div id="setup-overlay">
+<div id="setup-overlay" class="overlay">
     <div class="game-logo">ISRAMASTER</div>
     <p style="margin-bottom: 25px; font-size: 16px; opacity: 0.9;">האתגר הגיאוגרפי היומי של ישראל</p>
     <button class="btn-main" onclick="startGame()">התחילו אתגר 🛰️</button>
     <button class="btn-main btn-secondary" onclick="toggleInstructions(true)" style="background:transparent; border: 1px solid white; margin-top:10px;">איך משחקים? 📖</button>
 </div>
 
-<div id="how-to-play-overlay">
+<div id="how-to-play-overlay" class="overlay" style="display:none; background: rgba(0,0,0,0.85);">
     <div class="modal">
         <h3 style="margin-top:0">איך משחקים?</h3>
         <ul style="text-align: right; line-height: 1.6; padding-right: 20px; font-size: 14px;">
@@ -125,6 +130,17 @@
             <li>יש לכם 10 ניסיונות!</li>
         </ul>
         <button class="btn-main" onclick="toggleInstructions(false)">הבנתי!</button>
+    </div>
+</div>
+
+<div id="giveup-overlay" class="overlay" style="display:none; background: rgba(0,0,0,0.85);">
+    <div class="modal">
+        <h3>לוותר? 🏳️</h3>
+        <p>בטוח שאתה רוצה לחשוף את התשובה ולסיים את המשחק?</p>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-main" onclick="confirmGiveUp(true)" style="background: var(--accent); flex:1;">כן, וותר</button>
+            <button class="btn-main" onclick="confirmGiveUp(false)" style="background: #ccc; color:#333; flex:1;">לא, המשך</button>
+        </div>
     </div>
 </div>
 
@@ -147,7 +163,7 @@
         <datalist id="cityList"></datalist>
         <div style="display:flex; gap:5px;">
             <button id="submitBtn" class="btn-main" onclick="makeGuess()" style="margin-top:0; flex:2;">ניחוש 🚀</button>
-            <button id="giveUpBtn" class="btn-main" onclick="confirmGiveUp()" style="margin-top:0; flex:1; background: #555;">ויתור 🏳️</button>
+            <button id="giveUpBtn" class="btn-main" onclick="showGiveUpModal()" style="margin-top:0; flex:1; background: #555;">ויתור 🏳️</button>
         </div>
     </div>
 
@@ -156,10 +172,19 @@
 
 <div id="map"></div>
 
-<div id="victory-overlay" style="display:none;">
+<div id="victory-overlay" class="overlay" style="display:none; background: rgba(0,0,0,0.8);">
     <div class="modal">
-        <h2 id="vic-title" style="margin:0 0 10px 0;"></h2>
-        <p id="vic-msg" style="font-weight:bold;"></p>
+        <h2 id="vic-title" style="margin:0 0 5px 0;"></h2>
+        <p id="vic-msg" style="font-size:18px; margin-bottom:15px;"></p>
+        
+        <div class="stats-grid">
+            <div class="stat-box"><span class="stat-val" id="st-played">-</span><span class="stat-lbl">משחקים</span></div>
+            <div class="stat-box"><span class="stat-val" id="st-winpct">-</span><span class="stat-lbl">ניצחונות</span></div>
+            <div class="stat-box"><span class="stat-val" id="st-streak">-</span><span class="stat-lbl">רצף שיא</span></div>
+            <div class="stat-box"><span class="stat-val" id="st-avg">-</span><span class="stat-lbl">ממוצע ניחושים</span></div>
+        </div>
+
+        <p style="color: var(--primary); font-weight: bold; margin-bottom: 15px;">יישוב חדש יופיע מחר! 📅</p>
         <button class="btn-main" style="background: var(--dark);" onclick="hideOverlay()">סגור 🗺️</button>
     </div>
 </div>
@@ -169,15 +194,24 @@
 let allCities = [];
 let target;
 let attempts = 10;
+let currentGuesses = 0;
 let isGameOver = false;
-let errorTimeout;
 
 const map = L.map('map', { zoomControl: false }).setView([31.5, 34.8], (window.innerWidth < 850 ? 7 : 8));
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
 
+// Statistics Management
+const stats = JSON.parse(localStorage.getItem('israMaster_stats')) || {
+    played: 0,
+    wins: 0,
+    streak: 0,
+    maxStreak: 0,
+    totalGuesses: 0,
+    lastPlayedDate: null
+};
+
 async function loadData() {
     try {
-        // GitHub-friendly relative path
         const response = await fetch('./MapIsrael.geojson');
         const data = await response.json();
         allCities = data.features.map(f => ({
@@ -189,7 +223,7 @@ async function loadData() {
         setDailyTarget();
     } catch (e) { 
         console.error("Data load failed", e);
-        alert("שגיאה בטעינת נתונים. וודא שהקובץ MapIsrael.geojson נמצא באותה תיקייה.");
+        alert("שגיאה בטעינת נתונים.");
     }
 }
 
@@ -199,41 +233,17 @@ function makeGuess() {
     if (!val || isGameOver) return;
 
     let guess = allCities.find(c => c.name === val);
-    
-    if (!guess) {
-        showError(val);
-        return;
-    }
+    if (!guess) { showError(val); return; }
     
     document.getElementById('errorMsg').classList.remove('visible');
     processGuess(guess);
     input.value = "";
-    input.blur(); // Hide keyboard on mobile
-}
-
-function showError(val) {
-    const errorDiv = document.getElementById('errorMsg');
-    let bestMatch = null;
-    for (let city of allCities) {
-        if (levenshtein(val, city.name) <= 2) { bestMatch = city.name; break; }
-    }
-    errorDiv.classList.add('visible');
-    if (bestMatch) {
-        errorDiv.classList.add('suggestion-active');
-        errorDiv.innerHTML = `האם התכוונת ל:<br><span class="suggestion-link" onclick="applySuggestion('${bestMatch}')">${bestMatch}?</span>`;
-    } else {
-        errorDiv.innerHTML = `היישוב לא נמצא ❌`;
-        setTimeout(() => errorDiv.classList.remove('visible'), 3000);
-    }
-}
-
-function applySuggestion(name) {
-    document.getElementById('cityInput').value = name;
-    makeGuess();
+    input.blur();
 }
 
 function processGuess(guess) {
     attempts--;
+    currentGuesses++;
     const life = document.getElementById(`life-${attempts}`);
     if(life) life.classList.add('lost');
 
@@ -243,26 +253,24 @@ function processGuess(guess) {
     const ratio = Math.pow(Math.min(dist / 150, 1), 0.35);
     const color = `rgb(255, ${Math.floor(255 * ratio)}, ${Math.floor(100 * ratio)})`;
 
-    // COMPACT MAP MARKER
     const icon = L.divIcon({
         className: 'custom-marker',
         html: `
             <div class="marker-bubble" style="border-color:${color}">
                 <span>${guess.name}</span>
-                <span class="marker-dist">${dist.toFixed(0)}km</span>
-                <span class="marker-arrow" style="transform:rotate(${bearing}deg)">⬆️</span>
+                <span style="font-size: 11px; opacity:0.7;">${dist.toFixed(0)}km</span>
+                <span style="transform:rotate(${bearing}deg)">⬆️</span>
             </div>
             <div class="marker-dot" style="background-color:${color}"></div>
         `,
-        iconSize: [0, 0],
-        iconAnchor: [0, 20] 
+        iconSize: [0, 0], iconAnchor: [0, 25] 
     });
     L.marker([guess.lat, guess.lon], { icon: icon }).addTo(map);
     
     const row = document.createElement('div');
     row.className = 'guess-row';
     row.style.background = color;
-    row.innerHTML = `<span>${guess.name}</span> <span>${dist.toFixed(1)} ק"מ <span style="display:inline-block; transform:rotate(${bearing}deg)">⬆️</span></span>`;
+    row.innerHTML = `<span>${guess.name}</span> <span class="dist-text">${dist.toFixed(1)} ק"מ <span style="display:inline-block; transform:rotate(${bearing}deg)">⬆️</span></span>`;
     document.getElementById('feedback').prepend(row);
 
     if (window.innerWidth <= 850) toggleSidebar(false);
@@ -270,6 +278,43 @@ function processGuess(guess) {
 
     if (guess.name === target.name) endGame(true);
     else if (attempts === 0) endGame(false);
+}
+
+function updateStats(win) {
+    const today = new Date().toLocaleDateString();
+    if (stats.lastPlayedDate === today) return; // Only count once per day
+
+    stats.played++;
+    if (win) {
+        stats.wins++;
+        stats.streak++;
+        stats.totalGuesses += currentGuesses;
+        if (stats.streak > stats.maxStreak) stats.maxStreak = stats.streak;
+    } else {
+        stats.streak = 0;
+    }
+    stats.lastPlayedDate = today;
+    localStorage.setItem('israMaster_stats', JSON.stringify(stats));
+}
+
+function endGame(win) {
+    if(isGameOver) return;
+    isGameOver = true;
+    updateStats(win);
+
+    document.getElementById('cityInput').disabled = true;
+    document.getElementById('victory-overlay').style.display = 'flex';
+    document.getElementById('vic-title').innerText = win ? "פגיעה בול! 🎯" : "אולי מחר... 🚩";
+    document.getElementById('vic-msg').innerText = `היעד היה: ${target.name}`;
+    
+    // Fill stats UI
+    document.getElementById('st-played').innerText = stats.played;
+    document.getElementById('st-winpct').innerText = stats.played ? Math.round((stats.wins/stats.played)*100) + "%" : "0%";
+    document.getElementById('st-streak').innerText = stats.maxStreak;
+    document.getElementById('st-avg').innerText = stats.wins ? (stats.totalGuesses / stats.wins).toFixed(1) : "-";
+
+    L.marker([target.lat, target.lon]).addTo(map).bindPopup(`<b>${target.name}</b>`).openPopup();
+    map.flyTo([target.lat, target.lon], 12);
 }
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -280,27 +325,17 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-function levenshtein(a, b) {
-    const matrix = [];
-    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-    for (let i = 1; i <= b.length; i++) {
-        for (let j = 1; j <= a.length; j++) {
-            if (b.charAt(i - 1) === a.charAt(j - 1)) matrix[i][j] = matrix[i - 1][j - 1];
-            else matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
-        }
-    }
-    return matrix[b.length][a.length];
+function showError(val) {
+    const errorDiv = document.getElementById('errorMsg');
+    errorDiv.classList.add('visible');
+    errorDiv.innerHTML = `היישוב לא נמצא ❌`;
+    setTimeout(() => errorDiv.classList.remove('visible'), 3000);
 }
 
-function endGame(win) {
-    isGameOver = true;
-    document.getElementById('cityInput').disabled = true;
-    document.getElementById('victory-overlay').style.display = 'flex';
-    document.getElementById('vic-title').innerText = win ? "פגיעה בול! 🎯" : "אולי מחר... 🚩";
-    document.getElementById('vic-msg').innerText = `היעד היה: ${target.name}`;
-    L.marker([target.lat, target.lon]).addTo(map).bindPopup(`<b>${target.name}</b>`).openPopup();
-    map.flyTo([target.lat, target.lon], 12);
+function showGiveUpModal() { if(!isGameOver) document.getElementById('giveup-overlay').style.display = 'flex'; }
+function confirmGiveUp(confirm) {
+    document.getElementById('giveup-overlay').style.display = 'none';
+    if(confirm) endGame(false);
 }
 
 function toggleSidebar(open) {
@@ -334,7 +369,6 @@ function setDailyTarget() {
 function startGame() { document.getElementById('setup-overlay').style.display = 'none'; }
 function toggleInstructions(show) { document.getElementById('how-to-play-overlay').style.display = show ? 'flex' : 'none'; }
 function hideOverlay() { document.getElementById('victory-overlay').style.display = 'none'; }
-function confirmGiveUp() { if(!isGameOver && confirm("לוותר ולחשוף את התשובה?")) endGame(false); }
 
 window.onload = loadData;
 </script>
