@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IsraMaster - אתגר גאוגרפי יומי</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --primary: #1a2a6c;
+            --accent: #f44336;
+            --gold: #ffeb3b;
+            --success: #2ecc71;
+            --dark: #2c3e50;
+            --sidebar-width: 350px;
+        }
+
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; background: #eee; }
+        body { display: flex; flex-direction: row; }
+
+        #sidebar { 
+            width: var(--sidebar-width); height: 100vh; background: var(--dark); 
+            box-shadow: 5px 0 15px rgba(0,0,0,0.2); padding: 20px; 
+            box-sizing: border-box; z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #map { flex: 1; height: 100vh; background: #cad7d0; z-index: 1; }
+
+        #mobile-toggle {
+            display: none; position: fixed; bottom: 15px; left: 50%; transform: translateX(50%);
+            z-index: 2005; background: var(--dark); color: white; border: 2px solid var(--accent);
+            padding: 10px 25px; border-radius: 25px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            font-size: 14px;
+        }
+
+        /* Error UI */
+        .error-container { min-height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
+        #errorMsg { 
+            width: 100%; min-height: 40px; color: #fff; font-size: 13px; opacity: 0; 
+            text-align: center; font-weight: bold; 
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px; border-radius: 10px;
+            transition: all 0.3s ease;
+            transform: translateY(10px); display: flex; flex-direction: column; justify-content: center;
+            pointer-events: none;
+        }
+        #errorMsg.visible { opacity: 1; transform: translateY(0); background: rgba(244, 67, 54, 0.35); border-color: var(--accent); pointer-events: auto; }
+        #errorMsg.suggestion-active { background: rgba(46, 204, 113, 0.2); border-color: var(--success); }
+        .suggestion-link { text-decoration: none; color: var(--gold); cursor: pointer; padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+        /* Compact Guess List */
+        #feedback { flex: 1; overflow-y: auto; margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .guess-row { 
+            padding: 10px 15px; border-radius: 10px; 
+            display: flex; justify-content: space-between; align-items: center;
+            font-weight: 700; color: #000; font-size: 13px;
+            flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* --- COMPACT MAP MARKER STYLES --- */
+        .custom-marker { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; }
+        .marker-dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5); z-index: 2; }
+        
+        .marker-bubble {
+            background: rgba(255, 255, 255, 0.95);
+            color: #222;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 10px; /* Smaller text */
+            font-weight: 800;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            border: 1px solid #ccc;
+            margin-bottom: 2px;
+        }
+
+        .marker-dist { font-size: 9px; color: #666; font-weight: normal; }
+        .marker-arrow { font-size: 11px; display: inline-block; line-height: 1; }
+
+        /* Overlays */
+        #setup-overlay, #how-to-play-overlay, #victory-overlay { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; backdrop-filter: blur(8px); padding: 20px; }
+        #setup-overlay { background: radial-gradient(circle at center, #1a2a6c, #000); }
+        #how-to-play-overlay { background: rgba(0,0,0,0.85); display: none; }
+        .game-logo { font-size: clamp(35px, 8vw, 60px); font-weight: 900; letter-spacing: 4px; margin-bottom: 5px; }
+        .btn-main { padding: 14px; background: var(--accent); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; width: 100%; max-width: 250px; margin-top: 10px; transition: 0.2s; }
+        input { padding: 15px; border: 2px solid transparent; border-radius: 12px; background: rgba(255,255,255,0.15); font-size: 16px; color: white; width: 100%; box-sizing: border-box; outline: none; }
+        .stats-card { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 12px; margin-bottom: 5px; }
+        .life-container { display: flex; justify-content: center; gap: 6px; }
+        .life-circle { width: 10px; height: 10px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 8px var(--gold); transition: 0.3s; }
+        .life-circle.lost { background: rgba(255,255,255,0.1); transform: scale(0.7); box-shadow: none; }
+        .modal { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 350px; color: #333; }
+
+        @media (max-width: 850px) {
+            #sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 50vh; transform: translateY(100%); border-radius: 20px 20px 0 0; padding: 15px; }
+            #sidebar.open { transform: translateY(0); }
+            #mobile-toggle { display: block; }
+            #map { height: 100vh; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="setup-overlay">
+    <div class="game-logo">ISRAMASTER</div>
+    <p style="margin-bottom: 25px; font-size: 16px; opacity: 0.9;">האתגר הגיאוגרפי היומי של ישראל</p>
+    <button class="btn-main" onclick="startGame()">התחילו אתגר 🛰️</button>
+    <button class="btn-main btn-secondary" onclick="toggleInstructions(true)" style="background:transparent; border: 1px solid white; margin-top:10px;">איך משחקים? 📖</button>
+</div>
+
+<div id="how-to-play-overlay">
+    <div class="modal">
+        <h3 style="margin-top:0">איך משחקים?</h3>
+        <ul style="text-align: right; line-height: 1.6; padding-right: 20px; font-size: 14px;">
+            <li>נחשו את <b>היישוב המסתורי</b>.</li>
+            <li>צבע הניחוש משתנה לפי המרחק.</li>
+            <li>החץ במפה מכוון אל היעד.</li>
+            <li>יש לכם 10 ניסיונות!</li>
+        </ul>
+        <button class="btn-main" onclick="toggleInstructions(false)">הבנתי!</button>
+    </div>
+</div>
+
+<button id="mobile-toggle" onclick="toggleSidebar(true)">הקש ניחוש 📊</button>
+
+<div id="sidebar">
+    <div style="text-align: center; margin-bottom: 10px;">
+        <h3 style="margin:0; letter-spacing: 1px;">ISRAMASTER</h3>
+    </div>
+    <div class="stats-card">
+        <div class="life-container" id="lifePoints"></div>
+    </div>
+    
+    <div class="error-container">
+        <div id="errorMsg"></div>
+    </div>
+    
+    <div style="display:flex; flex-direction:column; gap:8px;">
+        <input type="text" id="cityInput" placeholder="שם היישוב..." list="cityList" autocomplete="off" onkeypress="if(event.key === 'Enter') makeGuess()">
+        <datalist id="cityList"></datalist>
+        <div style="display:flex; gap:5px;">
+            <button id="submitBtn" class="btn-main" onclick="makeGuess()" style="margin-top:0; flex:2;">ניחוש 🚀</button>
+            <button id="giveUpBtn" class="btn-main" onclick="confirmGiveUp()" style="margin-top:0; flex:1; background: #555;">ויתור 🏳️</button>
+        </div>
+    </div>
+
+    <div id="feedback"></div>
+</div>
+
+<div id="map"></div>
+
+<div id="victory-overlay" style="display:none;">
+    <div class="modal">
+        <h2 id="vic-title" style="margin:0 0 10px 0;"></h2>
+        <p id="vic-msg" style="font-weight:bold;"></p>
+        <button class="btn-main" style="background: var(--dark);" onclick="hideOverlay()">סגור 🗺️</button>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+let allCities = [];
+let target;
+let attempts = 10;
+let isGameOver = false;
+let errorTimeout;
+
+const map = L.map('map', { zoomControl: false }).setView([31.5, 34.8], (window.innerWidth < 850 ? 7 : 8));
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
+
+async function loadData() {
+    try {
+        // GitHub-friendly relative path
+        const response = await fetch('./MapIsrael.geojson');
+        const data = await response.json();
+        allCities = data.features.map(f => ({
+            name: (f.properties["name:he"] || f.properties["name"] || "").trim(),
+            lat: f.geometry.coordinates[1],
+            lon: f.geometry.coordinates[0]
+        })).filter(c => c.name !== "");
+        setupUI();
+        setDailyTarget();
+    } catch (e) { 
+        console.error("Data load failed", e);
+        alert("שגיאה בטעינת נתונים. וודא שהקובץ MapIsrael.geojson נמצא באותה תיקייה.");
+    }
+}
+
+function makeGuess() {
+    const input = document.getElementById('cityInput');
+    const val = input.value.trim();
+    if (!val || isGameOver) return;
+
+    let guess = allCities.find(c => c.name === val);
+    
+    if (!guess) {
+        showError(val);
+        return;
+    }
+    
+    document.getElementById('errorMsg').classList.remove('visible');
+    processGuess(guess);
+    input.value = "";
+    input.blur(); // Hide keyboard on mobile
+}
+
+function showError(val) {
+    const errorDiv = document.getElementById('errorMsg');
+    let bestMatch = null;
+    for (let city of allCities) {
+        if (levenshtein(val, city.name) <= 2) { bestMatch = city.name; break; }
+    }
+    errorDiv.classList.add('visible');
+    if (bestMatch) {
+        errorDiv.classList.add('suggestion-active');
+        errorDiv.innerHTML = `האם התכוונת ל:<br><span class="suggestion-link" onclick="applySuggestion('${bestMatch}')">${bestMatch}?</span>`;
+    } else {
+        errorDiv.innerHTML = `היישוב לא נמצא ❌`;
+        setTimeout(() => errorDiv.classList.remove('visible'), 3000);
+    }
+}
+
+function applySuggestion(name) {
+    document.getElementById('cityInput').value = name;
+    makeGuess();
+}
+
+function processGuess(guess) {
+    attempts--;
+    const life = document.getElementById(`life-${attempts}`);
+    if(life) life.classList.add('lost');
+
+    const dist = calculateDistance(guess.lat, guess.lon, target.lat, target.lon);
+    const bearing = (Math.atan2(target.lon - guess.lon, target.lat - guess.lat) * 180 / Math.PI + 360) % 360;
+    
+    const ratio = Math.pow(Math.min(dist / 150, 1), 0.35);
+    const color = `rgb(255, ${Math.floor(255 * ratio)}, ${Math.floor(100 * ratio)})`;
+
+    // COMPACT MAP MARKER
+    const icon = L.divIcon({
+        className: 'custom-marker',
+        html: `
+            <div class="marker-bubble" style="border-color:${color}">
+                <span>${guess.name}</span>
+                <span class="marker-dist">${dist.toFixed(0)}km</span>
+                <span class="marker-arrow" style="transform:rotate(${bearing}deg)">⬆️</span>
+            </div>
+            <div class="marker-dot" style="background-color:${color}"></div>
+        `,
+        iconSize: [0, 0],
+        iconAnchor: [0, 20] 
+    });
+    L.marker([guess.lat, guess.lon], { icon: icon }).addTo(map);
+    
+    const row = document.createElement('div');
+    row.className = 'guess-row';
+    row.style.background = color;
+    row.innerHTML = `<span>${guess.name}</span> <span>${dist.toFixed(1)} ק"מ <span style="display:inline-block; transform:rotate(${bearing}deg)">⬆️</span></span>`;
+    document.getElementById('feedback').prepend(row);
+
+    if (window.innerWidth <= 850) toggleSidebar(false);
+    map.flyTo([guess.lat, guess.lon], 11);
+
+    if (guess.name === target.name) endGame(true);
+    else if (attempts === 0) endGame(false);
+}
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2-lat1)*Math.PI/180;
+    const dLon = (lon2-lon1)*Math.PI/180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function levenshtein(a, b) {
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) matrix[i][j] = matrix[i - 1][j - 1];
+            else matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
+        }
+    }
+    return matrix[b.length][a.length];
+}
+
+function endGame(win) {
+    isGameOver = true;
+    document.getElementById('cityInput').disabled = true;
+    document.getElementById('victory-overlay').style.display = 'flex';
+    document.getElementById('vic-title').innerText = win ? "פגיעה בול! 🎯" : "אולי מחר... 🚩";
+    document.getElementById('vic-msg').innerText = `היעד היה: ${target.name}`;
+    L.marker([target.lat, target.lon]).addTo(map).bindPopup(`<b>${target.name}</b>`).openPopup();
+    map.flyTo([target.lat, target.lon], 12);
+}
+
+function toggleSidebar(open) {
+    const sb = document.getElementById('sidebar');
+    if (open) sb.classList.add('open'); else sb.classList.remove('open');
+}
+
+function setupUI() {
+    const container = document.getElementById('lifePoints');
+    container.innerHTML = '';
+    for(let i=0; i<10; i++) {
+        const div = document.createElement('div');
+        div.className = 'life-circle';
+        div.id = `life-${i}`;
+        container.appendChild(div);
+    }
+    const dl = document.getElementById('cityList');
+    [...new Set(allCities.map(c => c.name))].sort().forEach(name => {
+        let o = document.createElement('option'); o.value = name; dl.appendChild(o);
+    });
+}
+
+function setDailyTarget() {
+    const seedStr = new Date().toLocaleDateString('en-GB');
+    let hash = 0;
+    for (let i = 0; i < seedStr.length; i++) hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
+    const seededRandom = Math.abs(Math.sin(hash));
+    target = allCities[Math.floor(seededRandom * allCities.length)];
+}
+
+function startGame() { document.getElementById('setup-overlay').style.display = 'none'; }
+function toggleInstructions(show) { document.getElementById('how-to-play-overlay').style.display = show ? 'flex' : 'none'; }
+function hideOverlay() { document.getElementById('victory-overlay').style.display = 'none'; }
+function confirmGiveUp() { if(!isGameOver && confirm("לוותר ולחשוף את התשובה?")) endGame(false); }
+
+window.onload = loadData;
+</script>
+</body>
+</html>
