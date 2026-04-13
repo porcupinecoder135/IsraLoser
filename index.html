@@ -24,7 +24,7 @@
             box-shadow: 5px 0 15px rgba(0,0,0,0.2); padding: 20px; 
             box-sizing: border-box; z-index: 2100;
             display: flex; flex-direction: column; color: white;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.3s ease-out;
         }
 
         #map { flex: 1; height: 100vh; background: #cad7d0; z-index: 1; }
@@ -35,20 +35,29 @@
             padding: 12px 35px; border-radius: 30px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
-        /* Error UI */
+        .swipe-handle {
+            display: none; width: 50px; height: 6px; background: rgba(255,255,255,0.3);
+            border-radius: 10px; margin: -5px auto 15px auto; padding: 10px 0; background-clip: content-box;
+        }
+
+        /* Error UI & Autocorrect */
         .error-container { min-height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
         #errorMsg { 
             width: 100%; min-height: 45px; color: #fff; font-size: 14px; opacity: 0; 
             text-align: center; font-weight: bold; background: rgba(255, 255, 255, 0.05); 
             border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px; border-radius: 12px;
             transition: all 0.3s ease; transform: translateY(5px);
+            display: flex; flex-direction: column; justify-content: center; pointer-events: none;
         }
-        #errorMsg.visible { opacity: 1; transform: translateY(0); background: rgba(244, 67, 54, 0.35); border-color: var(--accent); }
+        #errorMsg.visible { opacity: 1; transform: translateY(0); background: rgba(244, 67, 54, 0.35); border-color: var(--accent); pointer-events: auto;}
         #errorMsg.suggestion-active { background: rgba(46, 204, 113, 0.2); border-color: var(--success); }
         .suggestion-link { text-decoration: none; color: var(--gold); display: inline-block; margin-top: 5px; cursor: pointer; padding: 3px 10px; background: rgba(255,255,255,0.1); border-radius: 6px; }
 
+        .shake { animation: shake 0.4s both; border: 2px solid var(--accent) !important; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
+
         /* Feedback List */
-        #feedback { flex: 1; overflow-y: auto; margin-top: 15px; display: flex; flex-direction: column; gap: 8px; }
+        #feedback { flex: 1; overflow-y: auto; margin-top: 15px; display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px;}
         .guess-row { 
             padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; 
             align-items: center; font-weight: 800; color: #000; font-size: 14px; flex-shrink: 0;
@@ -64,7 +73,7 @@
         }
 
         /* Overlays & Modals */
-        .full-overlay { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; backdrop-filter: blur(8px); background: rgba(0,0,0,0.8); }
+        .full-overlay { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; backdrop-filter: blur(8px); background: rgba(0,0,0,0.85); }
         #setup-overlay { background: radial-gradient(circle at center, #1a2a6c, #000); }
         .modal { background: white; padding: 25px; border-radius: 25px; width: 85%; max-width: 350px; color: #333; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
         
@@ -74,11 +83,13 @@
 
         .life-container { display: flex; justify-content: center; gap: 6px; margin-top: 5px; }
         .life-circle { width: 10px; height: 10px; background: var(--gold); border-radius: 50%; transition: 0.3s; }
-        .life-circle.lost { background: rgba(255,255,255,0.1); transform: scale(0.7); }
+        .life-circle.lost { background: rgba(255,255,255,0.1); transform: scale(0.7); box-shadow: none; }
 
         @media (max-width: 850px) {
-            #sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 60vh; transform: translateY(100%); border-radius: 25px 25px 0 0; }
+            #sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 65vh; transform: translateY(100%); border-radius: 25px 25px 0 0; transition: transform 0.1s linear; }
             #sidebar.open { transform: translateY(0); }
+            #sidebar.transitioning { transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1); }
+            .swipe-handle { display: block; }
             #mobile-toggle { display: block; }
             #map { height: 100vh; }
         }
@@ -97,10 +108,10 @@
 
 <div id="confirm-overlay" class="full-overlay" style="display:none;">
     <div class="modal">
-        <h3>לוותר על האתגר?</h3>
+        <h3>האם לוותר על האתגר?</h3>
         <p>הפסד יירשם והמיקום ייחשף.</p>
-        <button class="btn-main" onclick="endGame(false)">כן, וותר 🏳️</button>
-        <button class="btn-main btn-secondary" onclick="closeConfirm()">חזור למשחק</button>
+        <button class="btn-main" onclick="endGame(false)">כן, לוותר 🏳️</button>
+        <button class="btn-main btn-secondary" onclick="closeConfirm()">חזרה למשחק</button>
     </div>
 </div>
 
@@ -109,7 +120,7 @@
         <h2 style="margin-top:0">איך משחקים?</h2>
         <ul style="text-align: right; line-height: 1.6; padding-right: 20px;">
             <li>נחשו את <b>היישוב המסתורי</b>.</li>
-            <li>הצבע משתנה לפי המרחק (אדום = רחוק).</li>
+            <li>הצבע משתנה לפי המרחק (אדום = קרוב, צהוב = רחוק).</li>
             <li>החץ מראה את <b>הכיוון</b> ליישוב.</li>
             <li>יש לכם 10 ניסיונות.</li>
         </ul>
@@ -120,6 +131,7 @@
 <button id="mobile-toggle" onclick="toggleSidebar(true)">הקש ניחוש 📊</button>
 
 <div id="sidebar">
+    <div class="swipe-handle" id="swipeHandle"></div>
     <div style="text-align: center; margin-bottom: 10px;">
         <h3 style="margin:0; letter-spacing: 2px;">ISRAMASTER</h3>
         <div class="life-container" id="lifePoints"></div>
@@ -157,16 +169,49 @@ let allCities = [];
 let target;
 let attempts = 10;
 let isGameOver = false;
+let errorTimeout;
 
 const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([31.5, 34.8], 8);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
 
-// Mobile: Close sidebar when clicking map
+// SWIPE LOGIC
+let touchStartY = 0;
+let currentTranslateY = 0;
+const sidebar = document.getElementById('sidebar');
+
+sidebar.addEventListener('touchstart', e => {
+    if (sidebar.scrollTop <= 0) {
+        touchStartY = e.touches[0].clientY;
+        sidebar.classList.remove('transitioning');
+    }
+}, {passive: true});
+
+sidebar.addEventListener('touchmove', e => {
+    if (sidebar.scrollTop <= 0) {
+        const touchY = e.touches[0].clientY;
+        const diff = touchY - touchStartY;
+        if (diff > 0 && sidebar.classList.contains('open')) {
+            sidebar.style.transform = `translateY(${diff}px)`;
+            currentTranslateY = diff;
+        }
+    }
+}, {passive: true});
+
+sidebar.addEventListener('touchend', () => {
+    sidebar.classList.add('transitioning');
+    if (currentTranslateY > 150) {
+        toggleSidebar(false);
+    } else {
+        sidebar.style.transform = '';
+    }
+    currentTranslateY = 0;
+});
+
+// Mobile: Close sidebar when clicking map (only on direct map click)
 map.on('click', () => { if(window.innerWidth <= 850) toggleSidebar(false); });
 
 async function loadData() {
     try {
-        // Correct path for GitHub Pages (relative)
         const response = await fetch('./MapIsrael.geojson');
         const data = await response.json();
         allCities = data.features.map(f => ({
@@ -190,22 +235,63 @@ function setDailyTarget() {
     target = allCities[Math.floor(seededRandom * allCities.length)];
 }
 
+// Levenshtein Logic for Autocorrect
+function getLevenshteinDistance(a, b) {
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) matrix[i][j] = matrix[i - 1][j - 1];
+            else matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
+        }
+    }
+    return matrix[b.length][a.length];
+}
+
 function makeGuess() {
     const input = document.getElementById('cityInput');
     const val = input.value.trim();
+    const errorDiv = document.getElementById('errorMsg');
+    
     if (!val || isGameOver) return;
 
     let guess = allCities.find(c => c.name === val);
     
+    // Autocorrect Dynamic handling
     if (!guess) {
-        showError(val);
+        clearTimeout(errorTimeout);
+        input.classList.add('shake');
+        setTimeout(() => input.classList.remove('shake'), 400);
+
+        let bestMatch = null;
+        for (let city of allCities) {
+            if (getLevenshteinDistance(val, city.name) <= 2) { bestMatch = city.name; break; }
+        }
+
+        errorDiv.classList.add('visible');
+        errorDiv.classList.remove('suggestion-active');
+
+        if (bestMatch) {
+            errorDiv.classList.add('suggestion-active');
+            errorDiv.innerHTML = `האם התכוונת ל:<br><span class="suggestion-link" onclick="applySuggestion('${bestMatch}')">${bestMatch}?</span>`;
+        } else {
+            errorDiv.innerHTML = `היישוב לא מופיע במאגר ❌`;
+            errorTimeout = setTimeout(() => { errorDiv.classList.remove('visible'); }, 4000);
+        }
         return;
     }
     
-    document.getElementById('errorMsg').classList.remove('visible');
+    errorDiv.classList.remove('visible');
     processGuess(guess);
     input.value = "";
-    input.blur(); // Hide keyboard on mobile
+    input.blur(); 
+}
+
+function applySuggestion(name) {
+    document.getElementById('cityInput').value = name;
+    document.getElementById('errorMsg').classList.remove('visible');
+    makeGuess();
 }
 
 function processGuess(guess) {
@@ -215,8 +301,9 @@ function processGuess(guess) {
     const dist = calculateDistance(guess.lat, guess.lon, target.lat, target.lon);
     const bearing = (Math.atan2(target.lon - guess.lon, target.lat - guess.lat) * 180 / Math.PI + 360) % 360;
     
+    // Original Color Scheme: Red = Close (ratio 0), Yellow = Far (ratio 1)
     const ratio = Math.pow(Math.min(dist / 150, 1), 0.35);
-    const color = `rgb(255, ${Math.floor(255 * (1 - ratio) + 100 * ratio)}, ${Math.floor(100 * ratio)})`;
+    const color = `rgb(255, ${Math.floor(255 * ratio)}, ${Math.floor(100 * ratio)})`;
 
     const icon = L.divIcon({
         className: 'custom-marker',
@@ -238,7 +325,7 @@ function processGuess(guess) {
     row.innerHTML = `<span>${guess.name}</span> <span>${dist.toFixed(1)} ק"מ <span style="display:inline-block; transform:rotate(${bearing}deg)">⬆️</span></span>`;
     document.getElementById('feedback').prepend(row);
 
-    if (window.innerWidth <= 850) toggleSidebar(false);
+    // Keep screen on phone rule: Do NOT close sidebar automatically here.
     map.flyTo([guess.lat, guess.lon], 10);
 
     if (guess.name === target.name) endGame(true);
@@ -253,13 +340,6 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-function showError(val) {
-    const errorDiv = document.getElementById('errorMsg');
-    errorDiv.classList.add('visible');
-    errorDiv.innerHTML = `היישוב "${val}" לא נמצא ❌`;
-    setTimeout(() => errorDiv.classList.remove('visible'), 3000);
-}
-
 function endGame(win) {
     isGameOver = true;
     closeConfirm();
@@ -272,8 +352,12 @@ function endGame(win) {
     map.flyTo([target.lat, target.lon], 12);
 }
 
-function toggleSidebar(open) {
-    document.getElementById('sidebar').classList.toggle('open', open);
+function toggleSidebar(forceOpen) {
+    sidebar.classList.add('transitioning');
+    sidebar.style.transform = '';
+    if (forceOpen === true) sidebar.classList.add('open');
+    else if (forceOpen === false) sidebar.classList.remove('open');
+    else sidebar.classList.toggle('open');
 }
 
 function setupUI() {
