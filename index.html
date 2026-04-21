@@ -1,13 +1,6 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="he">
 <head>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SF4RWN0R10"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-SF4RWN0R10');
-    </script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -51,19 +44,29 @@
             border-radius: 10px; margin: -15px auto 15px auto; padding: 10px 0; background-clip: content-box;
         }
 
-        /* Fixed Autocorrect UI */
-        .error-container { min-height: 20px; margin-top: 5px; margin-bottom: 5px; }
-        #errorMsg { 
-            width: 100%; min-height: 0; color: #fff; font-size: 14px; opacity: 0; 
-            text-align: center; font-weight: bold; border-radius: 12px;
-            transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: center; pointer-events: none;
-            padding: 0;
-        }
-        #errorMsg.visible { opacity: 1; background: rgba(244, 67, 54, 0.35); border: 1px solid var(--accent); padding: 8px; pointer-events: auto;}
-        #errorMsg.suggestion-active { background: rgba(46, 204, 113, 0.2); border-color: var(--success); }
-        .suggestion-link { text-decoration: none; color: var(--gold); display: inline-block; margin-top: 5px; cursor: pointer; padding: 3px 10px; background: rgba(255,255,255,0.1); border-radius: 6px; }
+        /* Input Wrapper for Absolute Positioning of Error */
+        .input-group { position: relative; margin-top: 20px; display: flex; flex-direction: column; }
 
-        .shake { animation: shake 0.4s both; border: 1px solid var(--accent) !important; }
+        /* Error Message Floating ABOVE the text box */
+        .error-container { 
+            position: absolute; bottom: 100%; left: 0; right: 0; 
+            margin-bottom: 10px; z-index: 10; pointer-events: none;
+        }
+        
+        #errorMsg { 
+            width: 100%; color: #fff; font-size: 14px; opacity: 0; 
+            text-align: center; font-weight: bold; border-radius: 12px;
+            transition: all 0.3s ease; transform: translateY(10px);
+            display: flex; flex-direction: column; justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        #errorMsg.visible { opacity: 1; background: rgba(211, 47, 47, 0.95); border: 1px solid var(--accent); padding: 10px; pointer-events: auto; transform: translateY(0); }
+        #errorMsg.suggestion-active { background: rgba(46, 204, 113, 0.95); border-color: var(--success); }
+        
+        .suggestion-link { text-decoration: underline; color: var(--gold); display: inline-block; margin-top: 5px; cursor: pointer; font-weight: 900; }
+
+        .shake { animation: shake 0.4s both; border: 1.5px solid var(--accent) !important; }
         @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
 
         /* Marker Styles */
@@ -82,22 +85,26 @@
         }
         #setup-overlay { background: radial-gradient(circle at center, #1a2a6c, #000); }
         #how-to-play-overlay, #confirm-overlay { background: rgba(0,0,0,0.9); display: none; }
+        
         .game-logo { font-size: clamp(40px, 10vw, 80px); font-weight: 900; letter-spacing: 8px; margin-bottom: 5px; background: linear-gradient(to bottom, #fff, #bdc3c7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .stats-card { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 20px; border-radius: 20px; margin-bottom: 10px; text-align: center; }
         .life-container { display: flex; justify-content: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
         .life-circle { width: 14px; height: 14px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 10px var(--gold); transition: 0.4s; }
         .life-circle.lost { background: rgba(255,255,255,0.1); box-shadow: none; transform: scale(0.7); }
+        
         .btn-main { padding: 16px; background: var(--accent); color: white; border: none; border-radius: 15px; cursor: pointer; font-weight: bold; font-size: 18px; width: 100%; margin-top: 10px; }
         .btn-secondary { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: white; }
         
-        /* Layout fix for buttons */
+        /* Side-by-side Button Row */
         .action-row { display: flex; gap: 10px; margin-top: 10px; }
         .btn-guess { flex: 2; margin-top: 0; }
         .btn-giveup { flex: 1; margin-top: 0; }
 
         input { padding:18px; border-radius:15px; border:1px solid transparent; background: rgba(255,255,255,0.15); font-size: 17px; color: white; width: 100%; box-sizing: border-box; outline: none; }
+        
         #feedback { margin-top: 20px; flex: 1; padding-bottom: 40px; }
         .guess-row { padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; margin-bottom: 8px; color: #000; font-size: 14px; }
+        
         .modal { background: white; padding: 30px; border-radius: 25px; width: 85%; max-width: 400px; color: #333; }
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
         .stat-val { font-size: 20px; font-weight: 900; color: var(--primary); display: block; }
@@ -156,19 +163,20 @@
         <div class="life-container" id="lifePoints"></div>
     </div>
 
-    <div style="display:flex; flex-direction:column; gap:0;">
-        <input type="text" id="cityInput" placeholder="הקלד שם יישוב..." list="cityList" autocomplete="off" onkeypress="if(event.key === 'Enter') makeGuess()">
-        <datalist id="cityList"></datalist>
-        
+    <div class="input-group">
         <div class="error-container">
             <div id="errorMsg"></div>
         </div>
 
+        <input type="text" id="cityInput" placeholder="הקלד שם יישוב..." list="cityList" autocomplete="off" onkeypress="if(event.key === 'Enter') makeGuess()">
+        <datalist id="cityList"></datalist>
+        
         <div class="action-row">
             <button id="submitBtn" class="btn-main btn-guess" onclick="makeGuess()">ניחוש 🚀</button>
             <button id="giveUpBtn" class="btn-main btn-secondary btn-giveup" onclick="showConfirm()">ויתור 🏳️</button>
         </div>
     </div>
+
     <div id="feedback"></div>
 </div>
 
