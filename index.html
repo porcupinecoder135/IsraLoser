@@ -51,19 +51,19 @@
             border-radius: 10px; margin: -15px auto 15px auto; padding: 10px 0; background-clip: content-box;
         }
 
-        /* Error UI & Autocorrect */
-        .error-container { min-height: 50px; margin-bottom: 5px; }
+        /* Fixed Autocorrect UI */
+        .error-container { min-height: 20px; margin-top: 5px; margin-bottom: 5px; }
         #errorMsg { 
-            width: 100%; min-height: 40px; color: #fff; font-size: 14px; opacity: 0; 
-            text-align: center; font-weight: bold; background: rgba(255, 255, 255, 0.05); 
-            border: 1px solid rgba(255, 255, 255, 0.1); padding: 5px; border-radius: 12px;
+            width: 100%; min-height: 0; color: #fff; font-size: 14px; opacity: 0; 
+            text-align: center; font-weight: bold; border-radius: 12px;
             transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: center; pointer-events: none;
+            padding: 0;
         }
-        #errorMsg.visible { opacity: 1; background: rgba(244, 67, 54, 0.35); border-color: var(--accent); pointer-events: auto;}
+        #errorMsg.visible { opacity: 1; background: rgba(244, 67, 54, 0.35); border: 1px solid var(--accent); padding: 8px; pointer-events: auto;}
         #errorMsg.suggestion-active { background: rgba(46, 204, 113, 0.2); border-color: var(--success); }
         .suggestion-link { text-decoration: none; color: var(--gold); display: inline-block; margin-top: 5px; cursor: pointer; padding: 3px 10px; background: rgba(255,255,255,0.1); border-radius: 6px; }
 
-        .shake { animation: shake 0.4s both; }
+        .shake { animation: shake 0.4s both; border: 1px solid var(--accent) !important; }
         @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
 
         /* Marker Styles */
@@ -75,13 +75,13 @@
             box-shadow: 0 3px 10px rgba(0,0,0,0.2); border: 2px solid transparent; margin-bottom: 4px;
         }
 
-        #setup-overlay, #how-to-play-overlay, #victory-overlay { 
+        #setup-overlay, #how-to-play-overlay, #victory-overlay, #confirm-overlay { 
             position: fixed; inset: 0; z-index: 3000; display: flex; 
             flex-direction: column; justify-content: center; align-items: center; 
             color: white; text-align: center; backdrop-filter: blur(5px);
         }
         #setup-overlay { background: radial-gradient(circle at center, #1a2a6c, #000); }
-        #how-to-play-overlay { background: rgba(0,0,0,0.9); display: none; }
+        #how-to-play-overlay, #confirm-overlay { background: rgba(0,0,0,0.9); display: none; }
         .game-logo { font-size: clamp(40px, 10vw, 80px); font-weight: 900; letter-spacing: 8px; margin-bottom: 5px; background: linear-gradient(to bottom, #fff, #bdc3c7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .stats-card { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 20px; border-radius: 20px; margin-bottom: 10px; text-align: center; }
         .life-container { display: flex; justify-content: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
@@ -89,6 +89,12 @@
         .life-circle.lost { background: rgba(255,255,255,0.1); box-shadow: none; transform: scale(0.7); }
         .btn-main { padding: 16px; background: var(--accent); color: white; border: none; border-radius: 15px; cursor: pointer; font-weight: bold; font-size: 18px; width: 100%; margin-top: 10px; }
         .btn-secondary { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: white; }
+        
+        /* Layout fix for buttons */
+        .action-row { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-guess { flex: 2; margin-top: 0; }
+        .btn-giveup { flex: 1; margin-top: 0; }
+
         input { padding:18px; border-radius:15px; border:1px solid transparent; background: rgba(255,255,255,0.15); font-size: 17px; color: white; width: 100%; box-sizing: border-box; outline: none; }
         #feedback { margin-top: 20px; flex: 1; padding-bottom: 40px; }
         .guess-row { padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; margin-bottom: 8px; color: #000; font-size: 14px; }
@@ -113,6 +119,15 @@
     <div style="display:flex; flex-direction:column; gap:10px; width: 260px;">
         <button class="btn-main" onclick="startGame()">התחילו אתגר 🛰️</button>
         <button class="btn-main btn-secondary" onclick="toggleInstructions(true)">איך משחקים? 📖</button>
+    </div>
+</div>
+
+<div id="confirm-overlay">
+    <div class="modal">
+        <h3>האם לוותר על האתגר?</h3>
+        <p>הפסד יירשם והמיקום ייחשף.</p>
+        <button class="btn-main" onclick="endGame(false, attempts)">כן, לוותר 🏳️</button>
+        <button class="btn-main btn-secondary" style="color:#333; border-color:#ccc" onclick="closeConfirm()">חזרה למשחק</button>
     </div>
 </div>
 
@@ -141,15 +156,18 @@
         <div class="life-container" id="lifePoints"></div>
     </div>
 
-    <div class="error-container">
-        <div id="errorMsg"></div>
-    </div>
-
-    <div style="display:flex; flex-direction:column; gap:10px;">
+    <div style="display:flex; flex-direction:column; gap:0;">
         <input type="text" id="cityInput" placeholder="הקלד שם יישוב..." list="cityList" autocomplete="off" onkeypress="if(event.key === 'Enter') makeGuess()">
         <datalist id="cityList"></datalist>
-        <button id="submitBtn" class="btn-main" onclick="makeGuess()">ניחוש 🚀</button>
-        <button id="giveUpBtn" class="btn-main btn-secondary" onclick="giveUp()">ויתור 🏳️</button>
+        
+        <div class="error-container">
+            <div id="errorMsg"></div>
+        </div>
+
+        <div class="action-row">
+            <button id="submitBtn" class="btn-main btn-guess" onclick="makeGuess()">ניחוש 🚀</button>
+            <button id="giveUpBtn" class="btn-main btn-secondary btn-giveup" onclick="showConfirm()">ויתור 🏳️</button>
+        </div>
     </div>
     <div id="feedback"></div>
 </div>
@@ -215,6 +233,8 @@ const map = L.map('map', { zoomControl: false, attributionControl: false }).setV
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
 
 function toggleInstructions(show) { document.getElementById('how-to-play-overlay').style.display = show ? 'flex' : 'none'; }
+function showConfirm() { if(!isGameOver) document.getElementById('confirm-overlay').style.display = 'flex'; }
+function closeConfirm() { document.getElementById('confirm-overlay').style.display = 'none'; }
 
 function toggleSidebar(forceOpen) {
     sidebar.classList.add('transitioning');
@@ -229,7 +249,6 @@ function getDailyKey() {
     return `v5-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 }
 
-// Levenshtein Logic for Autocorrect
 function getLevenshteinDistance(a, b) {
     const matrix = [];
     for (let i = 0; i <= b.length; i++) matrix[i] = [i];
@@ -402,6 +421,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 function endGame(win, remaining, alreadyProcessed = false) {
     isGameOver = true;
+    closeConfirm();
     document.getElementById('cityInput').disabled = true;
     document.getElementById('submitBtn').disabled = true;
 
@@ -438,7 +458,7 @@ function endGame(win, remaining, alreadyProcessed = false) {
 }
 
 function hideOverlay() { document.getElementById('victory-overlay').style.display = 'none'; }
-function giveUp() { if(!isGameOver) endGame(false, attempts); }
+function giveUp() { if(!isGameOver) showConfirm(); }
 window.onload = loadData;
 </script>
 </body>
