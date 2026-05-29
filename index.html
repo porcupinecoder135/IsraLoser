@@ -188,7 +188,6 @@
             <li>יש לכם 10 ניסיונות.</li>
             <hr style="opacity:0.2; margin: 10px 0;">
             <li><b>🔮 מערכת רמזים סודית (ללא הורדת ניסיונות!):</b></li>
-            <li>מתחת ל-20 ק"מ: ייחשף מספר האותיות 📏</li>
             <li>מתחת ל-15 ק"מ: כפתור רמז לחשיפת השכן הקרוב ביותר 🏡</li>
             <li>מתחת ל-10 ק"מ: כפתור רמז לבחירה מתוך 5 יישובים קרובים ומטעים 🧩</li>
         </ul>
@@ -246,9 +245,7 @@ let attempts = 10;
 let isGameOver = false;
 let errorTimeout;
 
-// מעקב מורחב אחרי סטטוס רמזים
 let unlockedClues = { 
-    lettersCount: false, 
     closestNeighborEligible: false, closestNeighborUsed: false,
     fiveOptionsEligible: false, fiveOptionsUsed: false
 };
@@ -260,7 +257,6 @@ const extraExclusions = ["פוריידיס", "איכסאל", "נחף", "כאוכ
 const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([31.5, 34.8], 8);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
 
-// SWIPE LOGIC
 let touchStartY = 0;
 let currentTranslateY = 0;
 const sidebar = document.getElementById('sidebar');
@@ -455,7 +451,6 @@ function getClosestNeighbor(targetCity) {
     return closest ? closest.name : "לא נמצא";
 }
 
-// פונקציה לייצור 5 אפשרויות קרובות באותו אזור גיאוגרפי (כולל היעד)
 function generateFiveRegionalOptions() {
     let listWithDistances = allCities
         .filter(c => c.name !== target.name)
@@ -464,31 +459,20 @@ function generateFiveRegionalOptions() {
             dist: calculateDistance(target.lat, target.lon, c.lat, c.lon)
         }));
     
-    // מיון לפי הקרובים ביותר כדי לקבל יישובים מאותו אזור גיאוגרפי
     listWithDistances.sort((a,b) => a.dist - b.dist);
     
-    // לקיחת 4 יישובים קרובים ומערבבים אותם עם היעד האמיתי
-    let options = listWithDistances.slice(0, 4).map(o => o.name);
+    // מוציאים את הכי קרוב (זה שבאינדקס 0) ובוחרים 4 הבאים אחריו
+    let options = listWithDistances.slice(1, 5).map(o => o.name);
     options.push(target.name);
     
-    // ערבוב סופי בסגנון שנדרש
     return options.sort(() => Math.random() - 0.5);
 }
 
-// עדכון ממשק רמזים מלא בדופמין ואינטראקטיבי
 function updateCluesUI() {
     const box = document.getElementById('clues-box');
     box.innerHTML = `<b style="font-size:15px; color:#fff; margin-bottom:4px; display:block; text-shadow: 0 0 5px var(--purple);">🔮 מרכז הרמזים הסודי:</b>`;
     let hasAnyClue = false;
 
-    // רמז 1: אורך האותיות (מתחת ל-20 ק"מ)
-    if (unlockedClues.lettersCount) {
-        const lettersOnly = target.name.replace(/[\s-]/g, '');
-        box.innerHTML += `<div style="font-size:13px; font-weight:600; color:var(--gold); margin-bottom:5px;">📏 אורך שם היישוב: ${lettersOnly.length} אותיות</div>`;
-        hasAnyClue = true;
-    }
-
-    // רמז 2: השכן הקרוב ביותר (מתחת ל-15 ק"מ) - כפתור אינטראקטיבי ללא הורדת פסילה
     if (unlockedClues.closestNeighborEligible) {
         hasAnyClue = true;
         if (!unlockedClues.closestNeighborUsed) {
@@ -498,7 +482,6 @@ function updateCluesUI() {
         }
     }
 
-    // רמז 3: 5 אפשרויות קרובות באותו אזור (מתחת ל-10 ק"מ) - פותח מודל בחירה
     if (unlockedClues.fiveOptionsEligible) {
         hasAnyClue = true;
         if (!unlockedClues.fiveOptionsUsed) {
@@ -517,7 +500,6 @@ function useClosestNeighborClue() {
     updateCluesUI();
     
     const neighborName = getClosestNeighbor(target);
-    // הרצת הניחוש המיוחד ללא הורדת ניסיונות (שליחת פרמטר מיוחד true בסוף)
     processGuess(neighborName, false, true); 
 }
 
@@ -535,7 +517,7 @@ function openFiveOptionsModal() {
             unlockedClues.fiveOptionsUsed = true;
             document.getElementById('clue-modal-overlay').style.display = 'none';
             updateCluesUI();
-            processGuess(opt, false, true); // שליחה כניחוש מיוחד בחינם
+            processGuess(opt, false, true);
         };
         container.appendChild(btn);
     });
@@ -543,12 +525,10 @@ function openFiveOptionsModal() {
     document.getElementById('clue-modal-overlay').style.display = 'flex';
 }
 
-// עדכון פונקציית העיבוד המרכזית עם תמיכה בניחוש מיוחד (isClueGuess)
 function processGuess(cityName, isRestoring = false, isClueGuess = false) {
     let guess = allCities.find(c => c.name === cityName);
     if (!guess) return;
 
-    // הפחתת חיים רק אם זה אינו רמז חינמי מיוחד
     if (!isClueGuess) {
         attempts--;
         const lifeCircle = document.getElementById(`life-${attempts}`);
@@ -560,13 +540,10 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
     const ratio = Math.pow(Math.min(dist / 150, 1), 0.35);
     const color = `rgb(255, ${Math.floor(255 * ratio)}, ${Math.floor(100 * ratio)})`;
 
-    // עדכון תנאי פתיחת הרמזים החדשים לפי מרחק
-    if (dist <= 20) unlockedClues.lettersCount = true;
     if (dist <= 15) unlockedClues.closestNeighborEligible = true;
     if (dist <= 10) unlockedClues.fiveOptionsEligible = true;
     updateCluesUI();
 
-    // יצירת מרקר במפה
     let markerHtml = ``;
     if(isClueGuess) {
         markerHtml = `<div class="marker-bubble" style="border-color:var(--purple); background:#f8efff; color:var(--purple);"><div>✨ רמז: ${guess.name}</div><div style="font-size:10px">${dist.toFixed(1)} ק"מ <span style="display:inline-block; transform:rotate(${bearing}deg)">⬆️</span></div></div><div class="marker-dot" style="background-color:var(--purple)"></div>`;
@@ -581,7 +558,6 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
     });
     L.marker([guess.lat, guess.lon], { icon: icon }).addTo(map);
     
-    // יצירת שורה בפידבק
     const row = document.createElement('div');
     if (isClueGuess) {
         row.className = 'guess-row special-clue';
@@ -596,7 +572,6 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
     document.getElementById('feedback').prepend(row);
 
     if (!isRestoring) {
-        // רמזים חינמיים לא נרשמים תחת היסטוריית הניחושים המענישה
         if(!isClueGuess) saveProgress(cityName);
         const sidebarPadding = window.innerWidth > 850 ? [400, 0] : [0, 0];
         map.flyTo([guess.lat, guess.lon], 11, {
