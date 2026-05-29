@@ -498,18 +498,18 @@ function openCluesHub() {
     if (!unlockedClues.eligible) {
         explanation.innerHTML = `🔒 <b>מרכז הרמזים נעול!</b><br>הרמזים ייפתחו אוטומטית ברגע שתצליחו לנחש יישוב שנמצא <b>במרחק של 10 ק"מ או פחות</b> מהיעד הסודי.`;
     } else {
-        explanation.innerHTML = `🎉 <b>כל הכבוד! הגעתם אל מתחת ל-10 ק"מ!</b><br>בזכות הקרבה המטורפת שלכם ליעד, שני הרמזים הבאים פתוחים בפניכם ללא עלות ניסיונות:`;
+        explanation.innerHTML = `🎉 <b>כל הכבוד! הגעתם אל מתחת ל-10 ק"מ!</b><br>בזכות הקרבה שלכם ליעד, שני הרמזים הבאים פתוחים בפניכם :`;
         
         // רמז 1: שכן קרוב
         if (!unlockedClues.closestNeighborUsed) {
-            container.innerHTML += `<button class="clue-btn" onclick="useClosestNeighborClue()">🏡 השכן הקרוב ביותר (חינם)</button>`;
+            container.innerHTML += `<button class="clue-btn" onclick="useClosestNeighborClue()">🏡 השכן הקרוב ביותר</button>`;
         } else {
             container.innerHTML += `<button class="clue-btn used" disabled>🏡 רמז השכן הקרוב כבר נוצל ✅</button>`;
         }
 
         // רמז 2: 1 מתוך 5
         if (!unlockedClues.fiveOptionsUsed) {
-            container.innerHTML += `<button class="clue-btn" style="background: linear-gradient(45deg, #00cec9, #0984e3);" onclick="openFiveOptionsModal()">🧩 1 מתוך 5 אפשרויות (חינם)</button>`;
+            container.innerHTML += `<button class="clue-btn" style="background: linear-gradient(45deg, #00cec9, #0984e3);" onclick="openFiveOptionsModal()">🧩 1 מתוך 5 אפשרויות (</button>`;
         } else {
             container.innerHTML += `<button class="clue-btn used" disabled>🧩 רמז 5 האפשרויות כבר נוצל ✅</button>`;
         }
