@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="he">
 <head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SF4RWN0R10"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-SF4RWN0R10');
+    </script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -25,8 +32,8 @@
 
         #sidebar { 
             width: var(--sidebar-width); height: 100vh; background: var(--dark); 
-            box-shadow: 5px 0 15px rgba(0,0,0,0.2); padding: 30px; 
-            box-sizing: border-box; z-index: 1001; overflow-y: auto; 
+            box-shadow: 5px 0 15px rgba(0,0,0,0.2); padding: 20px; 
+            box-sizing: border-box; z-index: 2100; overflow-y: auto; 
             display: flex; flex-direction: column; color: white;
             transition: transform 0.3s ease-out;
         }
@@ -34,86 +41,66 @@
         #map { flex: 1; height: 100vh; background: #cad7d0; z-index: 1; }
 
         #mobile-toggle {
-            display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            display: none; position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
             z-index: 2005; background: var(--dark); color: white; border: 2px solid var(--accent);
             padding: 12px 35px; border-radius: 30px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
         .swipe-handle {
-            display: block; width: 50px; height: 6px; background: rgba(255,255,255,0.3);
-            border-radius: 10px; margin: -15px auto 15px auto; padding: 10px 0; background-clip: content-box;
+            display: none; width: 50px; height: 6px; background: rgba(255,255,255,0.3);
+            border-radius: 10px; margin: -5px auto 15px auto; padding: 10px 0; background-clip: content-box;
         }
 
-        /* Input Wrapper for Absolute Positioning of Error */
-        .input-group { position: relative; margin-top: 20px; display: flex; flex-direction: column; }
-
-        /* Error Message Floating ABOVE the text box */
-        .error-container { 
-            position: absolute; bottom: 100%; left: 0; right: 0; 
-            margin-bottom: 10px; z-index: 10; pointer-events: none;
-        }
-        
+        .error-container { min-height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
         #errorMsg { 
-            width: 100%; color: #fff; font-size: 14px; opacity: 0; 
-            text-align: center; font-weight: bold; border-radius: 12px;
-            transition: all 0.3s ease; transform: translateY(10px);
-            display: flex; flex-direction: column; justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            width: 100%; min-height: 45px; color: #fff; font-size: 14px; opacity: 0; 
+            text-align: center; font-weight: bold; background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px; border-radius: 12px;
+            transition: all 0.3s ease; transform: translateY(5px);
+            display: flex; flex-direction: column; justify-content: center; pointer-events: none;
         }
+        #errorMsg.visible { opacity: 1; transform: translateY(0); background: rgba(244, 67, 54, 0.35); border-color: var(--accent); pointer-events: auto;}
+        #errorMsg.suggestion-active { background: rgba(46, 204, 113, 0.2); border-color: var(--success); }
+        #errorMsg.hint-active { background: rgba(26, 42, 108, 0.8); border-color: var(--gold); }
+        .suggestion-link { text-decoration: none; color: var(--gold); display: inline-block; margin-top: 5px; cursor: pointer; padding: 3px 10px; background: rgba(255,255,255,0.1); border-radius: 6px; }
 
-        #errorMsg.visible { opacity: 1; background: rgba(211, 47, 47, 0.95); border: 1px solid var(--accent); padding: 10px; pointer-events: auto; transform: translateY(0); }
-        #errorMsg.suggestion-active { background: rgba(46, 204, 113, 0.95); border-color: var(--success); }
-        
-        .suggestion-link { text-decoration: underline; color: var(--gold); display: inline-block; margin-top: 5px; cursor: pointer; font-weight: 900; }
-
-        .shake { animation: shake 0.4s both; border: 1.5px solid var(--accent) !important; }
+        .shake { animation: shake 0.4s both; border: 2px solid var(--accent) !important; }
         @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
 
-        /* Marker Styles */
+        .stats-card { text-align: center; margin-bottom: 10px; }
+        .life-container { display: flex; justify-content: center; gap: 6px; margin-top: 5px; }
+        .life-circle { width: 10px; height: 10px; background: var(--gold); border-radius: 50%; transition: 0.3s; }
+        .life-circle.lost { background: rgba(255,255,255,0.1); transform: scale(0.7); box-shadow: none; }
+
+        .btn-main { padding: 15px; background: var(--accent); color: white; border: none; border-radius: 15px; cursor: pointer; font-weight: bold; font-size: 16px; width: 100%; margin-top: 8px; }
+        .btn-secondary { background: #555; margin-top: 5px; }
+        input { padding: 15px; border: 2px solid rgba(255,255,255,0.2); border-radius:15px; background: rgba(255,255,255,0.1); font-size: 16px; color: white; width: 100%; box-sizing: border-box; outline: none; }
+
         .custom-marker { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; }
-        .marker-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 8px rgba(0,0,0,0.5); }
+        .marker-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 8px rgba(0,0,0,0.5); z-index: 2; }
         .marker-bubble {
-            background: white; color: #222; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 900;
+            background: white; color: #222; padding: 5px 10px; border-radius: 10px; font-size: 12px; font-weight: 900;
             white-space: nowrap; display: flex; flex-direction: column; align-items: center;
             box-shadow: 0 3px 10px rgba(0,0,0,0.2); border: 2px solid transparent; margin-bottom: 4px;
         }
 
-        #setup-overlay, #how-to-play-overlay, #victory-overlay, #confirm-overlay { 
-            position: fixed; inset: 0; z-index: 3000; display: flex; 
-            flex-direction: column; justify-content: center; align-items: center; 
-            color: white; text-align: center; backdrop-filter: blur(5px);
-        }
+        #setup-overlay, #how-to-play-overlay, #victory-overlay, #confirm-overlay { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; backdrop-filter: blur(8px); }
         #setup-overlay { background: radial-gradient(circle at center, #1a2a6c, #000); }
-        #how-to-play-overlay, #confirm-overlay { background: rgba(0,0,0,0.9); display: none; }
+        #how-to-play-overlay, #confirm-overlay { background: rgba(0,0,0,0.85); display: none; }
         
-        .game-logo { font-size: clamp(40px, 10vw, 80px); font-weight: 900; letter-spacing: 8px; margin-bottom: 5px; background: linear-gradient(to bottom, #fff, #bdc3c7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .stats-card { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 20px; border-radius: 20px; margin-bottom: 10px; text-align: center; }
-        .life-container { display: flex; justify-content: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-        .life-circle { width: 14px; height: 14px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 10px var(--gold); transition: 0.4s; }
-        .life-circle.lost { background: rgba(255,255,255,0.1); box-shadow: none; transform: scale(0.7); }
-        
-        .btn-main { padding: 16px; background: var(--accent); color: white; border: none; border-radius: 15px; cursor: pointer; font-weight: bold; font-size: 18px; width: 100%; margin-top: 10px; }
-        .btn-secondary { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: white; }
-        
-        /* Side-by-side Button Row */
-        .action-row { display: flex; gap: 10px; margin-top: 10px; }
-        .btn-guess { flex: 2; margin-top: 0; }
-        .btn-giveup { flex: 1; margin-top: 0; }
-
-        input { padding:18px; border-radius:15px; border:1px solid transparent; background: rgba(255,255,255,0.15); font-size: 17px; color: white; width: 100%; box-sizing: border-box; outline: none; }
-        
-        #feedback { margin-top: 20px; flex: 1; padding-bottom: 40px; }
-        .guess-row { padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; margin-bottom: 8px; color: #000; font-size: 14px; }
-        
-        .modal { background: white; padding: 30px; border-radius: 25px; width: 85%; max-width: 400px; color: #333; }
+        .modal { background: white; padding: 25px; border-radius: 25px; width: 85%; max-width: 350px; color: #333; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
         .stat-val { font-size: 20px; font-weight: 900; color: var(--primary); display: block; }
         .stat-lbl { font-size: 11px; color: #777; }
 
+        #feedback { flex: 1; overflow-y: auto; margin-top: 15px; display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px;}
+        .guess-row { padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; color: #000; font-size: 14px; flex-shrink: 0; }
+
         @media (max-width: 850px) {
-            #sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70vh; transform: translateY(100%); border-radius: 30px 30px 0 0; z-index: 2100; transition: transform 0.1s linear; }
+            #sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 65vh; transform: translateY(100%); border-radius: 25px 25px 0 0; transition: transform 0.1s linear; }
             #sidebar.open { transform: translateY(0); }
             #sidebar.transitioning { transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1); }
+            .swipe-handle { display: block; }
             #mobile-toggle { display: block; }
         }
     </style>
@@ -121,20 +108,20 @@
 <body>
 
 <div id="setup-overlay">
-    <div class="game-logo">ISRAMASTER</div>
-    <p style="margin-bottom: 30px; font-size: 18px; opacity: 0.9;">האתגר הגיאוגרפי היומי של ישראל</p>
-    <div style="display:flex; flex-direction:column; gap:10px; width: 260px;">
-        <button class="btn-main" onclick="startGame()">התחילו אתגר 🛰️</button>
-        <button class="btn-main btn-secondary" onclick="toggleInstructions(true)">איך משחקים? 📖</button>
+    <div style="font-size: 45px; font-weight: 900; letter-spacing: 4px;">ISRAMASTER</div>
+    <p style="margin-bottom: 30px; opacity: 0.8;">האתגר הגיאוגרפי היומי</p>
+    <div style="width: 260px; display: flex; flex-direction: column; gap: 10px;">
+        <button class="btn-main" onclick="startGame()">שחקו עכשיו 🛰️</button>
+        <button class="btn-main btn-secondary" onclick="toggleInstructions(true)">איך משחקים?</button>
     </div>
 </div>
 
 <div id="confirm-overlay">
     <div class="modal">
-        <h3>האם לוותר על האתגר?</h3>
+        <h3>לוותר על האתגר?</h3>
         <p>הפסד יירשם והמיקום ייחשף.</p>
         <button class="btn-main" onclick="endGame(false, attempts)">כן, לוותר 🏳️</button>
-        <button class="btn-main btn-secondary" style="color:#333; border-color:#ccc" onclick="closeConfirm()">חזרה למשחק</button>
+        <button class="btn-main btn-secondary" style="color:#fff; border:1px solid #777" onclick="closeConfirm()">חזרה למשחק</button>
     </div>
 </div>
 
@@ -142,39 +129,34 @@
     <div class="modal">
         <h2 style="margin-top:0">איך משחקים?</h2>
         <ul style="text-align: right; line-height: 1.6; padding-right: 20px;">
-            <li>עליכם לנחש בדיוק את <b>שם היישוב המסתורי</b>.</li>
-            <li>בכל ניחוש תקבלו מרחק וכיוון ליעד.</li>
-            <li>הצבע משתנה: אדום קרוב, צהוב רחוק.</li>
-            <li>רק ניחוש של השם המדויק יזכה אתכם בניצחון!</li>
+            <li>נחשו את <b>היישוב המסתורי</b>.</li>
+            <li>הצבע משתנה לפי המרחק (אדום = קרוב, צהוב = רחוק).</li>
+            <li>החץ מראה את <b>הכיוון</b> ליישוב.</li>
+            <li>יש לכם 10 ניסיונות.</li>
         </ul>
         <button class="btn-main" onclick="toggleInstructions(false)">הבנתי!</button>
     </div>
 </div>
 
-<button id="mobile-toggle" onclick="toggleSidebar(true)">ניחושים 📊</button>
+<button id="mobile-toggle" onclick="toggleSidebar(true)">ניחוש 📊</button>
 
 <div id="sidebar">
     <div class="swipe-handle" id="swipeHandle"></div>
-    <div style="text-align: center; margin-bottom: 10px;">
-        <h2 style="margin:0; font-size: 24px; letter-spacing: 2px;">ISRAMASTER</h2>
-    </div>
     <div class="stats-card">
-        <div style="font-size: 11px; opacity: 0.7; margin-bottom: 5px;">ניסיונות נותרים</div>
+        <h3 style="margin:0; letter-spacing: 2px;">ISRAMASTER</h3>
         <div class="life-container" id="lifePoints"></div>
     </div>
-
-    <div class="input-group">
-        <div class="error-container">
-            <div id="errorMsg"></div>
-        </div>
-
-        <input type="text" id="cityInput" placeholder="הקלד שם יישוב..." list="cityList" autocomplete="off" onkeypress="if(event.key === 'Enter') makeGuess()">
-        <datalist id="cityList"></datalist>
-        
-        <div class="action-row">
-            <button id="submitBtn" class="btn-main btn-guess" onclick="makeGuess()">ניחוש 🚀</button>
-            <button id="giveUpBtn" class="btn-main btn-secondary btn-giveup" onclick="showConfirm()">ויתור 🏳️</button>
-        </div>
+    
+    <div class="error-container">
+        <div id="errorMsg"></div>
+    </div>
+    
+    <input type="text" id="cityInput" placeholder="שם היישוב..." list="cityList" autocomplete="off" onkeypress="if(event.key === 'Enter') makeGuess()" oninput="clearErrorOnType()">
+    <datalist id="cityList"></datalist>
+    
+    <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button id="submitBtn" class="btn-main" style="margin-top:0; flex: 2;" onclick="makeGuess()">ניחוש 🚀</button>
+        <button id="giveUpBtn" class="btn-main btn-secondary" style="margin-top:0; flex: 1;" onclick="showConfirm()">🏳️</button>
     </div>
 
     <div id="feedback"></div>
@@ -192,7 +174,7 @@
             <div class="stat-item"><span class="stat-val" id="st-streak">0</span><span class="stat-lbl">רצף</span></div>
             <div class="stat-item"><span class="stat-val" id="st-avg">0</span><span class="stat-lbl">ממוצע</span></div>
         </div>
-        <button class="btn-main" style="background: var(--dark);" onclick="hideOverlay()">חזרה למפה 🗺️</button>
+        <button class="btn-main" style="background: var(--dark);" onclick="hideOverlay()">סגירת מפה 🗺️</button>
     </div>
 </div>
 
@@ -203,6 +185,13 @@ let target;
 let attempts = 10;
 let isGameOver = false;
 let errorTimeout;
+
+const approvedArabCities = ["אום אל-פחם", "באקה אל-גרבייה", "ג'לג'וליה", "נצרת", "סח'נין", "רהט", "שפרעם"];
+const excludeKeywords = ["כפר", "אבו", "עין", "דיר", "משהד", "מג'ד", "חורפיש", "בועיינה", "יאנוח", "ג'ת", "ירכא", "ראמה", "ג'ש", "ביר", "חמאם", "אחסם", "שעב", "דבוריה", "טורעאן", "כאבול", "זמר", "פוריידיס", "ג'סר", "ריינה", "עילוט", "מזרעה", "כסרא", "סמיע", "סאג'ור", "כסלון", "מוקייבלה", "שיבלי", "אום"];
+const extraExclusions = ["פוריידיס", "איכסאל", "נחף", "כאוכב", "ג'לג'וליה", "כפר קאסם", "טירה", "טייבה", "קלנסווה", "ערערה", "חורפיש", "מזרעה", "בוקעאתא", "מג'דל שמס", "מסעדה", "עין קנייה", "לקיה", "תל שבע", "חורה", "כסייפה", "ערערה בנגב", "שגב שלום"];
+
+const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([31.5, 34.8], 8);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
 
 // SWIPE LOGIC
 let touchStartY = 0;
@@ -237,24 +226,88 @@ sidebar.addEventListener('touchend', () => {
     currentTranslateY = 0;
 });
 
-const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([31.5, 34.8], 8);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
+map.on('click', () => { if(window.innerWidth <= 850) toggleSidebar(false); });
 
-function toggleInstructions(show) { document.getElementById('how-to-play-overlay').style.display = show ? 'flex' : 'none'; }
-function showConfirm() { if(!isGameOver) document.getElementById('confirm-overlay').style.display = 'flex'; }
-function closeConfirm() { document.getElementById('confirm-overlay').style.display = 'none'; }
-
-function toggleSidebar(forceOpen) {
-    sidebar.classList.add('transitioning');
-    sidebar.style.transform = '';
-    if (forceOpen === true) sidebar.classList.add('open');
-    else if (forceOpen === false) sidebar.classList.remove('open');
-    else sidebar.classList.toggle('open');
+function getGameDayIndex() {
+    const startDate = new Date(2026, 4, 29); 
+    const today = new Date();
+    startDate.setHours(0,0,0,0);
+    today.setHours(0,0,0,0);
+    const diffTime = Math.abs(today - startDate);
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 }
 
 function getDailyKey() {
     const d = new Date();
-    return `v5-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    return `v7-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+
+async function loadData() {
+    try {
+        const response = await fetch('MapIsrael.geojson');
+        const data = await response.json();
+        
+        allCities = data.features.map(f => ({
+            name: (f.properties["name:he"] || f.properties["name"] || "").trim(),
+            lat: f.geometry.coordinates[1],
+            lon: f.geometry.coordinates[0]
+        })).filter(c => c.name !== "");
+
+        const customSequence = ["קבוצת יבנה", "מפלסים", "מנחמיה", "יבנאל", "כנות", "אזור", "נשר", "בית אורן", "באר אורה"];
+
+        const validTargets = allCities.filter(city => {
+            if (approvedArabCities.includes(city.name)) return true;
+            const isExcludedByKeyword = excludeKeywords.some(kw => city.name.includes(kw));
+            const isExcludedByName = extraExclusions.includes(city.name);
+            return !(isExcludedByKeyword || isExcludedByName);
+        });
+
+        const dayIndex = getGameDayIndex();
+
+        if (dayIndex < customSequence.length) {
+            const nextCityName = customSequence[dayIndex];
+            target = allCities.find(c => c.name === nextCityName);
+            if (!target) {
+                target = validTargets[dayIndex % validTargets.length];
+            }
+        } else {
+            const remainingTargets = validTargets.filter(city => !customSequence.includes(city.name));
+            const seedStr = getDailyKey();
+            let hash = 0;
+            for (let i = 0; i < seedStr.length; i++) hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
+            const seededRandom = Math.abs(Math.sin(hash));
+            
+            target = remainingTargets[Math.floor(seededRandom * remainingTargets.length)];
+        }
+
+        const container = document.getElementById('lifePoints');
+        container.innerHTML = '';
+        for(let i=0; i<10; i++) {
+            const div = document.createElement('div');
+            div.className = 'life-circle';
+            div.id = `life-${9-i}`;
+            container.appendChild(div);
+        }
+        
+        const dl = document.getElementById('cityList');
+        dl.innerHTML = '';
+        [...new Set(allCities.map(c => c.name))].sort().forEach(name => {
+            let o = document.createElement('option'); o.value = name; dl.appendChild(o);
+        });
+
+        restoreGameState();
+    } catch (e) { console.error("Error loading data", e); }
+}
+
+function restoreGameState() {
+    const stats = JSON.parse(localStorage.getItem('israeleStats')) || { history: {} };
+    const today = getDailyKey();
+    if (stats.history && stats.history[today]) {
+        const todayData = stats.history[today];
+        document.getElementById('setup-overlay').style.display = 'none';
+        todayData.guessesToday.forEach(cityName => processGuess(cityName, true));
+        if (todayData.isGameOverToday) endGame(todayData.lastResultWasWin, todayData.lastAttemptsCount, true);
+    }
 }
 
 function getLevenshteinDistance(a, b) {
@@ -270,56 +323,12 @@ function getLevenshteinDistance(a, b) {
     return matrix[b.length][a.length];
 }
 
-async function loadData() {
-    try {
-        const response = await fetch('MapIsrael.geojson');
-        const data = await response.json();
-        allCities = data.features.map(f => ({
-            name: (f.properties["name:he"] || f.properties["name"] || "").trim(),
-            lat: f.geometry.coordinates[1],
-            lon: f.geometry.coordinates[0]
-        })).filter(c => c.name !== "");
-
-        const container = document.getElementById('lifePoints');
-        container.innerHTML = '';
-        for(let i=0; i<10; i++) {
-            const div = document.createElement('div');
-            div.className = 'life-circle';
-            div.id = `life-${9-i}`;
-            container.appendChild(div);
-        }
-
-        const seedStr = getDailyKey();
-        let hash = 0;
-        for (let i = 0; i < seedStr.length; i++) {
-            hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
-            hash |= 0;
-        }
-        const seededRandom = Math.abs(Math.sin(hash));
-        target = allCities[Math.floor(seededRandom * allCities.length)];
-        
-        const dl = document.getElementById('cityList');
-        [...new Set(allCities.map(c => c.name))].sort().forEach(name => {
-            let o = document.createElement('option'); o.value = name; dl.appendChild(o);
-        });
-
-        restoreGameState();
-    } catch (e) { console.error("Error loading data", e); }
-}
-
-function restoreGameState() {
-    const stats = JSON.parse(localStorage.getItem('israeleStats')) || {};
-    const today = getDailyKey();
-    if (stats.lastPlayedDate === today && stats.guessesToday) {
-        document.getElementById('setup-overlay').style.display = 'none';
-        stats.guessesToday.forEach(cityName => processGuess(cityName, true));
-        if (stats.isGameOverToday) endGame(stats.lastResultWasWin, stats.lastAttemptsCount, true);
+function clearErrorOnType() {
+    const errorDiv = document.getElementById('errorMsg');
+    // מונע מהרמז להיעלם תוך כדי הקלדה אם הוא כבר פעיל
+    if (errorDiv.classList.contains('visible') && !errorDiv.classList.contains('hint-active')) {
+        errorDiv.classList.remove('visible');
     }
-}
-
-function startGame() {
-    document.getElementById('setup-overlay').style.opacity = '0';
-    setTimeout(() => document.getElementById('setup-overlay').style.display = 'none', 500);
 }
 
 function makeGuess() {
@@ -340,14 +349,14 @@ function makeGuess() {
             if (getLevenshteinDistance(val, city.name) <= 2) { bestMatch = city.name; break; }
         }
 
-        errorDiv.classList.add('visible');
-        errorDiv.classList.remove('suggestion-active');
+        errorDiv.className = 'visible'; // מאפס קלאסים קודמים ומציג
+        errorDiv.classList.remove('suggestion-active', 'hint-active');
 
         if (bestMatch) {
             errorDiv.classList.add('suggestion-active');
             errorDiv.innerHTML = `האם התכוונת ל:<br><span class="suggestion-link" onclick="applySuggestion('${bestMatch}')">${bestMatch}?</span>`;
         } else {
-            errorDiv.innerHTML = `היישוב לא נמצא ברשימה ❌`;
+            errorDiv.innerHTML = `היישוב לא מופיע במאגר ❌`;
             errorTimeout = setTimeout(() => { errorDiv.classList.remove('visible'); }, 4000);
         }
         return;
@@ -362,6 +371,17 @@ function applySuggestion(name) {
     document.getElementById('cityInput').value = name;
     document.getElementById('errorMsg').classList.remove('visible');
     makeGuess();
+}
+
+function showHint() {
+    const errorDiv = document.getElementById('errorMsg');
+    if (!target) return;
+    
+    const firstLetter = target.name.charAt(0);
+    const letterCount = target.name.replace(/\s+/g, '').length; // ספירת אותיות ללא רווחים
+    
+    errorDiv.className = 'visible hint-active';
+    errorDiv.innerHTML = `💡 רמז: היישוב מתחיל באות <b>"${firstLetter}"</b> ומכיל <b>${letterCount}</b> אותיות.`;
 }
 
 function processGuess(cityName, isRestoring = false) {
@@ -379,15 +399,8 @@ function processGuess(cityName, isRestoring = false) {
 
     const icon = L.divIcon({
         className: 'custom-marker',
-        html: `
-            <div class="marker-bubble" style="border-color:${color}">
-                <div>${guess.name}</div>
-                <div style="font-size:9px">${dist.toFixed(1)} ק"מ <span style="display:inline-block; transform:rotate(${bearing}deg)">⬆️</span></div>
-            </div>
-            <div class="marker-dot" style="background-color:${color}"></div>
-        `,
-        iconSize: [0, 0],
-        iconAnchor: [0, 35]
+        html: `<div class="marker-bubble" style="border-color:${color}"><div>${guess.name}</div><div style="font-size:10px">${dist.toFixed(1)} ק"מ <span style="display:inline-block; transform:rotate(${bearing}deg)">⬆️</span></div></div><div class="marker-dot" style="background-color:${color}"></div>`,
+        iconSize: [0, 0], iconAnchor: [0, 40]
     });
     L.marker([guess.lat, guess.lon], { icon: icon }).addTo(map);
     
@@ -399,8 +412,18 @@ function processGuess(cityName, isRestoring = false) {
 
     if (!isRestoring) {
         saveProgress(cityName);
-        map.flyTo([guess.lat, guess.lon], 11);
-        if (window.innerWidth <= 850) toggleSidebar(true);
+        const sidebarPadding = window.innerWidth > 850 ? [400, 0] : [0, 0];
+        map.flyTo([guess.lat, guess.lon], 11, {
+            paddingTopLeft: sidebarPadding,
+            duration: 1.5
+        });
+
+        // בדיקה האם הניחוש בטווח של 10 ק"מ (והמשחק לא נגמר)
+        if (dist <= 10 && cityName !== target.name) {
+            const errorDiv = document.getElementById('errorMsg');
+            errorDiv.className = 'visible hint-active';
+            errorDiv.innerHTML = `אתה ממש קרוב! (פחות מ-10 ק"מ)<br><span class="suggestion-link" onclick="showHint()">לקבלת רמז 💡</span>`;
+        }
     }
 
     if (cityName === target.name) endGame(true, attempts, isRestoring);
@@ -408,14 +431,12 @@ function processGuess(cityName, isRestoring = false) {
 }
 
 function saveProgress(cityName) {
-    let stats = JSON.parse(localStorage.getItem('israeleStats')) || { played:0, wins:0, streak:0, totalGuesses:0 };
+    let stats = JSON.parse(localStorage.getItem('israeleStats')) || { played:0, wins:0, streak:0, totalGuesses:0, history: {} };
     const today = getDailyKey();
-    if (stats.lastPlayedDate !== today) {
-        stats.lastPlayedDate = today;
-        stats.guessesToday = [];
-        stats.isGameOverToday = false;
-    }
-    stats.guessesToday.push(cityName);
+    if (!stats.history) stats.history = {};
+    if (!stats.history[today]) stats.history[today] = { guessesToday: [], isGameOverToday: false };
+    
+    stats.history[today].guessesToday.push(cityName);
     localStorage.setItem('israeleStats', JSON.stringify(stats));
 }
 
@@ -432,42 +453,14 @@ function endGame(win, remaining, alreadyProcessed = false) {
     closeConfirm();
     document.getElementById('cityInput').disabled = true;
     document.getElementById('submitBtn').disabled = true;
+    document.getElementById('errorMsg').classList.remove('visible'); // הסתרת הרמז בסיום המשחק
 
-    let stats = JSON.parse(localStorage.getItem('israeleStats')) || { played:0, wins:0, streak:0, totalGuesses:0 };
+    let stats = JSON.parse(localStorage.getItem('israeleStats')) || { played:0, wins:0, streak:0, totalGuesses:0, history: {} };
+    const today = getDailyKey();
+
+    if (!stats.history[today]) stats.history[today] = { guessesToday: [], isGameOverToday: false };
     
-    if (!alreadyProcessed && stats.isGameOverToday !== true) {
+    if (!alreadyProcessed && !stats.history[today].isGameOverToday) {
         stats.played = (stats.played || 0) + 1;
-        stats.isGameOverToday = true;
-        stats.lastResultWasWin = win;
-        stats.lastAttemptsCount = remaining;
-        
-        if(win) { 
-            stats.wins = (stats.wins || 0) + 1; 
-            stats.streak = (stats.streak || 0) + 1; 
-            stats.totalGuesses = (stats.totalGuesses || 0) + (10 - remaining); 
-        } else { 
-            stats.streak = 0; 
-        }
-        localStorage.setItem('israeleStats', JSON.stringify(stats));
-    }
-    
-    document.getElementById('st-played').innerText = stats.played || 0;
-    document.getElementById('st-winpct').innerText = stats.played > 0 ? Math.round(((stats.wins || 0) / stats.played) * 100) + "%" : "0%";
-    document.getElementById('st-streak').innerText = stats.streak || 0;
-    document.getElementById('st-avg').innerText = stats.wins > 0 ? ((stats.totalGuesses || 0) / stats.wins).toFixed(1) : "0";
-    
-    document.getElementById('victory-overlay').style.display = 'flex';
-    document.getElementById('vic-title').innerText = win ? "פגיעה בול! 🎯" : "אולי מחר... 🚩";
-    document.getElementById('vic-msg').innerText = `היעד היה: ${target.name}`;
-    
-    L.marker([target.lat, target.lon]).addTo(map).bindPopup(`<b>${target.name}</b>`).openPopup();
-    
-    if (!alreadyProcessed) map.flyTo([target.lat, target.lon], 12);
-}
-
-function hideOverlay() { document.getElementById('victory-overlay').style.display = 'none'; }
-function giveUp() { if(!isGameOver) showConfirm(); }
-window.onload = loadData;
-</script>
-</body>
-</html>
+        stats.history[today].isGameOverToday = true;
+        stats.history[today].lastResult
