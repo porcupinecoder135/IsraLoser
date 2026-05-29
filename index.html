@@ -61,7 +61,6 @@
         }
         #errorMsg.visible { opacity: 1; transform: translateY(0); background: rgba(244, 67, 54, 0.35); border-color: var(--accent); pointer-events: auto;}
         #errorMsg.suggestion-active { background: rgba(46, 204, 113, 0.2); border-color: var(--success); }
-        #errorMsg.hint-active { background: rgba(26, 42, 108, 0.8); border-color: var(--gold); }
         .suggestion-link { text-decoration: none; color: var(--gold); display: inline-block; margin-top: 5px; cursor: pointer; padding: 3px 10px; background: rgba(255,255,255,0.1); border-radius: 6px; }
 
         .shake { animation: shake 0.4s both; border: 2px solid var(--accent) !important; }
@@ -92,6 +91,13 @@
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
         .stat-val { font-size: 20px; font-weight: 900; color: var(--primary); display: block; }
         .stat-lbl { font-size: 11px; color: #777; }
+
+        /* סקשן רמזים חדש */
+        #clues-box {
+            background: rgba(255, 255, 255, 0.08); border: 1px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 15px; padding: 12px; margin-top: 15px; display: none; flex-direction: column; gap: 6px;
+        }
+        .clue-item { font-size: 13px; font-weight: 600; color: var(--gold); display: flex; align-items: center; gap: 6px; }
 
         #feedback { flex: 1; overflow-y: auto; margin-top: 15px; display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px;}
         .guess-row { padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; color: #000; font-size: 14px; flex-shrink: 0; }
@@ -133,6 +139,11 @@
             <li>הצבע משתנה לפי המרחק (אדום = קרוב, צהוב = רחוק).</li>
             <li>החץ מראה את <b>הכיוון</b> ליישוב.</li>
             <li>יש לכם 10 ניסיונות.</li>
+            <hr style="opacity:0.2; margin: 10px 0;">
+            <li><b>רמזי מרחק חדשים:</b></li>
+            <li>מתחת ל-20 ק"מ: מספר האותיות ייחשף 📏</li>
+            <li>מתחת ל-15 ק"מ: השכן הקרוב ביותר ייחשף 🏡</li>
+            <li>מתחת ל-5 ק"מ: האות הראשונה תיחשף 🔤</li>
         </ul>
         <button class="btn-main" onclick="toggleInstructions(false)">הבנתי!</button>
     </div>
@@ -158,6 +169,8 @@
         <button id="submitBtn" class="btn-main" style="margin-top:0; flex: 2;" onclick="makeGuess()">ניחוש 🚀</button>
         <button id="giveUpBtn" class="btn-main btn-secondary" style="margin-top:0; flex: 1;" onclick="showConfirm()">🏳️</button>
     </div>
+
+    <div id="clues-box"></div>
 
     <div id="feedback"></div>
 </div>
@@ -185,6 +198,9 @@ let target;
 let attempts = 10;
 let isGameOver = false;
 let errorTimeout;
+
+// מערך פנימי לשמירת רמזים שחולצו
+let unlockedClues = { lettersCount: false, closestNeighbor: false, firstLetter: false };
 
 const approvedArabCities = ["אום אל-פחם", "באקה אל-גרבייה", "ג'לג'וליה", "נצרת", "סח'נין", "רהט", "שפרעם"];
 const excludeKeywords = ["כפר", "אבו", "עין", "דיר", "משהד", "מג'ד", "חורפיש", "בועיינה", "יאנוח", "ג'ת", "ירכא", "ראמה", "ג'ש", "ביר", "חמאם", "אחסם", "שעב", "דבוריה", "טורעאן", "כאבול", "זמר", "פוריידיס", "ג'סר", "ריינה", "עילוט", "מזרעה", "כסרא", "סמיע", "סאג'ור", "כסלון", "מוקייבלה", "שיבלי", "אום"];
@@ -325,8 +341,7 @@ function getLevenshteinDistance(a, b) {
 
 function clearErrorOnType() {
     const errorDiv = document.getElementById('errorMsg');
-    // מונע מהרמז להיעלם תוך כדי הקלדה אם הוא כבר פעיל
-    if (errorDiv.classList.contains('visible') && !errorDiv.classList.contains('hint-active')) {
+    if (errorDiv.classList.contains('visible')) {
         errorDiv.classList.remove('visible');
     }
 }
@@ -349,8 +364,8 @@ function makeGuess() {
             if (getLevenshteinDistance(val, city.name) <= 2) { bestMatch = city.name; break; }
         }
 
-        errorDiv.className = 'visible'; // מאפס קלאסים קודמים ומציג
-        errorDiv.classList.remove('suggestion-active', 'hint-active');
+        errorDiv.classList.add('visible');
+        errorDiv.classList.remove('suggestion-active');
 
         if (bestMatch) {
             errorDiv.classList.add('suggestion-active');
@@ -373,15 +388,47 @@ function applySuggestion(name) {
     makeGuess();
 }
 
-function showHint() {
-    const errorDiv = document.getElementById('errorMsg');
-    if (!target) return;
+// פונקציית עזר למציאת היישוב הקרוב ביותר ליעד (שאינו היעד עצמו)
+function getClosestNeighbor(targetCity) {
+    let closest = null;
+    let minDistance = Infinity;
     
-    const firstLetter = target.name.charAt(0);
-    const letterCount = target.name.replace(/\s+/g, '').length; // ספירת אותיות ללא רווחים
-    
-    errorDiv.className = 'visible hint-active';
-    errorDiv.innerHTML = `💡 רמז: היישוב מתחיל באות <b>"${firstLetter}"</b> ומכיל <b>${letterCount}</b> אותיות.`;
+    allCities.forEach(c => {
+        if (c.name !== targetCity.name) {
+            let d = calculateDistance(targetCity.lat, targetCity.lon, c.lat, c.lon);
+            if (d < minDistance) {
+                minDistance = d;
+                closest = c;
+            }
+        }
+    });
+    return closest ? closest.name : "לא נמצא";
+}
+
+// פונקציה לעדכון תיבת הרמזים הגלויה במסך
+function updateCluesUI() {
+    const box = document.getElementById('clues-box');
+    box.innerHTML = `<b style="font-size:14px; color:#fff; margin-bottom:4px; display:block;">🔒 רמזים שפתחת:</b>`;
+    let hasAnyClue = false;
+
+    if (unlockedClues.lettersCount) {
+        // סינון רווחים ומקפים כדי לספור אותיות נטו
+        const lettersOnly = target.name.replace(/[\s-]/g, '');
+        box.innerHTML += `<div class="clue-item">📏 אורך שם היישוב: ${lettersOnly.length} אותיות (כולל רווחים/סימנים: ${target.name.length})</div>`;
+        hasAnyClue = true;
+    }
+    if (unlockedClues.closestNeighbor) {
+        const neighbor = getClosestNeighbor(target);
+        box.innerHTML += `<div class="clue-item">🏡 היישוב השכן הקרוב ביותר אליו: ${neighbor}</div>`;
+        hasAnyClue = true;
+    }
+    if (unlockedClues.firstLetter) {
+        const firstChar = target.name.trim().charAt(0);
+        box.innerHTML += `<div class="clue-item">🔤 האות הראשונה של היישוב: ${firstChar}</div>`;
+        hasAnyClue = true;
+    }
+
+    box.style.display = hasAnyClue ? 'flex' : 'none';
 }
 
 function processGuess(cityName, isRestoring = false) {
@@ -396,6 +443,12 @@ function processGuess(cityName, isRestoring = false) {
     const bearing = (Math.atan2(target.lon - guess.lon, target.lat - guess.lat) * 180 / Math.PI + 360) % 360;
     const ratio = Math.pow(Math.min(dist / 150, 1), 0.35);
     const color = `rgb(255, ${Math.floor(255 * ratio)}, ${Math.floor(100 * ratio)})`;
+
+    // לוגיקת בדיקת פתיחת רמזים על פי מרחק
+    if (dist <= 20) unlockedClues.lettersCount = true;
+    if (dist <= 15) unlockedClues.closestNeighbor = true;
+    if (dist <= 5)  unlockedClues.firstLetter = true;
+    updateCluesUI();
 
     const icon = L.divIcon({
         className: 'custom-marker',
@@ -417,13 +470,6 @@ function processGuess(cityName, isRestoring = false) {
             paddingTopLeft: sidebarPadding,
             duration: 1.5
         });
-
-        // בדיקה האם הניחוש בטווח של 10 ק"מ (והמשחק לא נגמר)
-        if (dist <= 10 && cityName !== target.name) {
-            const errorDiv = document.getElementById('errorMsg');
-            errorDiv.className = 'visible hint-active';
-            errorDiv.innerHTML = `אתה ממש קרוב! (פחות מ-10 ק"מ)<br><span class="suggestion-link" onclick="showHint()">לקבלת רמז 💡</span>`;
-        }
     }
 
     if (cityName === target.name) endGame(true, attempts, isRestoring);
@@ -453,7 +499,6 @@ function endGame(win, remaining, alreadyProcessed = false) {
     closeConfirm();
     document.getElementById('cityInput').disabled = true;
     document.getElementById('submitBtn').disabled = true;
-    document.getElementById('errorMsg').classList.remove('visible'); // הסתרת הרמז בסיום המשחק
 
     let stats = JSON.parse(localStorage.getItem('israeleStats')) || { played:0, wins:0, streak:0, totalGuesses:0, history: {} };
     const today = getDailyKey();
@@ -463,4 +508,47 @@ function endGame(win, remaining, alreadyProcessed = false) {
     if (!alreadyProcessed && !stats.history[today].isGameOverToday) {
         stats.played = (stats.played || 0) + 1;
         stats.history[today].isGameOverToday = true;
-        stats.history[today].lastResult
+        stats.history[today].lastResultWasWin = win;
+        stats.history[today].lastAttemptsCount = remaining;
+        if(win) { 
+            stats.wins = (stats.wins || 0) + 1; 
+            stats.streak = (stats.streak || 0) + 1; 
+            stats.totalGuesses = (stats.totalGuesses || 0) + (10 - remaining); 
+        } else { stats.streak = 0; }
+        localStorage.setItem('israeleStats', JSON.stringify(stats));
+    }
+    
+    document.getElementById('st-played').innerText = stats.played || 0;
+    document.getElementById('st-winpct').innerText = stats.played > 0 ? Math.round(((stats.wins || 0) / stats.played) * 100) + "%" : "0%";
+    document.getElementById('st-streak').innerText = stats.streak || 0;
+    document.getElementById('st-avg').innerText = stats.wins > 0 ? ((stats.totalGuesses || 0) / stats.wins).toFixed(1) : "0";
+    
+    document.getElementById('victory-overlay').style.display = 'flex';
+    document.getElementById('vic-title').innerText = win ? "פגיעה בול! 🎯" : "לא היום... 🚩";
+    document.getElementById('vic-msg').innerText = `היעד היה: ${target.name}`;
+    
+    L.marker([target.lat, target.lon]).addTo(map).bindPopup(`<b>${target.name}</b>`).openPopup();
+    if (!alreadyProcessed) {
+         const sidebarPadding = window.innerWidth > 850 ? [400, 0] : [0, 0];
+         map.flyTo([target.lat, target.lon], 12, { paddingTopLeft: sidebarPadding });
+    }
+}
+
+function toggleSidebar(forceOpen) {
+    sidebar.classList.add('transitioning');
+    sidebar.style.transform = '';
+    if (forceOpen === true) sidebar.classList.add('open');
+    else if (forceOpen === false) sidebar.classList.remove('open');
+    else sidebar.classList.toggle('open');
+}
+
+function startGame() { document.getElementById('setup-overlay').style.display = 'none'; }
+function toggleInstructions(show) { document.getElementById('how-to-play-overlay').style.display = show ? 'flex' : 'none'; }
+function hideOverlay() { document.getElementById('victory-overlay').style.display = 'none'; }
+function showConfirm() { if(!isGameOver) document.getElementById('confirm-overlay').style.display = 'flex'; }
+function closeConfirm() { document.getElementById('confirm-overlay').style.display = 'none'; }
+
+window.onload = loadData;
+</script>
+</body>
+</html>
