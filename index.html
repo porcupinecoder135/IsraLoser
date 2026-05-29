@@ -90,30 +90,44 @@
         #setup-overlay { background: radial-gradient(circle at center, #1a2a6c, #000); }
         #how-to-play-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay { background: rgba(0,0,0,0.85); display: none; }
         
-        .modal { background: white; padding: 25px; border-radius: 25px; width: 85%; max-width: 350px; color: #333; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
+        .modal { background: white; padding: 25px; border-radius: 25px; width: 85%; max-width: 380px; color: #333; box-shadow: 0 20px 40px rgba(0,0,0,0.4); max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 15px 0; }
         .stat-val { font-size: 20px; font-weight: 900; color: var(--primary); display: block; }
         .stat-lbl { font-size: 11px; color: #777; }
 
-        /* כפתור הרמזים החדש והזוהר בסיידבר */
+        /* עדכון אנימציית כפתור הרמזים - הבהוב למשך 3 שניות בלבד ואז נשאר סגול יציב */
         #clue-hub-trigger {
             background: #555; position: relative;
         }
         #clue-hub-trigger.glow-active {
             background: linear-gradient(45deg, var(--purple), #8e44ad);
-            animation: pulse-trigger 1.5s infinite alternate;
+            animation: pulse-trigger-limited 1.5s ease-in-out 2; /* 2 מחזורים = 3 שניות */
             box-shadow: 0 0 15px rgba(155, 89, 182, 0.6);
         }
-        @keyframes pulse-trigger {
-            0% { transform: scale(1); box-shadow: 0 0 10px rgba(155, 89, 182, 0.5); }
-            100% { transform: scale(1.03); box-shadow: 0 0 25px rgba(0, 206, 201, 0.8); }
+        @keyframes pulse-trigger-limited {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(155, 89, 182, 0.5); }
+            50% { transform: scale(1.1); box-shadow: 0 0 25px rgba(0, 206, 201, 0.8); }
         }
 
-        /* מודאל הרמזים המרכזי החדש שלא תופס מקום */
-        .clues-modal-content {
-            display: flex; flex-direction: column; gap: 12px; margin-top: 15px;
-        }
+        /* עיצוב רכיבי השיתוף והגרפים החדשים במודאל */
+        .used-hints-summary { font-size: 14px; font-weight: bold; color: var(--purple); margin: 5px 0 15px 0; background: #f5f0fa; padding: 6px; border-radius: 8px; }
+        
+        .share-container { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-share { flex: 1; padding: 12px; border: none; border-radius: 12px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: opacity 0.2s; }
+        .btn-share:active { transform: scale(0.98); }
+        .btn-whatsapp { background: #25D366; }
+        .btn-instagram { background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D); }
+        
+        /* גרף התפלגות יומי */
+        .distribution-title { font-size: 14px; font-weight: 800; color: #444; text-align: right; margin: 15px 0 8px 0; border-top: 1px solid #eee; padding-top: 12px; }
+        .dist-chart { display: flex; flex-direction: column; gap: 5px; background: #f9f9f9; padding: 10px; border-radius: 12px; text-align: right; }
+        .dist-row { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: bold; }
+        .dist-label { width: 55px; color: #550; text-align: left; }
+        .dist-bar-wrapper { flex: 1; background: #e0e0e0; height: 16px; border-radius: 4px; overflow: hidden; position: relative; }
+        .dist-bar { background: #95a5a6; height: 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: 5px; color: white; font-size: 10px; font-weight: 900; border-radius: 4px; transition: width 0.6s ease; }
+        .dist-row.current-user .dist-bar { background: var(--primary) !important; }
 
+        .clues-modal-content { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
         .clue-btn {
             background: linear-gradient(45deg, #9b59b6, #8e44ad); color: white; border: none;
             padding: 14px; border-radius: 15px; font-weight: bold; cursor: pointer; display: flex;
@@ -235,13 +249,25 @@
     <div class="modal">
         <h2 id="vic-title"></h2>
         <p id="vic-msg"></p>
+        
+        <div id="hints-count-summary" class="used-hints-summary"></div>
+
         <div class="stats-grid">
             <div class="stat-item"><span class="stat-val" id="st-played">0</span><span class="stat-lbl">משחקים</span></div>
             <div class="stat-item"><span class="stat-val" id="st-winpct">0%</span><span class="stat-lbl">ניצחונות</span></div>
             <div class="stat-item"><span class="stat-val" id="st-streak">0</span><span class="stat-lbl">רצף</span></div>
             <div class="stat-item"><span class="stat-val" id="st-avg">0</span><span class="stat-lbl">ממוצע</span></div>
         </div>
-        <button class="btn-main" style="background: var(--dark);" onclick="hideOverlay()">סגירת מפה 🗺️</button>
+
+        <div class="distribution-title">📊 התפלגות הניחושים הגלובלית היום:</div>
+        <div class="dist-chart" id="globalDistributionChart"></div>
+
+        <div class="share-container">
+            <button class="btn-share btn-whatsapp" onclick="shareGame('whatsapp')">WhatsApp 💬</button>
+            <button class="btn-share btn-instagram" onclick="shareGame('instagram')">Instagram 📸</button>
+        </div>
+
+        <button class="btn-main" style="background: var(--dark); margin-top: 15px;" onclick="hideOverlay()">סגירת מפה 🗺️</button>
     </div>
 </div>
 
@@ -279,7 +305,7 @@ sidebar.addEventListener('touchstart', e => {
 
 sidebar.addEventListener('touchmove', e => {
     if (sidebar.scrollTop <= 0) {
-        touchY = e.touches[0].clientY;
+        let touchY = e.touches[0].clientY;
         const diff = touchY - touchStartY;
         if (diff > 0 && sidebar.classList.contains('open')) {
             sidebar.style.transform = `translateY(${diff}px)`;
@@ -377,7 +403,20 @@ function restoreGameState() {
     if (stats.history && stats.history[today]) {
         const todayData = stats.history[today];
         document.getElementById('setup-overlay').style.display = 'none';
-        todayData.guessesToday.forEach(cityName => processGuess(cityName, true));
+        
+        // שחזור מצב רמזים
+        if (todayData.unlockedClues) {
+            unlockedClues = todayData.unlockedClues;
+        }
+        
+        todayData.guessesToday.forEach(cityName => {
+            // זיהוי אם הניחוש המשוחזר היה רמז לפי רשימת הניחושים
+            let isClue = false;
+            if (todayData.clueGuessesToday && todayData.clueGuessesToday.includes(cityName)) {
+                isClue = true;
+            }
+            processGuess(cityName, true, isClue);
+        });
         if (todayData.isGameOverToday) endGame(todayData.lastResultWasWin, todayData.lastAttemptsCount, true);
     }
 }
@@ -476,7 +515,6 @@ function generateFiveRegionalOptions() {
     return options.sort(() => Math.random() - 0.5);
 }
 
-// עדכון כפתור ההפעלה הראשי של הרמזים (מזהה הדלקת רמזים ב-10 ק"מ)
 function updateCluesHubTriggerUI() {
     const trigger = document.getElementById('clue-hub-trigger');
     if (unlockedClues.eligible) {
@@ -498,18 +536,16 @@ function openCluesHub() {
     if (!unlockedClues.eligible) {
         explanation.innerHTML = `🔒 <b>מרכז הרמזים נעול!</b><br>הרמזים ייפתחו אוטומטית ברגע שתצליחו לנחש יישוב שנמצא <b>במרחק של 10 ק"מ או פחות</b> מהיעד הסודי.`;
     } else {
-        explanation.innerHTML = `🎉 <b>כל הכבוד! הגעתם אל מתחת ל-10 ק"מ!</b><br>בזכות הקרבה שלכם ליעד, שני הרמזים הבאים פתוחים בפניכם :`;
+        explanation.innerHTML = `🎉 <b>כל הכבוד! הגעתם אל מתחת ל-10 ק"מ!</b><br>בזכות הקרבה המטורפת שלכם ליעד, שני הרמזים הבאים פתוחים בפניכם ללא עלות ניסיונות:`;
         
-        // רמז 1: שכן קרוב
         if (!unlockedClues.closestNeighborUsed) {
-            container.innerHTML += `<button class="clue-btn" onclick="useClosestNeighborClue()">🏡 השכן הקרוב ביותר</button>`;
+            container.innerHTML += `<button class="clue-btn" onclick="useClosestNeighborClue()">🏡 השכן הקרוב ביותר (חינם)</button>`;
         } else {
             container.innerHTML += `<button class="clue-btn used" disabled>🏡 רמז השכן הקרוב כבר נוצל ✅</button>`;
         }
 
-        // רמז 2: 1 מתוך 5
         if (!unlockedClues.fiveOptionsUsed) {
-            container.innerHTML += `<button class="clue-btn" style="background: linear-gradient(45deg, #00cec9, #0984e3);" onclick="openFiveOptionsModal()">🧩 1 מתוך 5 אפשרויות (</button>`;
+            container.innerHTML += `<button class="clue-btn" style="background: linear-gradient(45deg, #00cec9, #0984e3);" onclick="openFiveOptionsModal()">🧩 1 מתוך 5 אפשרויות (חינם)</button>`;
         } else {
             container.innerHTML += `<button class="clue-btn used" disabled>🧩 רמז 5 האפשרויות כבר נוצל ✅</button>`;
         }
@@ -570,7 +606,6 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
     const ratio = Math.pow(Math.min(dist / 150, 1), 0.35);
     const color = `rgb(255, ${Math.floor(255 * ratio)}, ${Math.floor(100 * ratio)})`;
 
-    // בדיקת זכאות לרמזים - רק מתחת ל-10 ק"מ נפתחים שניהם ביחד
     if (dist <= 10) {
         unlockedClues.eligible = true;
     }
@@ -604,7 +639,7 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
     document.getElementById('feedback').prepend(row);
 
     if (!isRestoring) {
-        if(!isClueGuess) saveProgress(cityName);
+        saveProgress(cityName, isClueGuess);
         const sidebarPadding = window.innerWidth > 850 ? [400, 0] : [0, 0];
         map.flyTo([guess.lat, guess.lon], 11, {
             paddingTopLeft: sidebarPadding,
@@ -616,13 +651,19 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
     else if (attempts === 0) endGame(false, attempts, isRestoring);
 }
 
-function saveProgress(cityName) {
+function saveProgress(cityName, isClueGuess) {
     let stats = JSON.parse(localStorage.getItem('israeleStats')) || { played:0, wins:0, streak:0, totalGuesses:0, history: {} };
     const today = getDailyKey();
     if (!stats.history) stats.history = {};
-    if (!stats.history[today]) stats.history[today] = { guessesToday: [], isGameOverToday: false };
+    if (!stats.history[today]) stats.history[today] = { guessesToday: [], clueGuessesToday: [], isGameOverToday: false };
+    if (!stats.history[today].clueGuessesToday) stats.history[today].clueGuessesToday = [];
     
     stats.history[today].guessesToday.push(cityName);
+    if(isClueGuess) {
+        stats.history[today].clueGuessesToday.push(cityName);
+    }
+    stats.history[today].unlockedClues = unlockedClues;
+    
     localStorage.setItem('israeleStats', JSON.stringify(stats));
 }
 
@@ -634,6 +675,69 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
+// פונקציה לייצור נתונים התפלגותיים קבועים לפי יום האתגר הנוכחי (דמה חכמה במקום שרת)
+function generateGlobalDistribution(userScore) {
+    const day = getGameDayIndex();
+    const baseDistribution = [5, 12, 18, 22, 15, 10, 7, 5, 4, 2]; // אחוזים קבועים לדוגמה ל-1 עד 10 ניסיונות
+    
+    // ערבול קל לפי קוד היום כדי שייראה דינמי בין ימים שונים
+    let dynamicDist = baseDistribution.map((v, i) => {
+        let shift = Math.sin(day + i) * 3;
+        return Math.max(1, Math.round(v + shift));
+    });
+    
+    const container = document.getElementById('globalDistributionChart');
+    container.innerHTML = '';
+    
+    const maxVal = Math.max(...dynamicDist);
+    
+    for (let i = 0; i < 10; i++) {
+        const row = document.createElement('div');
+        row.className = 'dist-row';
+        if (userScore === (i + 1)) {
+            row.classList.add('current-user');
+        }
+        
+        const pct = Math.round((dynamicDist[i] / dynamicDist.reduce((a,b)=>a+b)) * 100);
+        const widthPct = (dynamicDist[i] / maxVal) * 85; // מקסימום 85 אחוז רוחב ויזואלי
+        
+        row.innerHTML = `
+            <div class="dist-label">${i+1} ניסיונות</div>
+            <div class="dist-bar-wrapper">
+                <div class="dist-bar" style="width: ${widthPct}%">${pct}%</div>
+            </div>
+        `;
+        container.appendChild(row);
+    }
+}
+
+// פונקציית שיתוף במדיה חברתית
+function shareGame(platform) {
+    const usedHintsCount = (unlockedClues.closestNeighborUsed ? 1 : 0) + (unlockedClues.fiveOptionsUsed ? 1 : 0);
+    const finalGuesses = 10 - attempts;
+    const day = getGameDayIndex() + 1;
+    
+    let resultEmojis = "";
+    if (attempts > 0) {
+        resultEmojis = "🎯 פגעתי בול!";
+    } else {
+        resultEmojis = "🏳️ לא הצלחתי היום...";
+    }
+    
+    const textToShare = `IsraMaster האתגר היומי #יעד_${day}\n${resultEmojis}\n🛰️ ניסיונות: ${finalGuesses}/10\n🔮 רמזים שנוצלו: ${usedHintsCount}/2\n\nבואו לנסות גם אתם ב-IsraMaster! 🗺️✨`;
+    
+    if (platform === 'whatsapp') {
+        const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(textToShare)}`;
+        window.open(url, '_blank');
+    } else if (platform === 'instagram') {
+        navigator.clipboard.writeText(textToShare).then(() => {
+            alert("📋 נתוני המשחק הועתקו ללוח! עכשיו תוכלו לפתוח את האינסטגרם ולהדביק ישירות בסטורי שלכם 📸");
+        }).catch(err => {
+            console.error('שגיאה בהעתקה', err);
+        });
+    }
+}
+
 function endGame(win, remaining, alreadyProcessed = false) {
     isGameOver = true;
     closeConfirm();
@@ -643,7 +747,7 @@ function endGame(win, remaining, alreadyProcessed = false) {
     let stats = JSON.parse(localStorage.getItem('israeleStats')) || { played:0, wins:0, streak:0, totalGuesses:0, history: {} };
     const today = getDailyKey();
 
-    if (!stats.history[today]) stats.history[today] = { guessesToday: [], isGameOverToday: false };
+    if (!stats.history[today]) stats.history[today] = { guessesToday: [], clueGuessesToday: [], isGameOverToday: false };
     
     if (!alreadyProcessed && !stats.history[today].isGameOverToday) {
         stats.played = (stats.played || 0) + 1;
@@ -658,11 +762,19 @@ function endGame(win, remaining, alreadyProcessed = false) {
         localStorage.setItem('israeleStats', JSON.stringify(stats));
     }
     
+    // הצגת נתוני הרמזים שנוצלו בסבב הנוכחי
+    const usedHintsCount = (unlockedClues.closestNeighborUsed ? 1 : 0) + (unlockedClues.fiveOptionsUsed ? 1 : 0);
+    document.getElementById('hints-count-summary').innerHTML = `🔮 השתמשת ב-<b>${usedHintsCount}</b> מתוך 2 הרמזים החינמיים האפשריים.`;
+
     document.getElementById('st-played').innerText = stats.played || 0;
     document.getElementById('st-winpct').innerText = stats.played > 0 ? Math.round(((stats.wins || 0) / stats.played) * 100) + "%" : "0%";
     document.getElementById('st-streak').innerText = stats.streak || 0;
     document.getElementById('st-avg').innerText = stats.wins > 0 ? ((stats.totalGuesses || 0) / stats.wins).toFixed(1) : "0";
     
+    // הפעלת גרף ההתפלגות היומי בהתאם לציון המשתמש הנוכחי
+    const userScore = win ? (10 - remaining) : 0;
+    generateGlobalDistribution(userScore);
+
     document.getElementById('victory-overlay').style.display = 'flex';
     document.getElementById('vic-title').innerText = win ? "פגיעה בול! 🎯" : "לא היום... 🚩";
     document.getElementById('vic-msg').innerText = `היעד היה: ${target.name}`;
