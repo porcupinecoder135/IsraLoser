@@ -11,7 +11,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IsraMaster - אתגר גאוגרפיה יומי</title>
+    <title>IsraMaster - אתגר גאוגרפיה אינסופי</title>
     
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="theme-color" content="#1a2a6c">
@@ -95,7 +95,6 @@
         
         .modal { background: white; padding: 25px; border-radius: 25px; width: 85%; max-width: 380px; color: #333; box-shadow: 0 20px 40px rgba(0,0,0,0.4); max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
         
-        /* Adjusted grid template columns to support 4 stats cleanly instead of 5 */
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 15px 0; }
         .stat-val { font-size: 18px; font-weight: 900; color: var(--primary); display: block; }
         .stat-lbl { font-size: 11px; color: #777; line-height: 1.2; font-weight: bold; }
@@ -171,7 +170,7 @@
 
 <div id="setup-overlay">
     <div style="font-size: 45px; font-weight: 900; letter-spacing: 4px;">ISRAMASTER</div>
-    <p style="margin-bottom: 30px; opacity: 0.8;">האתגר הגיאוגרפי היומי</p>
+    <p style="margin-bottom: 30px; opacity: 0.8;">האתגר הגיאוגרפי האינסופי</p>
     <div style="width: 260px; display: flex; flex-direction: column; gap: 10px;">
         <button class="btn-main" onclick="startGame()">שחקו עכשיו 🛰️</button>
         <button class="btn-main btn-secondary" onclick="toggleInstructions(true)">איך משחקים?</button>
@@ -180,7 +179,7 @@
 
 <div id="confirm-overlay">
     <div class="modal">
-        <h3>לוותר על האתגר?</h3>
+        <h3>לוותר על הסיבוב?</h3>
         <p>הפסד יירשם והמיקום ייחשף.</p>
         <button class="btn-main" onclick="endGame(false, attempts)">כן, לוותר 🏳️</button>
         <button class="btn-main btn-secondary" style="color:#fff; border:1px solid #777" onclick="closeConfirm()">חזרה למשחק</button>
@@ -199,7 +198,7 @@
 <div id="clue-modal-overlay">
     <div class="modal">
         <h3 style="color: var(--purple); margin-top:0;">🔮 רמז האפשרויות הגדול!</h3>
-        <p style="font-size:14px; color:#555; line-height:1.4;">היעד המסתורי הוא <b>אחד מחמשת</b> היישובים הבאים באותו האזור. בחרו יישוב כדי לבדוק אותו כרמז!</p>
+        <p style="font-size:14px; color:#555; line-height:1.4;">היעד המסתורי הוא <b>אחד מחמשת</b> היעדים הבאים באותו האזור. בחרו יישוב כדי לבדוק אותו כרמז!</p>
         <div class="hint-options-grid" id="hintOptionsContainer"></div>
     </div>
 </div>
@@ -211,7 +210,7 @@
             <li>נחשו את <b>היישוב המסתורי</b>.</li>
             <li>הצבע משתנה לפי המרחק (אדום = קרוב, צהוב = רחוק).</li>
             <li>החץ מראה את <b>הכיוון</b> ליישוב.</li>
-            <li>יש לכם 10 ניסיונות.</li>
+            <li>יש לכם 10 ניסיונות בכל סיבוב.</li>
             <hr style="opacity:0.2; margin: 10px 0;">
             <li><b>🔮 מערכת רמזים (ללא הורדת ניסיונות!):</b></li>
             <li>התקרבו אל <b>מתחת ל-10 ק"מ</b> מהיעד כדי לפתוח בבת אחת שני רמזים מטורפים: חשיפת השכן הקרוב ביותר, ומודאל בחירה של 1 מתוך 5!</li>
@@ -261,7 +260,7 @@
             <div class="stat-item"><span class="stat-val" id="st-avg">0</span><span class="stat-lbl">ממוצע ניסיונות</span></div>
         </div>
 
-        <div class="distribution-title">📊 התפלגות הניחושים הגלובלית היום:</div>
+        <div class="distribution-title">📊 התפלגות הניחושים בסיבוב הזה:</div>
         <div class="dist-chart" id="globalDistributionChart"></div>
 
         <div class="share-container">
@@ -269,17 +268,19 @@
             <button class="btn-share btn-instagram" onclick="shareGame('instagram')">Instagram 📸</button>
         </div>
 
-        <button class="btn-main" style="background: var(--dark); margin-top: 15px;" onclick="hideOverlay()">סגירת מפה 🗺️</button>
+        <button class="btn-main" style="background: var(--primary); margin-top: 15px;" onclick="startNewSession()">משחק חדש 🔄</button>
     </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 let allCities = [];
+let validTargets = [];
 let target;
 let attempts = 10;
 let isGameOver = false;
 let errorTimeout;
+let markersLayer;
 
 let unlockedClues = { 
     eligible: false, 
@@ -293,6 +294,9 @@ const extraExclusions = ["פוריידיס", "איכסאל", "נחף", "כאוכ
 
 const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([31.5, 34.8], 8);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
+
+// Layer group to clean markers easily in infinite mode
+markersLayer = L.layerGroup().addTo(map);
 
 let touchStartY = 0;
 let currentTranslateY = 0;
@@ -328,20 +332,6 @@ sidebar.addEventListener('touchend', () => {
 
 map.on('click', () => { if(window.innerWidth <= 850) toggleSidebar(false); });
 
-function getGameDayIndex() {
-    const startDate = new Date(2026, 4, 29); 
-    const today = new Date();
-    startDate.setHours(0,0,0,0);
-    today.setHours(0,0,0,0);
-    const diffTime = Math.abs(today - startDate);
-    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-}
-
-function getDailyKey() {
-    const d = new Date();
-    return `v7-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-}
-
 async function loadData() {
     try {
         const response = await fetch('MapIsrael.geojson');
@@ -353,72 +343,57 @@ async function loadData() {
             lon: f.geometry.coordinates[0]
         })).filter(c => c.name !== "");
 
-        const customSequence = ["קבוצת יבנה", "מפלסים", "מנחמיה", "יבנאל", "כנות", "אזור", "נשר", "בית אורן", "באר אורה"];
-
-        const validTargets = allCities.filter(city => {
+        validTargets = allCities.filter(city => {
             if (approvedArabCities.includes(city.name)) return true;
             const isExcludedByKeyword = excludeKeywords.some(kw => city.name.includes(kw));
             const isExcludedByName = extraExclusions.includes(city.name);
             return !(isExcludedByKeyword || isExcludedByName);
         });
 
-        const dayIndex = getGameDayIndex();
-
-        if (dayIndex < customSequence.length) {
-            const nextCityName = customSequence[dayIndex];
-            target = allCities.find(c => c.name === nextCityName);
-            if (!target) {
-                target = validTargets[dayIndex % validTargets.length];
-            }
-        } else {
-            const remainingTargets = validTargets.filter(city => !customSequence.includes(city.name));
-            const seedStr = getDailyKey();
-            let hash = 0;
-            for (let i = 0; i < seedStr.length; i++) hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
-            const seededRandom = Math.abs(Math.sin(hash));
-            
-            target = remainingTargets[Math.floor(seededRandom * remainingTargets.length)];
-        }
-
-        const container = document.getElementById('lifePoints');
-        container.innerHTML = '';
-        for(let i=0; i<10; i++) {
-            const div = document.createElement('div');
-            div.className = 'life-circle';
-            div.id = `life-${9-i}`;
-            container.appendChild(div);
-        }
-        
         const dl = document.getElementById('cityList');
         dl.innerHTML = '';
         [...new Set(allCities.map(c => c.name))].sort().forEach(name => {
             let o = document.createElement('option'); o.value = name; dl.appendChild(o);
         });
 
-        restoreGameState();
+        // Start a fresh dynamic endless session
+        setupNewGame();
     } catch (e) { console.error("Error loading data", e); }
 }
 
-function restoreGameState() {
-    const stats = JSON.parse(localStorage.getItem('israeleStats')) || { history: {} };
-    const today = getDailyKey();
-    if (stats.history && stats.history[today]) {
-        const todayData = stats.history[today];
-        document.getElementById('setup-overlay').style.display = 'none';
-        
-        if (todayData.unlockedClues) {
-            unlockedClues = todayData.unlockedClues;
-        }
-        
-        todayData.guessesToday.forEach(cityName => {
-            let isClue = false;
-            if (todayData.clueGuessesToday && todayData.clueGuessesToday.includes(cityName)) {
-                isClue = true;
-            }
-            processGuess(cityName, true, isClue);
-        });
-        if (todayData.isGameOverToday) endGame(todayData.lastResultWasWin, todayData.lastAttemptsCount, true);
+function setupNewGame() {
+    isGameOver = false;
+    attempts = 10;
+    unlockedClues = { eligible: false, closestNeighborUsed: false, fiveOptionsUsed: false };
+    
+    // Pick completely random target for endless mode
+    target = validTargets[Math.floor(Math.random() * validTargets.length)];
+
+    // Reset life points indicator
+    const container = document.getElementById('lifePoints');
+    container.innerHTML = '';
+    for(let i=0; i<10; i++) {
+        const div = document.createElement('div');
+        div.className = 'life-circle';
+        div.id = `life-${9-i}`;
+        container.appendChild(div);
     }
+
+    // Reset Input fields and feedback lists
+    document.getElementById('cityInput').disabled = false;
+    document.getElementById('cityInput').value = "";
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('feedback').innerHTML = "";
+    document.getElementById('errorMsg').classList.remove('visible');
+    
+    updateCluesHubTriggerUI();
+}
+
+function startNewSession() {
+    hideOverlay();
+    markersLayer.clearLayers();
+    map.setView([31.5, 34.8], 8);
+    setupNewGame();
 }
 
 function getLevenshteinDistance(a, b) {
@@ -528,6 +503,7 @@ function updateCluesHubTriggerUI() {
 }
 
 function openCluesHub() {
+    if(isGameOver) return;
     const overlay = document.getElementById('clues-box-overlay');
     const container = document.getElementById('cluesModalContainer');
     const explanation = document.getElementById('clue-modal-explanation');
@@ -623,7 +599,8 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
         html: markerHtml,
         iconSize: [0, 0], iconAnchor: [0, 48]
     });
-    L.marker([guess.lat, guess.lon], { icon: icon }).addTo(map);
+    
+    L.marker([guess.lat, guess.lon], { icon: icon }).addTo(markersLayer);
     
     const row = document.createElement('div');
     if (isClueGuess) {
@@ -639,7 +616,6 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
     document.getElementById('feedback').prepend(row);
 
     if (!isRestoring) {
-        saveProgress(cityName, isClueGuess);
         const sidebarPadding = window.innerWidth > 850 ? [400, 0] : [0, 0];
         map.flyTo([guess.lat, guess.lon], 11, {
             paddingTopLeft: sidebarPadding,
@@ -651,22 +627,6 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
     else if (attempts === 0) endGame(false, attempts, isRestoring);
 }
 
-function saveProgress(cityName, isClueGuess) {
-    let stats = JSON.parse(localStorage.getItem('israeleStats')) || { played:0, wins:0, streak:0, totalGuesses:0, history: {}, gaveUpCount: 0 };
-    const today = getDailyKey();
-    if (!stats.history) stats.history = {};
-    if (!stats.history[today]) stats.history[today] = { guessesToday: [], clueGuessesToday: [], isGameOverToday: false };
-    if (!stats.history[today].clueGuessesToday) stats.history[today].clueGuessesToday = [];
-    
-    stats.history[today].guessesToday.push(cityName);
-    if(isClueGuess) {
-        stats.history[today].clueGuessesToday.push(cityName);
-    }
-    stats.history[today].unlockedClues = unlockedClues;
-    
-    localStorage.setItem('israeleStats', JSON.stringify(stats));
-}
-
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const dLat = (lat2-lat1)*Math.PI/180;
@@ -676,20 +636,15 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 function generateGlobalDistribution(userScore, gaveUpThisTurn = false) {
-    const day = getGameDayIndex();
-    
-    // Realistically calibrated geographic trivia metrics (Bell curve distribution shape)
-    // index 0 = 1 attempt, index 9 = 10 attempts
+    const randomSeed = Math.floor(Math.random() * 10);
     const baseDistribution = [0.4, 1.8, 4.5, 12.3, 21.0, 24.2, 16.5, 9.2, 5.3, 2.8]; 
-    let baseGaveUp = 13.0; // Realistic standard percentage of players surrendering over difficult maps
+    let baseGaveUp = 13.0; 
     
     let dynamicDist = baseDistribution.map((v, i) => {
-        let shift = Math.sin(day + i) * 0.4;
+        let shift = Math.sin(randomSeed + i) * 0.4;
         return Math.max(0.1, v + shift);
     });
-    let dynamicGaveUp = Math.max(5.0, baseGaveUp + Math.cos(day) * 2);
-    
-    // Total calculation parameters
+    let dynamicGaveUp = Math.max(5.0, baseGaveUp + Math.cos(randomSeed) * 2);
     const totalSum = dynamicDist.reduce((a, b) => a + b, 0) + dynamicGaveUp;
     
     const container = document.getElementById('globalDistributionChart');
@@ -697,7 +652,6 @@ function generateGlobalDistribution(userScore, gaveUpThisTurn = false) {
     
     const maxVal = Math.max(...dynamicDist, dynamicGaveUp);
     
-    // Generate Rows 1 to 10
     for (let i = 0; i < 10; i++) {
         const row = document.createElement('div');
         row.className = 'dist-row';
@@ -717,7 +671,6 @@ function generateGlobalDistribution(userScore, gaveUpThisTurn = false) {
         container.appendChild(row);
     }
 
-    // Append the newly structural surrendered statistics bar
     const surrenderRow = document.createElement('div');
     surrenderRow.className = 'dist-row';
     if (gaveUpThisTurn) {
@@ -738,16 +691,15 @@ function generateGlobalDistribution(userScore, gaveUpThisTurn = false) {
 function shareGame(platform) {
     const usedHintsCount = (unlockedClues.closestNeighborUsed ? 1 : 0) + (unlockedClues.fiveOptionsUsed ? 1 : 0);
     const finalGuesses = 10 - attempts;
-    const day = getGameDayIndex() + 1;
     
     let resultEmojis = "";
     if (attempts > 0 && isGameOver && document.getElementById('vic-title').innerText.includes("פגיעה")) {
-        resultEmojis = "🎯 פגעתי בול!";
+        resultEmojis = "🎯 פגעתי בול באתגר האינסופי!";
     } else {
-        resultEmojis = "🏳️ לא הצלחתי היום...";
+        resultEmojis = "🏳️ לא הצלחתי בסיבוב הזה...";
     }
     
-    const textToShare = `IsraMaster האתגר היומי #יעד_${day}\n${resultEmojis}\n🛰️ ניסיונות: ${finalGuesses}/10\n🔮 רמזים שנוצלו: ${usedHintsCount}/2\n\nבואו לנסות גם אתם ב-isramaster.com! 🗺️✨`;
+    const textToShare = `IsraMaster - מצב אינסופי 🗺️\n${resultEmojis}\n🛰️ ניסיונות: ${finalGuesses}/10\n🔮 רמזים שנוצלו: ${usedHintsCount}/2\n\nבואו לשחק ללא הגבלה ב-isramaster.com! ✨`;
     
     if (platform === 'whatsapp') {
         const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(textToShare)}`;
@@ -758,10 +710,8 @@ function shareGame(platform) {
         
         setTimeout(() => {
             navigator.clipboard.writeText(textToShare).then(() => {
-                alert("📋 נתוני המשחק הועתקו ללוח! אם האפליקציה לא נפתחה אוטומטית, תוכלו לפתוח את האינסטגרם ולהדביק ישירות בסטורי שלכם 📸");
-            }).catch(err => {
-                console.error('שגיאה בהעתקה', err);
-            });
+                alert("📋 נתוני המשחק הועתקו ללוח! פתחו את אינסטגרם והדביקו בסטורי שלכם 📸");
+            }).catch(err => console.error('שגיאה בהעתקה', err));
         }, 800);
     }
 }
@@ -772,18 +722,11 @@ function endGame(win, remaining, alreadyProcessed = false) {
     document.getElementById('cityInput').disabled = true;
     document.getElementById('submitBtn').disabled = true;
 
-    let stats = JSON.parse(localStorage.getItem('israeleStats')) || { played:0, wins:0, streak:0, totalGuesses:0, history: {}, gaveUpCount: 0 };
-    const today = getDailyKey();
-
-    if (!stats.history[today]) stats.history[today] = { guessesToday: [], clueGuessesToday: [], isGameOverToday: false };
-    
+    let stats = JSON.parse(localStorage.getItem('israeleStatsInfinite')) || { played:0, wins:0, streak:0, totalGuesses:0, gaveUpCount: 0 };
     let gaveUpThisTurn = (!win && remaining === attempts && attempts > 0);
 
-    if (!alreadyProcessed && !stats.history[today].isGameOverToday) {
+    if (!alreadyProcessed) {
         stats.played = (stats.played || 0) + 1;
-        stats.history[today].isGameOverToday = true;
-        stats.history[today].lastResultWasWin = win;
-        stats.history[today].lastAttemptsCount = remaining;
         if(win) { 
             stats.wins = (stats.wins || 0) + 1; 
             stats.streak = (stats.streak || 0) + 1; 
@@ -794,7 +737,7 @@ function endGame(win, remaining, alreadyProcessed = false) {
                 stats.gaveUpCount = (stats.gaveUpCount || 0) + 1;
             }
         }
-        localStorage.setItem('israeleStats', JSON.stringify(stats));
+        localStorage.setItem('israeleStatsInfinite', JSON.stringify(stats));
     }
     
     const usedHintsCount = (unlockedClues.closestNeighborUsed ? 1 : 0) + (unlockedClues.fiveOptionsUsed ? 1 : 0);
@@ -806,20 +749,16 @@ function endGame(win, remaining, alreadyProcessed = false) {
     document.getElementById('st-avg').innerText = stats.wins > 0 ? ((stats.totalGuesses || 0) / stats.wins).toFixed(1) : "0";
     
     const userScore = win ? (10 - remaining) : 0;
-    
-    // Explicit dynamic runtime flag to properly evaluate surrender styling condition rules
-    let currentGaveUpFlag = gaveUpThisTurn || (stats.history[today] && !stats.history[today].lastResultWasWin && stats.history[today].lastAttemptsCount > 0);
-    generateGlobalDistribution(userScore, currentGaveUpFlag);
+    generateGlobalDistribution(userScore, gaveUpThisTurn);
 
     document.getElementById('victory-overlay').style.display = 'flex';
-    document.getElementById('vic-title').innerText = win ? "פגיעה בול! 🎯" : "לא היום... 🚩";
+    document.getElementById('vic-title').innerText = win ? "פגיעה בול! 🎯" : "לא בסיבוב הזה... 🚩";
     document.getElementById('vic-msg').innerText = `היעד היה: ${target.name}`;
     
-    L.marker([target.lat, target.lon]).addTo(map).bindPopup(`<b>${target.name}</b>`).openPopup();
-    if (!alreadyProcessed) {
-         const sidebarPadding = window.innerWidth > 850 ? [400, 0] : [0, 0];
-         map.flyTo([target.lat, target.lon], 12, { paddingTopLeft: sidebarPadding });
-    }
+    L.marker([target.lat, target.lon]).addTo(markersLayer).bindPopup(`<b>${target.name}</b>`).openPopup();
+    
+    const sidebarPadding = window.innerWidth > 850 ? [400, 0] : [0, 0];
+    map.flyTo([target.lat, target.lon], 12, { paddingTopLeft: sidebarPadding });
 }
 
 function toggleSidebar(forceOpen) {
@@ -840,3 +779,4 @@ window.onload = loadData;
 </script>
 </body>
 </html>
+
