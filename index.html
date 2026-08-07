@@ -11,7 +11,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IsraMaster - אתגר גאוגרפיה אינסופי</title>
+    <title>IsraMaster - אתגר גאוגרפיה יומי</title>
     
     <link rel="icon" type="image/png" href="favicon.png">
     <meta name="theme-color" content="#1a2a6c">
@@ -72,7 +72,7 @@
 
         .stats-card { text-align: center; margin-bottom: 10px; }
         .life-container { display: flex; justify-content: center; gap: 6px; margin-top: 5px; }
-        .life-circle { width: 12px; height: 12px; background: var(--gold); border-radius: 50%; transition: 0.3s; }
+        .life-circle { width: 10px; height: 10px; background: var(--gold); border-radius: 50%; transition: 0.3s; }
         .life-circle.lost { background: rgba(255,255,255,0.1); transform: scale(0.7); box-shadow: none; }
 
         .btn-main { padding: 15px; background: var(--accent); color: white; border: none; border-radius: 15px; cursor: pointer; font-weight: bold; font-size: 16px; width: 100%; margin-top: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.2s ease; }
@@ -89,9 +89,9 @@
         }
         .marker-arrow { font-size: 18px; font-weight: bold; display: inline-block; margin-right: 2px; }
 
-        #setup-overlay, #how-to-play-overlay, #victory-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-overlay { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; backdrop-filter: blur(8px); }
+        #setup-overlay, #how-to-play-overlay, #victory-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; backdrop-filter: blur(8px); }
         #setup-overlay { background: radial-gradient(circle at center, #1a2a6c, #000); }
-        #how-to-play-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-overlay { background: rgba(0,0,0,0.85); display: none; }
+        #how-to-play-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay { background: rgba(0,0,0,0.85); display: none; }
         
         .modal { background: white; padding: 25px; border-radius: 25px; width: 85%; max-width: 380px; color: #333; box-shadow: 0 20px 40px rgba(0,0,0,0.4); max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
         
@@ -143,7 +143,7 @@
             padding: 12px; border: 2px solid #ddd; background: #f9f9f9; border-radius: 12px;
             font-size: 15px; font-weight: bold; color: var(--dark); cursor: pointer; transition: all 0.2s;
         }
-        .hint-opt-btn:hover { background: var(--purple); color: white; border-color: var(--purple); }
+        .hint-opt-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
 
         #feedback { flex: 1; overflow-y: auto; margin-top: 15px; display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px;}
         .guess-row { padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; color: #000; font-size: 14px; flex-shrink: 0; }
@@ -156,6 +156,13 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.02); }
         }
+
+        .badge { font-size: 11px; padding: 2px 6px; border-radius: 6px; background: rgba(0,0,0,0.15); margin-right: 5px; }
+        
+        .leaderboard-section { text-align: right; margin-top: 15px; background: #f8f9fa; padding: 10px; border-radius: 12px; }
+        .leaderboard-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 5px; }
+        .leaderboard-table th, .leaderboard-table td { padding: 6px; text-align: right; border-bottom: 1px solid #eee; }
+        .reward-box { background: linear-gradient(45deg, #f1c40f, #f39c12); color: #fff; padding: 10px; border-radius: 10px; font-weight: bold; margin-bottom: 10px; }
 
         @media (max-width: 850px) {
             #sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 65vh; transform: translateY(100%); border-radius: 25px 25px 0 0; transition: transform 0.1s linear; }
@@ -170,7 +177,7 @@
 
 <div id="setup-overlay">
     <div style="font-size: 45px; font-weight: 900; letter-spacing: 4px;">ISRAMASTER</div>
-    <p style="margin-bottom: 30px; opacity: 0.8;">האתגר הגיאוגרפי האינסופי</p>
+    <p style="margin-bottom: 30px; opacity: 0.8;">האתגר הגיאוגרפי היומי</p>
     <div style="width: 260px; display: flex; flex-direction: column; gap: 10px;">
         <button class="btn-main" onclick="startGame()">שחקו עכשיו 🛰️</button>
         <button class="btn-main btn-secondary" onclick="toggleInstructions(true)">איך משחקים?</button>
@@ -179,19 +186,10 @@
 
 <div id="confirm-overlay">
     <div class="modal">
-        <h3>לוותר על הסיבוב?</h3>
+        <h3>לוותר על האתגר?</h3>
         <p>הפסד יירשם והמיקום ייחשף.</p>
         <button class="btn-main" onclick="endGame(false, attempts)">כן, לוותר 🏳️</button>
         <button class="btn-main btn-secondary" style="color:#fff; border:1px solid #777" onclick="closeConfirm()">חזרה למשחק</button>
-    </div>
-</div>
-
-<div id="warning-overlay">
-    <div class="modal" style="border: 3px solid var(--accent);">
-        <h3 style="color: var(--accent); margin-top:0;">⚠️ אזהרה! ⚠️</h3>
-        <p style="font-weight: bold; font-size: 16px;">הטעות הבאה תסיים את המשחק!</p>
-        <p>נשאר לך ניסיון פסילה אחרון מתוך 5.</p>
-        <button class="btn-main" onclick="closeWarning()">הבנתי, אמשיך בזהירות 🧭</button>
     </div>
 </div>
 
@@ -204,26 +202,37 @@
     </div>
 </div>
 
+<div id="warning-modal-overlay">
+    <div class="modal">
+        <h3 style="color: var(--accent); margin-top:0;">⚠️ אזהרת סיום משחק!</h3>
+        <p style="font-size:15px; color:#333; line-height:1.5; text-align:right;">פתיחת הרמז תציג בפניכם <b>5 אפשרויות בלבד</b> באזור של היעד.</p>
+        <p style="font-size:14px; color:var(--accent); font-weight:bold; line-height:1.5; text-align:right;">בחירה באחד מחמשת היישובים תהווה את הניחוש האחרון והסופי שלכם ותסיים את המשחק מיידית (ניצחון או הפסד).</p>
+        <button class="btn-main" style="background:var(--purple);" onclick="confirmAndOpenFiveOptions()">אני מבין, הצג את האפשרויות 🔮</button>
+        <button class="btn-main btn-secondary" onclick="document.getElementById('warning-modal-overlay').style.display = 'none'; openCluesHub();">חזרה למרכז הרמזים</button>
+    </div>
+</div>
+
 <div id="clue-modal-overlay">
     <div class="modal">
-        <h3 style="color: var(--purple); margin-top:0;">🔮 רמז האפשרויות הגדול!</h3>
-        <p style="font-size:14px; color:#555; line-height:1.4;">היעד המסתורי הוא <b>אחד מחמשת</b> היעדים הבאים באותו האזור. בחרו יישוב כדי לבדוק אותו כרמז!</p>
+        <h3 style="color: var(--purple); margin-top:0;">🧩 בחרו את הניחוש הסופי שלכם:</h3>
+        <p style="font-size:13px; color:#666; margin-bottom:12px;">אחד מהיישובים הבאים הוא היעד האמיתי. בחירה תסיים את המשחק!</p>
         <div class="hint-options-grid" id="hintOptionsContainer"></div>
     </div>
 </div>
 
 <div id="how-to-play-overlay">
     <div class="modal">
-        <h2 style="margin-top:0">איך משחקים?</h2>
+        <h2>איך משחקים?</h2>
         <ul style="text-align: right; line-height: 1.6; padding-right: 20px;">
             <li>נחשו את <b>היישוב המסתורי</b>.</li>
             <li>הצבע משתנה לפי המרחק (אדום = קרוב, צהוב = רחוק).</li>
             <li>החץ מראה את <b>הכיוון</b> ליישוב.</li>
-            <li>מותר לטעות עד <b>5 פעמים</b> בלבד בסיבוב!</li>
+            <li>ככל שאתם קרובים יותר ליישוב – תצברו **יותר נקודות**!</li>
+            <li>יש לכם 10 ניסיונות.</li>
             <hr style="opacity:0.2; margin: 10px 0;">
-            <li><b>🔮 מערכת רמזים (ללא הורדת ניסיונות!):</b></li>
-            <li>התקרבו אל <b>מתחת ל-10 ק"מ</b> מהיעד כדי לפתוח בבת אחת את הרמזים: חשיפת השכן הקרוב ביותר, ומודאל בחירה של 1 מתוך 5!</li>
-            <li>רמז גלוי תמיד: <b>"להעלים מפה עיוורת"</b> - חושף את כל שמות היישובים על המפה מלבד היעד המסתורי!</li>
+            <li><b>🔮 מערכת רמזים מיוחדת:</b></li>
+            <li>התקרבו אל <b>מתחת ל-10 ק"מ</b> מהיעד כדי לפתוח את מרכז הרמזים!</li>
+            <li>תוכלו לחשוף את השכן הקרוב ביותר ללא עלות ניסיונות, או לפתוח את <b>אתגר 1 מתוך 5</b> שיסיים את המשחק לפי בחירתכם!</li>
         </ul>
         <button class="btn-main" onclick="toggleInstructions(false)">הבנתי!</button>
     </div>
@@ -236,6 +245,7 @@
     <div class="stats-card">
         <h3 style="margin:0; letter-spacing: 2px;">ISRAMASTER</h3>
         <div class="life-container" id="lifePoints"></div>
+        <div id="scoreDisplay" style="margin-top: 8px; font-weight: bold; font-size: 14px; color: var(--gold);">ניקוד: 0</div>
     </div>
     
     <div class="error-container">
@@ -261,6 +271,18 @@
         <h2 id="vic-title"></h2>
         <p id="vic-msg"></p>
         
+        <div id="first-player-reward" class="reward-box" style="display:none;"></div>
+        
+        <div id="score-summary" style="font-size: 18px; font-weight: 900; color: var(--primary); margin-bottom: 10px;"></div>
+
+        <div id="name-entry-container" style="margin-bottom: 15px; display: none;">
+            <p style="font-size: 13px; font-weight: bold; margin-bottom: 5px;">הכנס את שמך לטבלת המובילים:</p>
+            <div style="display: flex; gap: 5px;">
+                <input type="text" id="playerNameInput" style="background:#eee; color:#333; padding:10px; font-size:14px;" placeholder="שם השחקן...">
+                <button class="btn-main" style="margin:0; width: auto; padding: 10px 15px;" onclick="submitPlayerName()">שמור</button>
+            </div>
+        </div>
+
         <div id="hints-count-summary" class="used-hints-summary"></div>
 
         <div class="stats-grid">
@@ -270,7 +292,20 @@
             <div class="stat-item"><span class="stat-val" id="st-avg">0</span><span class="stat-lbl">ממוצע ניסיונות</span></div>
         </div>
 
-        <div class="distribution-title">📊 התפלגות הניחושים בסיבוב הזה:</div>
+        <div class="leaderboard-section">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: 800; font-size: 14px;">🏆 טבלת מובילים יומי</span>
+                <span id="player-rank-display" style="font-size: 12px; color: var(--purple); font-weight: bold;"></span>
+            </div>
+            <table class="leaderboard-table" id="dailyLeaderboard">
+                <thead>
+                    <tr><th>#</th><th>שם</th><th>ניקוד</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="distribution-title">📊 התפלגות הניחושים הגלובלית היום:</div>
         <div class="dist-chart" id="globalDistributionChart"></div>
 
         <div class="share-container">
@@ -278,38 +313,53 @@
             <button class="btn-share btn-instagram" onclick="shareGame('instagram')">Instagram 📸</button>
         </div>
 
-        <button class="btn-main" style="background: var(--primary); margin-top: 15px;" onclick="startNewSession()">משחק חדש 🔄</button>
+        <button class="btn-main" style="background: var(--dark); margin-top: 15px;" onclick="hideOverlay()">סגירת מפה 🗺️</button>
     </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 let allCities = [];
-let validTargets = [];
 let target;
-let attempts = 5; // שונה מ-10 ל-5 פסילות
+let attempts = 10;
 let isGameOver = false;
 let errorTimeout;
-let markersLayer;
-let blindMapLayer;
-let guessedCities = []; // רשימת מעקב אחר ניחושים שכבר בוצעו
+let currentGuessesList = [];
+let totalScore = 0;
+let isFirstPlayerToday = false;
 
 let unlockedClues = { 
     eligible: false, 
     closestNeighborUsed: false,
-    fiveOptionsUsed: false,
-    blindMapUsed: false
+    fiveOptionsUsed: false
 };
 
-const approvedArabCities = ["אום אל-פחם", "באקה אל-גרבייה", "ג'לג'וליה", "נצרת", "סח'נין", "רהט", "שפרעם"];
+const settlementPool = [
+    "דגניה א", "משמר העמק", "עין גדי", "יטבתה", "שדה בוקר", "יחיעם", "עין שמר", "גן שמר", "מרחביה", "נחשולים", 
+    "צרעה", "עין חרוד", "רמת רחל", "גליל ים", "כפר ויתקין", "בית יצחק", "משמר השרון", "כפר מל\"ל", "עין ורד", "בצרה", 
+    "רשפון", "שפיים", "גאולים", "שער העמקים", "אלונים", "עין השופט", "דליה", "חניתה", "אילון", "מצובה", 
+    "כפר גלעדי", "תל חי", "איילת השחר", "חולתה", "עמיר", "כפר בלום", "דן", "דפנה", "שדה נחמיה", "הגושרים", 
+    "מעיין ברוך", "יפתח", "מלכיה", "מנרה", "משגב עם", "ראש הנקרה", "סער", "עברון", "כברי", "לוחמי הגטאות", 
+    "שבי ציון", "בוסתן הגליל", "אפק", "עין המפרץ", "כפר מסריק", "שמרת", "יסעור", "אחיהוד", "מסילות", "ניר דוד", 
+    "טירת צבי", "שדה אליהו", "עין הנציב", "חפציבה", "בית אלפא", "גבע", "עין חרוד מאוחד", "עין חרוד איחוד", "תל יוסף", "מולדת", 
+    "רמת צבי", "כפר יחזקאל", "גדעונה", "נורית", "מגן", "בארי", "כפר עזה", "נחל עוז", "נירים", "ניר עוז", 
+    "כיסופים", "עין השלושה", "רעים", "חולית", "כרם שלום", "סופה", "סח'נין", "אום אל-פחם", "טייבה", "טירה", 
+    "באקה אל-גרבייה", "כפר קאסם", "ערערה", "ג'סר א-זרקא", "פוריידיס", "ג'לג'וליה"
+];
+
+const approvedArabCities = [];
+
 const excludeKeywords = ["כפר", "אבו", "עין", "דיר", "משהד", "מג'ד", "חורפיש", "בועיינה", "יאנוח", "ג'ת", "ירכא", "ראמה", "ג'ש", "ביר", "חמאם", "אחסם", "שעב", "דבוריה", "טורעאן", "כאבול", "זמר", "פוריידיס", "ג'סר", "ריינה", "עילוט", "מזרעה", "כסרא", "סמיע", "סאג'ור", "כסלון", "מוקייבלה", "שיבלי", "אום"];
-const extraExclusions = ["פוריידיס", "איכסאל", "נחף", "כאוכב", "ג'לג'וליה", "כפר קאסם", "טירה", "טייבה", "קלנסווה", "ערערה", "חורפיש", "מזרעה", "בוקעאתא", "מג'דל שמס", "מסעדה", "עין קנייה", "לקיה", "תל שבע", "חורה", "כסייפה", "ערערה בנגב", "שגב שלום"];
+
+const extraExclusions = [
+    "פוריידיס", "איכסאל", "נחף", "כאוכב", "ג'לג'וליה", "כפר קאסם", "טירה", "טייבה", 
+    "קלנסווה", "ערערה", "חורפיש", "מזרעה", "בוקעאתא", "מג'דל שמס", "מסעדה", "עין קנייה", 
+    "לקיה", "תל שבע", "חורה", "כסייפה", "ערערה בנגב", "שגב שלום", "אום אל-פחם", 
+    "באקה אל-גרבייה", "נצרת", "סח'נין", "רהט", "שפרעם", "עיילבון", "טובא זנגריה"
+];
 
 const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([31.5, 34.8], 8);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
-
-markersLayer = L.layerGroup().addTo(map);
-blindMapLayer = L.layerGroup().addTo(map);
 
 let touchStartY = 0;
 let currentTranslateY = 0;
@@ -345,6 +395,37 @@ sidebar.addEventListener('touchend', () => {
 
 map.on('click', () => { if(window.innerWidth <= 850) toggleSidebar(false); });
 
+function getGameDayIndex() {
+    const startDate = new Date(2026, 5, 24); // 24 ביוני 2026
+    const today = new Date();
+    startDate.setHours(0,0,0,0);
+    today.setHours(0,0,0,0);
+    const diffTime = Math.abs(today - startDate);
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+}
+
+function getDailyKey() {
+    const d = new Date();
+    return `v7-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+
+function seededShuffle(arr, seedString) {
+    let hash = 0;
+    for (let i = 0; i < seedString.length; i++) {
+        hash = ((hash << 5) - hash) + seedString.charCodeAt(i);
+    }
+    let random = () => {
+        let x = Math.sin(hash++) * 10000;
+        return x - Math.floor(x);
+    };
+    let shuffled = [...arr];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
 async function loadData() {
     try {
         const response = await fetch('MapIsrael.geojson');
@@ -356,55 +437,134 @@ async function loadData() {
             lon: f.geometry.coordinates[0]
         })).filter(c => c.name !== "");
 
-        validTargets = allCities.filter(city => {
-            if (approvedArabCities.includes(city.name)) return true;
-            const isExcludedByKeyword = excludeKeywords.some(kw => city.name.includes(kw));
-            const isExcludedByName = extraExclusions.includes(city.name);
-            return !(isExcludedByKeyword || isExcludedByName);
-        });
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTarget = urlParams.get('target');
 
+        if (urlTarget) {
+            target = allCities.find(c => c.name === urlTarget.trim());
+        }
+
+        if (!target) {
+            try {
+                const configResp = await fetch('config.json');
+                const configData = await configResp.json();
+                if (configData && configData.manualTarget && configData.manualTarget.trim() !== "") {
+                    target = allCities.find(c => c.name === configData.manualTarget.trim());
+                }
+            } catch (e) {
+                // Ignore missing config file
+            }
+        }
+
+        if (!target) {
+            const dayIndex = getGameDayIndex();
+            const changeoverIndex = 45;
+
+            if (dayIndex >= changeoverIndex) {
+                const availablePool = settlementPool.filter(sName => allCities.some(c => c.name === sName));
+                const poolIndex = dayIndex - changeoverIndex;
+
+                const seedStr = getDailyKey();
+                let hash = 0;
+                for (let i = 0; i < seedStr.length; i++) hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
+                const seededRandom = Math.abs(Math.sin(hash));
+
+                if (poolIndex < availablePool.length) {
+                    const chosenName = availablePool[poolIndex];
+                    target = allCities.find(c => c.name === chosenName);
+                } else {
+                    const citiesOutsidePool = allCities.filter(c => !settlementPool.includes(c.name));
+                    if (citiesOutsidePool.length > 0) {
+                        target = citiesOutsidePool[Math.floor(seededRandom * citiesOutsidePool.length)];
+                    } else {
+                        target = allCities[Math.floor(seededRandom * allCities.length)];
+                    }
+                }
+            } else {
+                const baseSequence = ["כרי דשא", "קרית גת", "אילת", "גן נר", "נווה ירק", "עדנים", "ירוחם", "כפר הנשיא", "איתנים", "לב יתיר", "גינוסר", "הר עמשא", "אשקלון"];
+                const customSequence = seededShuffle(baseSequence, "isramaster-fixed-seed-2026");
+
+                const validTargets = allCities.filter(city => {
+                    const isExcludedByKeyword = excludeKeywords.some(kw => city.name.includes(kw));
+                    const isExcludedByName = extraExclusions.includes(city.name);
+                    return !(isExcludedByKeyword || isExcludedByName);
+                });
+
+                if (dayIndex < customSequence.length) {
+                    const nextCityName = customSequence[dayIndex];
+                    target = allCities.find(c => c.name === nextCityName);
+                    if (!target) {
+                        target = validTargets[dayIndex % validTargets.length];
+                    }
+                } else {
+                    const remainingTargets = validTargets.filter(city => !customSequence.includes(city.name));
+                    const seedStr = getDailyKey();
+                    let hash = 0;
+                    for (let i = 0; i < seedStr.length; i++) hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
+                    const seededRandom = Math.abs(Math.sin(hash));
+                    
+                    target = remainingTargets[Math.floor(seededRandom * remainingTargets.length)];
+                }
+            }
+        }
+
+        const container = document.getElementById('lifePoints');
+        container.innerHTML = '';
+        for(let i=0; i<10; i++) {
+            const div = document.createElement('div');
+            div.className = 'life-circle';
+            div.id = `life-${9-i}`;
+            container.appendChild(div);
+        }
+        
         const dl = document.getElementById('cityList');
         dl.innerHTML = '';
         [...new Set(allCities.map(c => c.name))].sort().forEach(name => {
             let o = document.createElement('option'); o.value = name; dl.appendChild(o);
         });
 
-        setupNewGame();
+        checkFirstPlayerToday();
+        restoreGameState();
     } catch (e) { console.error("Error loading data", e); }
 }
 
-function setupNewGame() {
-    isGameOver = false;
-    attempts = 5; // 5 חיים
-    guessedCities = []; 
-    unlockedClues = { eligible: false, closestNeighborUsed: false, fiveOptionsUsed: false, blindMapUsed: false };
-    
-    target = validTargets[Math.floor(Math.random() * validTargets.length)];
-
-    const container = document.getElementById('lifePoints');
-    container.innerHTML = '';
-    for(let i=0; i<5; i++) {
-        const div = document.createElement('div');
-        div.className = 'life-circle';
-        div.id = `life-${4-i}`;
-        container.appendChild(div);
+function checkFirstPlayerToday() {
+    const today = getDailyKey();
+    const globalFirstFlag = localStorage.getItem(`firstPlayerDate_${today}`);
+    if (!globalFirstFlag) {
+        isFirstPlayerToday = true;
     }
-
-    document.getElementById('cityInput').disabled = false;
-    document.getElementById('cityInput').value = "";
-    document.getElementById('submitBtn').disabled = false;
-    document.getElementById('feedback').innerHTML = "";
-    document.getElementById('errorMsg').classList.remove('visible');
-    
-    updateCluesHubTriggerUI();
 }
 
-function startNewSession() {
-    hideOverlay();
-    markersLayer.clearLayers();
-    blindMapLayer.clearLayers();
-    map.setView([31.5, 34.8], 8);
-    setupNewGame();
+function getProximityFeedback(dist) {
+    if (dist === 0) return { label: "פגיעה בול! 🎯", score: 10000 };
+    if (dist <= 5) return { label: "לוהט 🔥", score: Math.round(9000 - dist * 200) };
+    if (dist <= 15) return { label: "חם מאוד 🎯", score: Math.round(8000 - (dist - 5) * 150) };
+    if (dist <= 30) return { label: "קרוב 💛", score: Math.round(6500 - (dist - 15) * 100) };
+    if (dist <= 60) return { label: "פשוט חמים 🌤️", score: Math.round(5000 - (dist - 30) * 50) };
+    return { label: "קר ❄️", score: Math.max(0, Math.round(3500 - (dist - 60) * 20)) };
+}
+
+function restoreGameState() {
+    const stats = JSON.parse(localStorage.getItem('israeleStats')) || { history: {} };
+    const today = getDailyKey();
+    if (stats.history && stats.history[today]) {
+        const todayData = stats.history[today];
+        document.getElementById('setup-overlay').style.display = 'none';
+        
+        if (todayData.unlockedClues) {
+            unlockedClues = todayData.unlockedClues;
+        }
+        
+        todayData.guessesToday.forEach(cityName => {
+            let isClue = false;
+            if (todayData.clueGuessesToday && todayData.clueGuessesToday.includes(cityName)) {
+                isClue = true;
+            }
+            processGuess(cityName, true, isClue);
+        });
+        if (todayData.isGameOverToday) endGame(todayData.lastResultWasWin, todayData.lastAttemptsCount, true);
+    }
 }
 
 function getLevenshteinDistance(a, b) {
@@ -474,8 +634,7 @@ function getClosestNeighbor(targetCity) {
     let minDistance = Infinity;
     
     allCities.forEach(c => {
-        // סינון: שלא יהיה יעד המסתורין ושלא נוחש כבר בעבר
-        if (c.name !== targetCity.name && !guessedCities.includes(c.name)) {
+        if (c.name !== targetCity.name && !currentGuessesList.includes(c.name)) {
             let d = calculateDistance(targetCity.lat, targetCity.lon, c.lat, c.lon);
             if (d < minDistance) {
                 minDistance = d;
@@ -483,13 +642,12 @@ function getClosestNeighbor(targetCity) {
             }
         }
     });
-    return closest ? closest.name : "לא נמצא יישוב שלא ניחשת";
+    return closest ? closest.name : "לא נמצא";
 }
 
 function generateFiveRegionalOptions() {
-    // סינון יישובים שלא ניחשנו ושאינם יעד המסתורין
     let listWithDistances = allCities
-        .filter(c => c.name !== target.name && !guessedCities.includes(c.name))
+        .filter(c => c.name !== target.name && !currentGuessesList.includes(c.name))
         .map(c => ({
             name: c.name,
             dist: calculateDistance(target.lat, target.lon, c.lat, c.lon)
@@ -497,7 +655,6 @@ function generateFiveRegionalOptions() {
     
     listWithDistances.sort((a,b) => a.dist - b.dist);
     
-    // לקיחת 4 הקרובים ביותר שלא נוחשו
     let options = listWithDistances.slice(0, 4).map(o => o.name);
     options.push(target.name);
     
@@ -506,35 +663,27 @@ function generateFiveRegionalOptions() {
 
 function updateCluesHubTriggerUI() {
     const trigger = document.getElementById('clue-hub-trigger');
-    const allUsed = unlockedClues.blindMapUsed && (!unlockedClues.eligible || (unlockedClues.closestNeighborUsed && unlockedClues.fiveOptionsUsed));
-    
-    if ((unlockedClues.eligible && (!unlockedClues.closestNeighborUsed || !unlockedClues.fiveOptionsUsed)) || !unlockedClues.blindMapUsed) {
-        trigger.classList.add('glow-active');
-    } else {
-        trigger.classList.remove('glow-active');
+    if (unlockedClues.eligible) {
+        const bothUsed = unlockedClues.closestNeighborUsed && unlockedClues.fiveOptionsUsed;
+        if (!bothUsed) {
+            trigger.classList.add('glow-active');
+            return;
+        }
     }
+    trigger.classList.remove('glow-active');
 }
 
 function openCluesHub() {
-    if(isGameOver) return;
     const overlay = document.getElementById('clues-box-overlay');
     const container = document.getElementById('cluesModalContainer');
     const explanation = document.getElementById('clue-modal-explanation');
     container.innerHTML = '';
 
-    explanation.innerHTML = `🔮 <b>ברוכים הבאים למרכז הרמזים!</b><br>כאן תוכלו לקבל כלים שיעזרו לכם למצוא את המיקום.`;
-    
-    // רמז להעלים מפה עיוורת - זמין תמיד
-    if (!unlockedClues.blindMapUsed) {
-        container.innerHTML += `<button class="clue-btn" style="background: linear-gradient(45deg, #e67e22, #d35400);" onclick="useBlindMapClue()">🗺️ להעלים מפה עיוורת (חשוף שמות)</button>`;
-    } else {
-        container.innerHTML += `<button class="clue-btn used" disabled>🗺️ מפה עיוורת בוטלה בהצלחה ✅</button>`;
-    }
-
-    // רמזי המרחק (מתחת ל-10 ק"מ)
     if (!unlockedClues.eligible) {
-        container.innerHTML += `<div style="font-size:12px; color:#777; margin-top:10px; border-top:1px dashed #ccc; padding-top:10px;">🔒 הרמזים הבאים ייפתחו כשתגיעו אל <b>מתחת ל-10 ק"מ</b> מהיעד.</div>`;
+        explanation.innerHTML = `🔒 <b>מרכז הרמזים נעול!</b><br>הרמזים ייפתחו אוטומטית ברגע שתצליחו לנחש יישוב שנמצא <b>במרחק של 10 ק"מ או פחות</b> מהיעד.`;
     } else {
+        explanation.innerHTML = `🎉 <b>כל הכבוד! הגעתם אל מתחת ל-10 ק"מ!</b><br>בזכות הקרבה המטורפת שלכם ליעד, הרמזים הבאים פתוחים בפניכם:`;
+        
         if (!unlockedClues.closestNeighborUsed) {
             container.innerHTML += `<button class="clue-btn" onclick="useClosestNeighborClue()">🏡 השכן הקרוב ביותר</button>`;
         } else {
@@ -542,7 +691,7 @@ function openCluesHub() {
         }
 
         if (!unlockedClues.fiveOptionsUsed) {
-            container.innerHTML += `<button class="clue-btn" style="background: linear-gradient(45deg, #00cec9, #0984e3);" onclick="openFiveOptionsModal()">🧩 1 מתוך 5 אפשרויות</button>`;
+            container.innerHTML += `<button class="clue-btn" style="background: linear-gradient(45deg, #e74c3c, #c0392b);" onclick="triggerFiveOptionsWarning()">🧩 1 מתוך 5 אפשרויות</button>`;
         } else {
             container.innerHTML += `<button class="clue-btn used" disabled>🧩 רמז 5 האפשרויות כבר נוצל ✅</button>`;
         }
@@ -555,27 +704,6 @@ function closeCluesHub() {
     document.getElementById('clues-box-overlay').style.display = 'none';
 }
 
-function useBlindMapClue() {
-    if (unlockedClues.blindMapUsed) return;
-    unlockedClues.blindMapUsed = true;
-    closeCluesHub();
-    updateCluesHubTriggerUI();
-
-    // הוספת כל שמות היישובים למפה מלבד יעד המסתורין
-    allCities.forEach(city => {
-        if (city.name !== target.name) {
-            L.marker([city.lat, city.lon], {
-                icon: L.divIcon({
-                    className: 'blind-map-label',
-                    html: `<div style="font-size:10px; color:#555; background:rgba(255,255,255,0.75); padding:1px 4px; border-radius:4px; white-space:nowrap; border:1px solid #ccc;">${city.name}</div>`,
-                    iconSize: [0, 0],
-                    iconAnchor: [0, 0]
-                })
-            }).addTo(blindMapLayer);
-        }
-    });
-}
-
 function useClosestNeighborClue() {
     if(unlockedClues.closestNeighborUsed) return;
     unlockedClues.closestNeighborUsed = true;
@@ -586,9 +714,15 @@ function useClosestNeighborClue() {
     processGuess(neighborName, false, true); 
 }
 
-function openFiveOptionsModal() {
-    if(unlockedClues.fiveOptionsUsed) return;
+function triggerFiveOptionsWarning() {
     closeCluesHub();
+    document.getElementById('warning-modal-overlay').style.display = 'flex';
+}
+
+function confirmAndOpenFiveOptions() {
+    if(unlockedClues.fiveOptionsUsed) return;
+    document.getElementById('warning-modal-overlay').style.display = 'none';
+    
     const container = document.getElementById('hintOptionsContainer');
     container.innerHTML = '';
     
@@ -601,7 +735,14 @@ function openFiveOptionsModal() {
             unlockedClues.fiveOptionsUsed = true;
             document.getElementById('clue-modal-overlay').style.display = 'none';
             updateCluesHubTriggerUI();
-            processGuess(opt, false, true);
+            
+            saveProgress(opt, false);
+            
+            if (opt === target.name) {
+                endGame(true, attempts, false);
+            } else {
+                endGame(false, 0, false);
+            }
         };
         container.appendChild(btn);
     });
@@ -613,23 +754,21 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
     let guess = allCities.find(c => c.name === cityName);
     if (!guess) return;
 
-    // הוספה לרשימת הניחושים שבוצעו כדי למנוע הופעתם ברמזים
-    if (!guessedCities.includes(cityName)) {
-        guessedCities.push(cityName);
+    if (!currentGuessesList.includes(cityName)) {
+        currentGuessesList.push(cityName);
     }
 
     if (!isClueGuess) {
         attempts--;
         const lifeCircle = document.getElementById(`life-${attempts}`);
         if(lifeCircle) lifeCircle.classList.add('lost');
-        
-        // הצגת אזהרה לפני שנשאר הניחוש האחרון בהחלט שעלול לסיים את המשחק
-        if (attempts === 1 && cityName !== target.name) {
-            showWarning();
-        }
     }
 
     const dist = calculateDistance(guess.lat, guess.lon, target.lat, target.lon);
+    const feedback = getProximityFeedback(dist);
+    totalScore += feedback.score;
+    document.getElementById('scoreDisplay').innerText = `ניקוד: ${totalScore.toLocaleString()}`;
+
     const bearing = (Math.atan2(target.lon - guess.lon, target.lat - guess.lat) * 180 / Math.PI + 360) % 360;
     const ratio = Math.pow(Math.min(dist / 150, 1), 0.35);
     const color = `rgb(255, ${Math.floor(255 * ratio)}, ${Math.floor(100 * ratio)})`;
@@ -643,7 +782,7 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
     if(isClueGuess) {
         markerHtml = `<div class="marker-bubble" style="border-color:var(--purple); background:#f8efff; color:var(--purple);"><div>✨ רמז: ${guess.name}</div><div style="font-size:12px; font-weight: 800;">${dist.toFixed(1)} ק"מ <span class="marker-arrow" style="transform:rotate(${bearing}deg)">⬆️</span></div></div><div class="marker-dot" style="background-color:var(--purple)"></div>`;
     } else {
-        markerHtml = `<div class="marker-bubble" style="border-color:${color}"><div>${guess.name}</div><div style="font-size:12px; font-weight: 800;">${dist.toFixed(1)} ק"מ <span class="marker-arrow" style="transform:rotate(${bearing}deg)">⬆️</span></div></div><div class="marker-dot" style="background-color:${color}"></div>`;
+        markerHtml = `<div class="marker-bubble" style="border-color:${color}"><div>${guess.name}</div><div style="font-size:12px; font-weight: 800;">${dist.toFixed(1)} ק"מ <span class="badge">${feedback.label}</span> <span class="marker-arrow" style="transform:rotate(${bearing}deg)">⬆️</span></div></div><div class="marker-dot" style="background-color:${color}"></div>`;
     }
 
     const icon = L.divIcon({
@@ -651,8 +790,7 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
         html: markerHtml,
         iconSize: [0, 0], iconAnchor: [0, 48]
     });
-    
-    L.marker([guess.lat, guess.lon], { icon: icon }).addTo(markersLayer);
+    L.marker([guess.lat, guess.lon], { icon: icon }).addTo(map);
     
     const row = document.createElement('div');
     if (isClueGuess) {
@@ -663,11 +801,12 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
     } else {
         row.className = 'guess-row';
         row.style.background = color;
-        row.innerHTML = `<span>${guess.name}</span> <span>${dist.toFixed(1)} ק"מ <span style="display:inline-block; transform:rotate(${bearing}deg)">⬆️</span></span>`;
+        row.innerHTML = `<span>${guess.name} <span class="badge">${feedback.label}</span></span> <span>+${feedback.score} | ${dist.toFixed(1)} ק"מ <span style="display:inline-block; transform:rotate(${bearing}deg)">⬆️</span></span>`;
     }
     document.getElementById('feedback').prepend(row);
 
     if (!isRestoring) {
+        saveProgress(cityName, isClueGuess);
         const sidebarPadding = window.innerWidth > 850 ? [400, 0] : [0, 0];
         map.flyTo([guess.lat, guess.lon], 11, {
             paddingTopLeft: sidebarPadding,
@@ -679,6 +818,22 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
     else if (attempts === 0) endGame(false, attempts, isRestoring);
 }
 
+function saveProgress(cityName, isClueGuess) {
+    let stats = JSON.parse(localStorage.getItem('israeleStats')) || { played:0, wins:0, streak:0, totalGuesses:0, history: {}, gaveUpCount: 0 };
+    const today = getDailyKey();
+    if (!stats.history) stats.history = {};
+    if (!stats.history[today]) stats.history[today] = { guessesToday: [], clueGuessesToday: [], isGameOverToday: false };
+    if (!stats.history[today].clueGuessesToday) stats.history[today].clueGuessesToday = [];
+    
+    stats.history[today].guessesToday.push(cityName);
+    if(isClueGuess) {
+        stats.history[today].clueGuessesToday.push(cityName);
+    }
+    stats.history[today].unlockedClues = unlockedClues;
+    
+    localStorage.setItem('israeleStats', JSON.stringify(stats));
+}
+
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const dLat = (lat2-lat1)*Math.PI/180;
@@ -688,16 +843,17 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 function generateGlobalDistribution(userScore, gaveUpThisTurn = false) {
-    const randomSeed = Math.floor(Math.random() * 10);
-    // התאמת הגרף הסופי להתפלגות של 5 ניסיונות
-    const baseDistribution = [8.4, 18.5, 29.3, 24.0, 19.8]; 
-    let baseGaveUp = 15.0; 
+    const day = getGameDayIndex();
+    
+    const baseDistribution = [0.4, 1.8, 4.5, 12.3, 21.0, 24.2, 16.5, 9.2, 5.3, 2.8]; 
+    let baseGaveUp = 13.0; 
     
     let dynamicDist = baseDistribution.map((v, i) => {
-        let shift = Math.sin(randomSeed + i) * 0.4;
+        let shift = Math.sin(day + i) * 0.4;
         return Math.max(0.1, v + shift);
     });
-    let dynamicGaveUp = Math.max(5.0, baseGaveUp + Math.cos(randomSeed) * 2);
+    let dynamicGaveUp = Math.max(5.0, baseGaveUp + Math.cos(day) * 2);
+    
     const totalSum = dynamicDist.reduce((a, b) => a + b, 0) + dynamicGaveUp;
     
     const container = document.getElementById('globalDistributionChart');
@@ -705,10 +861,10 @@ function generateGlobalDistribution(userScore, gaveUpThisTurn = false) {
     
     const maxVal = Math.max(...dynamicDist, dynamicGaveUp);
     
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 10; i++) {
         const row = document.createElement('div');
         row.className = 'dist-row';
-        if (!gaveUpThisTurn && userScore === (5 - i)) {
+        if (!gaveUpThisTurn && userScore === (i + 1)) {
             row.classList.add('current-user');
         }
         
@@ -742,17 +898,18 @@ function generateGlobalDistribution(userScore, gaveUpThisTurn = false) {
 }
 
 function shareGame(platform) {
-    const usedHintsCount = (unlockedClues.closestNeighborUsed ? 1 : 0) + (unlockedClues.fiveOptionsUsed ? 1 : 0) + (unlockedClues.blindMapUsed ? 1 : 0);
-    const finalGuesses = 5 - attempts;
+    const usedHintsCount = (unlockedClues.closestNeighborUsed ? 1 : 0) + (unlockedClues.fiveOptionsUsed ? 1 : 0);
+    const finalGuesses = 10 - attempts;
+    const day = getGameDayIndex() + 1;
     
     let resultEmojis = "";
     if (attempts > 0 && isGameOver && document.getElementById('vic-title').innerText.includes("פגיעה")) {
-        resultEmojis = "🎯 פגעתי בול באתגר האינסופי!";
+        resultEmojis = "🎯 פגעתי בול!";
     } else {
-        resultEmojis = "🏳️ לא הצלחתי בסיבוב הזה...";
+        resultEmojis = "🏳️ לא הצלחתי היום...";
     }
     
-    const textToShare = `IsraMaster - מצב אינסופי 🗺️\n${resultEmojis}\n🛰️ טעויות: ${finalGuesses}/5\n🔮 רמזים שנוצלו: ${usedHintsCount}/3\n\nבואו לשחק ללא הגבלה ב-isramaster.com! ✨`;
+    const textToShare = `IsraMaster האתגר היומי #יעד_${day}\n${resultEmojis}\n⭐ ניקוד: ${totalScore.toLocaleString()}\n🛰️ ניסיונות: ${finalGuesses}/10\n🔮 רמזים שנוצלו: ${usedHintsCount}/2\n\nבואו לנסות גם אתם ב-isramaster.com! 🗺️✨`;
     
     if (platform === 'whatsapp') {
         const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(textToShare)}`;
@@ -763,8 +920,10 @@ function shareGame(platform) {
         
         setTimeout(() => {
             navigator.clipboard.writeText(textToShare).then(() => {
-                alert("📋 נתוני המשחק הועתקו ללוח! פתחו את אינסטגרם והדביקו בסטורי שלכם 📸");
-            }).catch(err => console.error('שגיאה בהעתקה', err));
+                alert("📋 נתוני המשחק הועתקו ללוח! אם האפליקציה לא נפתחה אוטומטית, תוכלו לפתוח את האינסטגרם ולהדביק ישירות בסטורי שלכם 📸");
+            }).catch(err => {
+                console.error('שגיאה בהעתקה', err);
+            });
         }, 800);
     }
 }
@@ -772,47 +931,124 @@ function shareGame(platform) {
 function endGame(win, remaining, alreadyProcessed = false) {
     isGameOver = true;
     closeConfirm();
-    closeWarning();
     document.getElementById('cityInput').disabled = true;
     document.getElementById('submitBtn').disabled = true;
 
-    let stats = JSON.parse(localStorage.getItem('israeleStatsInfinite')) || { played:0, wins:0, streak:0, totalGuesses:0, gaveUpCount: 0 };
+    let stats = JSON.parse(localStorage.getItem('israeleStats')) || { played:0, wins:0, streak:0, totalGuesses:0, history: {}, gaveUpCount: 0 };
+    const today = getDailyKey();
+
+    if (!stats.history[today]) stats.history[today] = { guessesToday: [], clueGuessesToday: [], isGameOverToday: false };
+    
     let gaveUpThisTurn = (!win && remaining === attempts && attempts > 0);
 
-    if (!alreadyProcessed) {
+    attempts = remaining;
+
+    if (isFirstPlayerToday) {
+        totalScore += 500;
+        const rewardBox = document.getElementById('first-player-reward');
+        rewardBox.style.display = 'block';
+        rewardBox.innerText = "👑 אתה השחקן הראשון להיום! זכית בבונוס +500 נקודות!";
+        localStorage.setItem(`firstPlayerDate_${today}`, "claimed");
+    }
+
+    if (!alreadyProcessed && !stats.history[today].isGameOverToday) {
         stats.played = (stats.played || 0) + 1;
+        stats.history[today].isGameOverToday = true;
+        stats.history[today].lastResultWasWin = win;
+        stats.history[today].lastAttemptsCount = remaining;
+        stats.history[today].score = totalScore;
         if(win) { 
             stats.wins = (stats.wins || 0) + 1; 
             stats.streak = (stats.streak || 0) + 1; 
-            stats.totalGuesses = (stats.totalGuesses || 0) + (5 - remaining); 
+            stats.totalGuesses = (stats.totalGuesses || 0) + (10 - remaining); 
         } else { 
             stats.streak = 0; 
             if (remaining > 0) {
                 stats.gaveUpCount = (stats.gaveUpCount || 0) + 1;
             }
         }
-        localStorage.setItem('israeleStatsInfinite', JSON.stringify(stats));
+        localStorage.setItem('israeleStats', JSON.stringify(stats));
     }
     
-    const usedHintsCount = (unlockedClues.closestNeighborUsed ? 1 : 0) + (unlockedClues.fiveOptionsUsed ? 1 : 0) + (unlockedClues.blindMapUsed ? 1 : 0);
-    document.getElementById('hints-count-summary').innerHTML = `🔮 השתמשת ב-<b>${usedHintsCount}</b> מתוך 3 הרמזים האפשריים.`;
+    document.getElementById('score-summary').innerText = `ניקוד סופי: ${totalScore.toLocaleString()} נקודות`;
+
+    const savedName = localStorage.getItem('israMasterPlayerName');
+    if (savedName) {
+        updateLeaderboards(savedName, totalScore);
+    } else {
+        document.getElementById('name-entry-container').style.display = 'block';
+    }
+
+    const usedHintsCount = (unlockedClues.closestNeighborUsed ? 1 : 0) + (unlockedClues.fiveOptionsUsed ? 1 : 0);
+    document.getElementById('hints-count-summary').innerHTML = `🔮 השתמשת ב-<b>${usedHintsCount}</b> מתוך 2 הרמזים האפשריים.`;
 
     document.getElementById('st-played').innerText = stats.played || 0;
     document.getElementById('st-winpct').innerText = stats.played > 0 ? Math.round(((stats.wins || 0) / stats.played) * 100) + "%" : "0%";
     document.getElementById('st-streak').innerText = stats.streak || 0;
     document.getElementById('st-avg').innerText = stats.wins > 0 ? ((stats.totalGuesses || 0) / stats.wins).toFixed(1) : "0";
     
-    const userScore = win ? (5 - remaining) : 0;
-    generateGlobalDistribution(userScore, gaveUpThisTurn);
+    const userScore = win ? (10 - remaining) : 0;
+    
+    let currentGaveUpFlag = gaveUpThisTurn || (stats.history[today] && !stats.history[today].lastResultWasWin && stats.history[today].lastAttemptsCount > 0);
+    generateGlobalDistribution(userScore, currentGaveUpFlag);
 
     document.getElementById('victory-overlay').style.display = 'flex';
-    document.getElementById('vic-title').innerText = win ? "פגיעה בול! 🎯" : "לא בסיבוב הזה... 🚩";
+    document.getElementById('vic-title').innerText = win ? "פגיעה בול! 🎯" : "לא היום... 🚩";
     document.getElementById('vic-msg').innerText = `היעד היה: ${target.name}`;
     
-    L.marker([target.lat, target.lon]).addTo(markersLayer).bindPopup(`<b>${target.name}</b>`).openPopup();
-    
-    const sidebarPadding = window.innerWidth > 850 ? [400, 0] : [0, 0];
-    map.flyTo([target.lat, target.lon], 12, { paddingTopLeft: sidebarPadding });
+    L.marker([target.lat, target.lon]).addTo(map).bindPopup(`<b>${target.name}</b>`).openPopup();
+    if (!alreadyProcessed) {
+         const sidebarPadding = window.innerWidth > 850 ? [400, 0] : [0, 0];
+         map.flyTo([target.lat, target.lon], 12, { paddingTopLeft: sidebarPadding });
+    }
+}
+
+function submitPlayerName() {
+    const nameInput = document.getElementById('playerNameInput');
+    const name = nameInput.value.trim();
+    if (name) {
+        localStorage.setItem('israMasterPlayerName', name);
+        document.getElementById('name-entry-container').style.display = 'none';
+        updateLeaderboards(name, totalScore);
+    }
+}
+
+function updateLeaderboards(name, score) {
+    const todayKey = getDailyKey();
+    let dailyLeaderboard = JSON.parse(localStorage.getItem(`lb_${todayKey}`)) || [
+        { name: "דניאל", score: 9200 },
+        { name: "נועה", score: 8500 },
+        { name: "עומר", score: 7100 }
+    ];
+
+    const existingIdx = dailyLeaderboard.findIndex(p => p.name === name);
+    if (existingIdx !== -1) {
+        if (score > dailyLeaderboard[existingIdx].score) dailyLeaderboard[existingIdx].score = score;
+    } else {
+        dailyLeaderboard.push({ name, score });
+    }
+
+    dailyLeaderboard.sort((a, b) => b.score - a.score);
+    localStorage.setItem(`lb_${todayKey}`, JSON.stringify(dailyLeaderboard));
+
+    const tbody = document.querySelector('#dailyLeaderboard tbody');
+    tbody.innerHTML = '';
+    let playerRank = 0;
+
+    dailyLeaderboard.slice(0, 5).forEach((entry, idx) => {
+        const tr = document.createElement('tr');
+        if (entry.name === name) {
+            tr.style.fontWeight = 'bold';
+            tr.style.color = 'var(--primary)';
+            playerRank = idx + 1;
+        }
+        tr.innerHTML = `<td>${idx + 1}</td><td>${entry.name}</td><td>${entry.score.toLocaleString()}</td>`;
+        tbody.appendChild(tr);
+    });
+
+    if (playerRank > 0) {
+        document.getElementById('player-rank-display').innerText = `מיקומך: #${playerRank}`;
+    }
 }
 
 function toggleSidebar(forceOpen) {
@@ -828,8 +1064,6 @@ function toggleInstructions(show) { document.getElementById('how-to-play-overlay
 function hideOverlay() { document.getElementById('victory-overlay').style.display = 'none'; }
 function showConfirm() { if(!isGameOver) document.getElementById('confirm-overlay').style.display = 'flex'; }
 function closeConfirm() { document.getElementById('confirm-overlay').style.display = 'none'; }
-function showWarning() { document.getElementById('warning-overlay').style.display = 'flex'; }
-function closeWarning() { document.getElementById('warning-overlay').style.display = 'none'; }
 
 window.onload = loadData;
 </script>
