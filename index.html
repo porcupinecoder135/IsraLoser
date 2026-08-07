@@ -1,444 +1,1137 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html dir="rtl" lang="he">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>משחק ניחוש ערים</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <style>
-    :root {
-      --arrow-scale: 1;
-      --distance-font-scale: 1;
-    }
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SF4RWN0R10"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-SF4RWN0R10');
+    </script>
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IsraMaster - אתגר גאוגרפיה יומי</title>
+    
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="theme-color" content="#1a2a6c">
 
-    body, html {
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-    }
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <style>
+        :root {
+            --primary: #1a2a6c;
+            --accent: #f44336;
+            --gold: #ffeb3b;
+            --success: #2ecc71;
+            --dark: #2c3e50;
+            --purple: #9b59b6;
+            --cyan: #00cec9;
+            --sidebar-width: 400px;
+            --settlement-font-size: 15px;
+            --distance-font-size: 12px;
+        }
 
-    #map {
-      height: 100vh;
-      width: 100vw;
-      z-index: 1;
-    }
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; background: #eee; }
+        body { display: flex; flex-direction: row; }
 
-    /* Controls Panel */
-    .controls-container {
-      position: absolute;
-      top: 15px;
-      left: 15px;
-      z-index: 1000;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      width: 280px;
-    }
+        #sidebar { 
+            width: var(--sidebar-width); height: 100vh; background: var(--dark); 
+            box-shadow: 5px 0 15px rgba(0,0,0,0.2); padding: 20px; 
+            box-sizing: border-box; z-index: 2100; overflow-y: auto; 
+            display: flex; flex-direction: column; color: white;
+            transition: transform 0.3s ease-out;
+        }
 
-    .input-group {
-      display: flex;
-      gap: 8px;
-    }
+        #map { flex: 1; height: 100vh; background: #cad7d0; z-index: 1; }
 
-    input[type="text"] {
-      flex: 1;
-      padding: 10px;
-      border: 2px solid #ccc;
-      border-radius: 8px;
-      font-size: 16px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
+        #mobile-toggle {
+            display: none; position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+            z-index: 2005; background: var(--dark); color: white; border: 2px solid var(--accent);
+            padding: 12px 35px; border-radius: 30px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
 
-    input[type="text"]:focus {
-      border-color: #3498db;
-    }
+        .swipe-handle {
+            display: none; width: 50px; height: 6px; background: rgba(255,255,255,0.3);
+            border-radius: 10px; margin: -5px auto 15px auto; padding: 10px 0; background-clip: content-box;
+        }
 
-    button {
-      padding: 10px 15px;
-      background: #3498db;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.2s;
-    }
+        .error-container { min-height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
+        #errorMsg { 
+            width: 100%; min-height: 45px; color: #fff; font-size: 14px; opacity: 0; 
+            text-align: center; font-weight: bold; background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px; border-radius: 12px;
+            transition: all 0.3s ease; transform: translateY(5px);
+            display: flex; flex-direction: column; justify-content: center; pointer-events: none;
+        }
+        #errorMsg.visible { opacity: 1; transform: translateY(0); background: rgba(244, 67, 54, 0.35); border-color: var(--accent); pointer-events: auto;}
+        #errorMsg.suggestion-active { background: rgba(46, 204, 113, 0.2); border-color: var(--success); }
+        .suggestion-link { text-decoration: none; color: var(--gold); display: inline-block; margin-top: 5px; cursor: pointer; padding: 3px 10px; background: rgba(255,255,255,0.1); border-radius: 6px; }
 
-    button:hover {
-      background: #2980b9;
-    }
+        .shake { animation: shake 0.4s both; border: 2px solid var(--accent) !important; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
 
-    .score-board {
-      font-size: 18px;
-      font-weight: bold;
-      color: #2c3e50;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+        .stats-card { text-align: center; margin-bottom: 10px; position: relative; }
+        .life-container { display: flex; justify-content: center; gap: 6px; margin-top: 5px; }
+        .life-circle { width: 10px; height: 10px; background: var(--gold); border-radius: 50%; transition: 0.3s; }
+        .life-circle.lost { background: rgba(255,255,255,0.1); transform: scale(0.7); box-shadow: none; }
 
-    /* Enlarged & Prominent Top Right Leaderboard */
-    .leaderboard-container {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      z-index: 1000;
-      background: rgba(255, 255, 255, 0.98);
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-      width: 340px;
-      border: 3px solid #f1c40f;
-    }
+        .btn-main { padding: 15px; background: var(--accent); color: white; border: none; border-radius: 15px; cursor: pointer; font-weight: bold; font-size: 16px; width: 100%; margin-top: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.2s ease; }
+        .btn-main:active { transform: scale(0.98); }
+        .btn-secondary { background: #555; margin-top: 5px; }
+        input { padding: 15px; border: 2px solid rgba(255,255,255,0.2); border-radius:15px; background: rgba(255,255,255,0.1); font-size: 16px; color: white; width: 100%; box-sizing: border-box; outline: none; }
 
-    .leaderboard-title {
-      font-size: 24px;
-      font-weight: 800;
-      color: #2c3e50;
-      text-align: center;
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
+        .custom-marker { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; }
+        .marker-dot { width: 16px; height: 16px; border-radius: 50%; border: 2.5px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.6); z-index: 2; }
+        .marker-bubble {
+            background: white; color: #222; padding: 8px 14px; border-radius: 12px; font-weight: 900;
+            white-space: nowrap; display: flex; flex-direction: column; align-items: center; gap: 2px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25); border: 2.5px solid transparent; margin-bottom: 6px;
+        }
+        .marker-settlement-title { font-size: var(--settlement-font-size); }
+        .marker-distance-text { font-size: var(--distance-font-size); font-weight: 800; }
+        .marker-arrow { font-size: 18px; font-weight: bold; display: inline-block; margin-right: 2px; }
 
-    .leaderboard-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+        #setup-overlay, #how-to-play-overlay, #victory-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #settings-overlay { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; backdrop-filter: blur(8px); }
+        #setup-overlay { background: radial-gradient(circle at center, #1a2a6c, #000); }
+        #how-to-play-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #settings-overlay { background: rgba(0,0,0,0.85); display: none; }
+        
+        .modal { background: white; padding: 25px; border-radius: 25px; width: 85%; max-width: 380px; color: #333; box-shadow: 0 20px 40px rgba(0,0,0,0.4); max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 15px 0; }
+        .stat-val { font-size: 18px; font-weight: 900; color: var(--primary); display: block; }
+        .stat-lbl { font-size: 11px; color: #777; line-height: 1.2; font-weight: bold; }
 
-    .leaderboard-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 14px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 17px;
-    }
+        #clue-hub-trigger {
+            background: #555; position: relative;
+        }
+        #clue-hub-trigger.glow-active {
+            background: linear-gradient(45deg, var(--purple), #8e44ad);
+            animation: pulse-trigger-limited 1.5s ease-in-out 2; 
+            box-shadow: 0 0 15px rgba(155, 89, 182, 0.6);
+        }
+        @keyframes pulse-trigger-limited {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(155, 89, 182, 0.5); }
+            50% { transform: scale(1.1); box-shadow: 0 0 25px rgba(0, 206, 201, 0.8); }
+        }
 
-    .leaderboard-item:nth-child(1) { background: #fff3cd; color: #856404; font-size: 19px; }
-    .leaderboard-item:nth-child(2) { background: #e2e3e5; color: #383d41; }
-    .leaderboard-item:nth-child(3) { background: #ffe8d6; color: #721c24; }
+        .used-hints-summary { font-size: 14px; font-weight: bold; color: var(--purple); margin: 5px 0 15px 0; background: #f5f0fa; padding: 6px; border-radius: 8px; }
+        
+        .share-container { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-share { flex: 1; padding: 12px; border: none; border-radius: 12px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: opacity 0.2s; }
+        .btn-share:active { transform: scale(0.98); }
+        .btn-whatsapp { background: #25D366; }
+        .btn-instagram { background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D); }
+        
+        .distribution-title { font-size: 14px; font-weight: 800; color: #444; text-align: right; margin: 15px 0 8px 0; border-top: 1px solid #eee; padding-top: 12px; }
+        .dist-chart { display: flex; flex-direction: column; gap: 5px; background: #f9f9f9; padding: 10px; border-radius: 12px; text-align: right; }
+        .dist-row { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: bold; }
+        .dist-label { width: 75px; color: #555; text-align: right; white-space: nowrap; flex-shrink: 0; }
+        .dist-bar-wrapper { flex: 1; background: #e0e0e0; height: 18px; border-radius: 4px; overflow: hidden; position: relative; }
+        .dist-bar { background: #95a5a6; height: 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: 5px; color: white; font-size: 10px; font-weight: 900; border-radius: 4px; transition: width 0.6s ease; box-sizing: border-box; }
+        .dist-row.current-user .dist-bar { background: var(--primary) !important; }
 
-    /* High-Dopamine Reward Visual Effects */
-    .dopamine-popup {
-      position: absolute;
-      font-weight: 900;
-      font-size: 36px;
-      color: #2ecc71;
-      text-shadow: 0 0 12px rgba(46, 204, 113, 0.8), 2px 2px 4px rgba(0,0,0,0.4);
-      pointer-events: none;
-      z-index: 2000;
-      animation: floatUpAndBurst 1.2s ease-out forwards;
-    }
+        .clues-modal-content { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+        .clue-btn {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad); color: white; border: none;
+            padding: 14px; border-radius: 15px; font-weight: bold; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; gap: 8px; font-size: 15px;
+            transition: all 0.3s ease;
+        }
+        .clue-btn:hover { background: linear-gradient(45deg, #8e44ad, #9b59b6); transform: scale(1.02); }
+        .clue-btn.used { background: #bbb !important; color: #666; cursor: not-allowed; opacity: 0.6; transform: none; box-shadow: none; }
+        
+        .hint-options-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
+        .hint-opt-btn {
+            padding: 12px; border: 2px solid #ddd; background: #f9f9f9; border-radius: 12px;
+            font-size: 15px; font-weight: bold; color: var(--dark); cursor: pointer; transition: all 0.2s;
+        }
+        .hint-opt-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
 
-    @keyframes floatUpAndBurst {
-      0% {
-        opacity: 0;
-        transform: scale(0.3) translateY(0);
-      }
-      30% {
-        opacity: 1;
-        transform: scale(1.5) translateY(-20px);
-      }
-      70% {
-        opacity: 1;
-        transform: scale(1) translateY(-40px);
-      }
-      100% {
-        opacity: 0;
-        transform: scale(0.8) translateY(-70px);
-      }
-    }
+        #feedback { flex: 1; overflow-y: auto; margin-top: 15px; display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px;}
+        .guess-row { padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; color: #000; font-size: 14px; flex-shrink: 0; }
+        
+        .guess-row.special-clue {
+            border: 3px dashed #fff; box-shadow: 0 0 15px rgba(255,255,255,0.4);
+            animation: flash-special 1.5s infinite;
+        }
+        @keyframes flash-special {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
 
-    .celebration-flash {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
-      z-index: 1500;
-      border: 10px solid #2ecc71;
-      box-shadow: inset 0 0 20px #2ecc71;
-      opacity: 0;
-      transition: opacity 0.1s ease-in-out;
-    }
+        /* Score Popups & Dopamine FX */
+        #points-popup {
+            position: fixed; top: 30%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
+            z-index: 9999; pointer-events: none; opacity: 0;
+            background: linear-gradient(135deg, #ff007f, #ffaa00);
+            color: #fff; text-shadow: 0 3px 10px rgba(0,0,0,0.5);
+            padding: 20px 40px; border-radius: 30px; font-size: 38px; font-weight: 900;
+            box-shadow: 0 10px 30px rgba(255, 0, 127, 0.6);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+        }
+        #points-popup.show {
+            opacity: 1; transform: translate(-50%, -50%) scale(1.2);
+        }
 
-    .celebration-flash.active {
-      opacity: 1;
-    }
+        .name-input-box {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            padding: 15px; border-radius: 18px; color: white; margin-bottom: 15px;
+            box-shadow: 0 6px 15px rgba(230, 126, 34, 0.4); text-align: center;
+        }
+        .name-input-box h4 { margin: 0 0 8px 0; font-size: 18px; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        .name-input-box input { background: #fff; color: #333; font-weight: bold; text-align: center; border: none; }
+        .name-input-box button { background: var(--dark); margin-top: 8px; border: none; }
 
-    /* Settings Panel */
-    .settings-btn {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      z-index: 1000;
-      background: #34495e;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      font-size: 24px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
+        .leaderboard-toggle { display: flex; gap: 5px; margin-bottom: 10px; }
+        .leaderboard-btn { flex: 1; padding: 6px; font-size: 12px; font-weight: bold; border-radius: 8px; border: 1px solid #ccc; background: #eee; cursor: pointer; }
+        .leaderboard-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-    .settings-modal {
-      display: none;
-      position: absolute;
-      bottom: 80px;
-      right: 20px;
-      z-index: 1001;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-      width: 280px;
-      flex-direction: column;
-      gap: 15px;
-    }
+        .settings-btn-icon { position: absolute; top: 0; left: 0; background: none; border: none; color: white; font-size: 20px; cursor: pointer; opacity: 0.8; }
+        .settings-btn-icon:hover { opacity: 1; }
 
-    .settings-modal.active {
-      display: flex;
-    }
+        .range-slider-group { text-align: right; margin-bottom: 15px; }
+        .range-slider-group label { font-size: 14px; font-weight: bold; color: #333; display: block; margin-bottom: 5px; }
+        .range-slider-group input[type=range] { width: 100%; }
 
-    .setting-item {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .setting-item label {
-      font-size: 14px;
-      font-weight: bold;
-      color: #333;
-    }
-
-    .setting-item input[type="range"] {
-      width: 100%;
-    }
-
-    /* Dynamic Scale Modifiers */
-    .custom-arrow-icon {
-      transform-origin: center;
-    }
-
-    .distance-display-label {
-      font-size: calc(14px * var(--distance-font-scale));
-      font-weight: bold;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 4px 8px;
-      border-radius: 4px;
-      border: 1px solid #333;
-      white-space: nowrap;
-    }
-  </style>
+        @media (max-width: 850px) {
+            #sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 65vh; transform: translateY(100%); border-radius: 25px 25px 0 0; transition: transform 0.1s linear; }
+            #sidebar.open { transform: translateY(0); }
+            #sidebar.transitioning { transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1); }
+            .swipe-handle { display: block; }
+            #mobile-toggle { display: block; }
+        }
+    </style>
 </head>
 <body>
 
-  <div id="map"></div>
-  <div id="flashOverlay" class="celebration-flash"></div>
+<div id="points-popup"></div>
 
-  <!-- Controls Panel -->
-  <div class="controls-container">
-    <div class="input-group">
-      <input type="text" id="cityInput" placeholder="הכנס שם עיר..." autocomplete="off">
-      <button onclick="submitGuess()">נחש</button>
+<div id="setup-overlay">
+    <div style="font-size: 45px; font-weight: 900; letter-spacing: 4px;">ISRAMASTER</div>
+    <p style="margin-bottom: 30px; opacity: 0.8;">האתגר הגיאוגרפי היומי</p>
+    <div style="width: 260px; display: flex; flex-direction: column; gap: 10px;">
+        <button class="btn-main" onclick="startGame()">שחקו עכשיו 🛰️</button>
+        <button class="btn-main btn-secondary" onclick="toggleInstructions(true)">איך משחקים?</button>
     </div>
-    <div class="score-board">
-      <span>ניקוד:</span>
-      <span id="scoreValue">0</span>
+</div>
+
+<div id="settings-overlay">
+    <div class="modal">
+        <h3 style="margin-top:0; color:var(--primary);">⚙️ הגדרות תצוגה</h3>
+        <div class="range-slider-group">
+            <label>גודל גופן שם הישוב: <span id="settlementSizeVal">15</span>px</label>
+            <input type="range" min="10" max="26" value="15" oninput="updateFontSettings('settlement', this.value)">
+        </div>
+        <div class="range-slider-group">
+            <label>גודל גופן מרחק: <span id="distanceSizeVal">12</span>px</label>
+            <input type="range" min="8" max="20" value="12" oninput="updateFontSettings('distance', this.value)">
+        </div>
+        <button class="btn-main" onclick="closeSettings()">סגור</button>
     </div>
-  </div>
+</div>
 
-  <!-- Prominent Top-Right Leaderboard -->
-  <div class="leaderboard-container">
-    <div class="leaderboard-title">🏆 טבלת מובילים</div>
-    <ul class="leaderboard-list" id="leaderboardList">
-      <li class="leaderboard-item"><span>1. שחקן 1</span><span>1,200</span></li>
-      <li class="leaderboard-item"><span>2. שחקן 2</span><span>950</span></li>
-      <li class="leaderboard-item"><span>3. שחקן 3</span><span>800</span></li>
-      <li class="leaderboard-item"><span>4. אתה</span><span id="playerLeaderboardScore">0</span></li>
-    </ul>
-  </div>
+<div id="confirm-overlay">
+    <div class="modal">
+        <h3>לוותר על האתגר?</h3>
+        <p>הפסד יירשם והמיקום ייחשף.</p>
+        <button class="btn-main" onclick="endGame(false, attempts)">כן, לוותר 🏳️</button>
+        <button class="btn-main btn-secondary" style="color:#fff; border:1px solid #777" onclick="closeConfirm()">חזרה למשחק</button>
+    </div>
+</div>
 
-  <!-- Settings Control Button & Modal -->
-  <button class="settings-btn" onclick="toggleSettings()">⚙️</button>
-  <div class="settings-modal" id="settingsModal">
-    <h3 style="margin-bottom: 5px;">הגדרות תצוגה</h3>
+<div id="clues-box-overlay">
+    <div class="modal" style="max-width: 380px;">
+        <h3 id="clue-modal-title" style="color: var(--purple); margin-top:0; font-size:22px;">🔮 מרכז הרמזים</h3>
+        <p id="clue-modal-explanation" style="font-size:13px; color:#555; line-height:1.4; margin-bottom:15px;"></p>
+        <div class="clues-modal-content" id="cluesModalContainer"></div>
+        <button class="btn-main btn-secondary" style="margin-top:15px; width:100%;" onclick="closeCluesHub()">סגירה</button>
+    </div>
+</div>
+
+<div id="warning-modal-overlay">
+    <div class="modal">
+        <h3 style="color: var(--accent); margin-top:0;">⚠️ אזהרת סיום משחק!</h3>
+        <p style="font-size:15px; color:#333; line-height:1.5; text-align:right;">פתיחת הרמז תציג בפניכם <b>5 אפשרויות בלבד</b> באזור של היעד.</p>
+        <p style="font-size:14px; color:var(--accent); font-weight:bold; line-height:1.5; text-align:right;">בחירה באחד מחמשת היישובים תהווה את הניחוש האחרון והסופי שלכם ותסיים את המשחק מיידית (ניצחון או הפסד).</p>
+        <button class="btn-main" style="background:var(--purple);" onclick="confirmAndOpenFiveOptions()">אני מבין, הצג את האפשרויות 🔮</button>
+        <button class="btn-main btn-secondary" onclick="document.getElementById('warning-modal-overlay').style.display = 'none'; openCluesHub();">חזרה למרכז הרמזים</button>
+    </div>
+</div>
+
+<div id="clue-modal-overlay">
+    <div class="modal">
+        <h3 style="color: var(--purple); margin-top:0;">🧩 בחרו את הניחוש הסופי שלכם:</h3>
+        <p style="font-size:13px; color:#666; margin-bottom:12px;">אחד מהיישובים הבאים הוא היעד האמיתי. בחירה תסיים את המשחק!</p>
+        <div class="hint-options-grid" id="hintOptionsContainer"></div>
+    </div>
+</div>
+
+<div id="how-to-play-overlay">
+    <div class="modal">
+        <h2>איך משחקים?</h2>
+        <ul style="text-align: right; line-height: 1.6; padding-right: 20px;">
+            <li>נחשו את <b>היישוב המסתורי</b>.</li>
+            <li>הצבע משתנה לפי המרחק (אדום = קרוב, צהוב = רחוק).</li>
+            <li>החץ מראה את <b>הכיוון</b> ליישוב.</li>
+            <li>ככל שתהיו קרובים יותר, תקבלו <b>יותר נקודות!</b></li>
+            <li>יש לכם 10 ניסיונות.</li>
+            <hr style="opacity:0.2; margin: 10px 0;">
+            <li><b>🔮 מערכת רמזים מיוחדת:</b></li>
+            <li>התקרבו אל <b>מתחת ל-10 ק"מ</b> מהיעד כדי לפתוח את מרכז הרמזים!</li>
+            <li>תוכלו לחשוף את השכן הקרוב ביותר ללא עלות ניסיונות, או לפתוח את <b>אתגר 1 מתוך 5</b> שיסיים את המשחק לפי בחירתכם!</li>
+        </ul>
+        <button class="btn-main" onclick="toggleInstructions(false)">הבנתי!</button>
+    </div>
+</div>
+
+<button id="mobile-toggle" onclick="toggleSidebar(true)">ניחוש 📊</button>
+
+<div id="sidebar">
+    <div class="swipe-handle" id="swipeHandle"></div>
+    <div class="stats-card">
+        <button class="settings-btn-icon" onclick="openSettings()"><i class="fa-solid fa-gear"></i></button>
+        <h3 style="margin:0; letter-spacing: 2px;">ISRAMASTER</h3>
+        <div style="font-size:13px; color:var(--gold); font-weight:bold; margin-top:3px;">ניקוד: <span id="scoreDisplay">0</span></div>
+        <div class="life-container" id="lifePoints"></div>
+    </div>
     
-    <div class="setting-item">
-      <label for="arrowSizeRange">גודל חץ: <span id="arrowSizeVal">1.0</span>x</label>
-      <input type="range" id="arrowSizeRange" min="0.5" max="2.5" step="0.1" value="1.0">
+    <div class="error-container">
+        <div id="errorMsg"></div>
+    </div>
+    
+    <input type="text" id="cityInput" placeholder="שם היישוב..." list="cityList" autocomplete="off" onkeypress="if(event.key === 'Enter') makeGuess()" oninput="clearErrorOnType()">
+    <datalist id="cityList"></datalist>
+    
+    <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <button id="submitBtn" class="btn-main" style="margin-top:0; flex: 3;" onclick="makeGuess()">ניחוש 🚀</button>
+        <button id="clue-hub-trigger" class="btn-main" style="margin-top:0; flex: 1.2;" onclick="openCluesHub()">🔮</button>
+        <button id="giveUpBtn" class="btn-main btn-secondary" style="margin-top:0; flex: 1;" onclick="showConfirm()">🏳️</button>
     </div>
 
-    <div class="setting-item">
-      <label for="distanceSizeRange">גודל טקסט מרחק: <span id="distanceSizeVal">1.0</span>x</label>
-      <input type="range" id="distanceSizeRange" min="0.5" max="2.0" step="0.1" value="1.0">
-    </div>
-  </div>
+    <div id="feedback"></div>
+</div>
 
-  <script>
-    // Database with alternate name/alias mappings
-    const CITIES_DATABASE = [
-      {
-        names: ["תל אביב", "תל אביב יפו", "תל אביב-יפו"],
-        canonicalName: "תל אביב יפו",
-        lat: 32.0853,
-        lng: 34.7818
-      },
-      {
-        names: ["פרדס חנה", "פרדס חנה כרכור", "פרדס חנה-כרכור"],
-        canonicalName: "פרדס חנה כרכור",
-        lat: 32.4711,
-        lng: 34.9723
-      },
-      {
-        names: ["מודיעין", "מודיעין מכבים רעות", "מודיעין-מכבים-רעות"],
-        canonicalName: "מודיעין מכבים רעות",
-        lat: 31.8903,
-        lng: 35.0104
-      },
-      {
-        names: ["ירושלים"],
-        canonicalName: "ירושלים",
-        lat: 31.7683,
-        lng: 35.2137
-      },
-      {
-        names: ["חיפה"],
-        canonicalName: "חיפה",
-        lat: 32.7940,
-        lng: 34.9896
-      }
-    ];
+<div id="map"></div>
 
-    let currentScore = 0;
-    let arrowScale = parseFloat(localStorage.getItem('arrowScale')) || 1.0;
-    let distanceFontScale = parseFloat(localStorage.getItem('distanceFontScale')) || 1.0;
-
-    // Initialize Map
-    const map = L.map('map').setView([31.5, 34.75], 8);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap'
-    }).addTo(map);
-
-    // Load Persistent Settings
-    document.documentElement.style.setProperty('--arrow-scale', arrowScale);
-    document.documentElement.style.setProperty('--distance-font-scale', distanceFontScale);
-
-    document.getElementById('arrowSizeRange').value = arrowScale;
-    document.getElementById('arrowSizeVal').innerText = arrowScale.toFixed(1);
-    document.getElementById('distanceSizeRange').value = distanceFontScale;
-    document.getElementById('distanceSizeVal').innerText = distanceFontScale.toFixed(1);
-
-    function normalizeInput(str) {
-      return str.trim().replace(/-/g, ' ').replace(/\s+/g, ' ');
-    }
-
-    function findCity(inputName) {
-      const cleanInput = normalizeInput(inputName);
-      return CITIES_DATABASE.find(city => 
-        city.names.some(alias => normalizeInput(alias) === cleanInput)
-      );
-    }
-
-    function submitGuess() {
-      const inputEl = document.getElementById('cityInput');
-      const guessedName = inputEl.value;
-      const matchedCity = findCity(guessedName);
-
-      if (matchedCity) {
-        const addedPoints = 100;
-        currentScore += addedPoints;
+<div id="victory-overlay" style="display:none;">
+    <div class="modal" style="max-width: 420px; width: 90%;">
+        <h2 id="vic-title"></h2>
+        <p id="vic-msg"></p>
         
-        document.getElementById('scoreValue').innerText = currentScore;
-        document.getElementById('playerLeaderboardScore').innerText = currentScore;
+        <div class="name-input-box" id="nameEntryContainer">
+            <h4>🏆 הוסף את שמך לטבלת המובילים!</h4>
+            <input type="text" id="playerNameInput" placeholder="הכנס שם שחקן..." maxlength="15">
+            <button class="btn-main" onclick="submitPlayerName()">שמור והשווה לשחקנים 🚀</button>
+        </div>
 
-        triggerDopamineEffects(addedPoints);
-        addMarker(matchedCity);
+        <div id="hints-count-summary" class="used-hints-summary"></div>
 
-        inputEl.value = '';
-      } else {
-        alert('עיר לא נמצאה, נסה שוב.');
-      }
+        <div class="stats-grid">
+            <div class="stat-item"><span class="stat-val" id="st-score">0</span><span class="stat-lbl">ניקוד משחק</span></div>
+            <div class="stat-item"><span class="stat-val" id="st-winpct">0%</span><span class="stat-lbl">ניצחונות</span></div>
+            <div class="stat-item"><span class="stat-val" id="st-streak">0</span><span class="stat-lbl">רצף</span></div>
+            <div class="stat-item"><span class="stat-val" id="st-avg">0</span><span class="stat-lbl">ממוצע ניסיונות</span></div>
+        </div>
+
+        <div class="distribution-title">📊 השוואה מול שחקנים אמיתיים:</div>
+        <div class="leaderboard-toggle">
+            <button class="leaderboard-btn active" id="btn-time-today" onclick="setLeaderboardTimeframe('today')">היום</button>
+            <button class="leaderboard-btn" id="btn-time-week" onclick="setLeaderboardTimeframe('week')">השבוע</button>
+            <button class="leaderboard-btn" id="btn-time-all" onclick="setLeaderboardTimeframe('all')">כל הזמן</button>
+        </div>
+
+        <div class="dist-chart" id="globalDistributionChart"></div>
+
+        <div class="share-container">
+            <button class="btn-share btn-whatsapp" onclick="shareGame('whatsapp')"><i class="fa-brands fa-whatsapp"></i> WhatsApp 💬</button>
+            <button class="btn-share btn-instagram" onclick="shareGame('instagram')">Instagram 📸</button>
+        </div>
+
+        <button class="btn-main" style="background: var(--dark); margin-top: 15px;" onclick="hideOverlay()">סגירת מפה 🗺️</button>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+let allCities = [];
+let target;
+let attempts = 10;
+let isGameOver = false;
+let errorTimeout;
+let currentGuessesList = [];
+let totalScore = 0;
+let currentTimeframe = 'today';
+let playerName = "";
+
+let unlockedClues = { 
+    eligible: false, 
+    closestNeighborUsed: false,
+    fiveOptionsUsed: false
+};
+
+const settlementPool = [
+    "דגניה א", "משמר העמק", "עין גדי", "יטבתה", "שדה בוקר", "יחיעם", "עין שמר", "גן שמר", "מרחביה", "נחשולים", 
+    "צרעה", "עין חרוד", "רמת רחל", "גליל ים", "כפר ויתקין", "בית יצחק", "משמר השרון", "כפר מל\"ל", "עין ורד", "בצרה", 
+    "רשפון", "שפיים", "גאולים", "שער העמקים", "אלונים", "עין השופט", "דליה", "חניתה", "אילון", "מצובה", 
+    "כפר גלעדי", "תל חי", "איילת השחר", "חולתה", "עמיר", "כפר בלום", "דן", "דפנה", "שדה נחמיה", "הגושרים", 
+    "מעיין ברוך", "יפתח", "מלכיה", "מנרה", "משגב עם", "ראש הנקרה", "סער", "עברון", "כברי", "לוחמי הגטאות", 
+    "שבי ציון", "בוסתן הגליל", "אפק", "עין המפרץ", "כפר מסריק", "שמרת", "יסעור", "אחיהוד", "מסילות", "ניר דוד", 
+    "טירת צבי", "שדה אליהו", "עין הנציב", "חפציבה", "בית אלפא", "גבע", "עין חרוד מאוחד", "עין חרוד איחוד", "תל יוסף", "מולדת", 
+    "רמת צבי", "כפר יחזקאל", "גדעונה", "נורית", "מגן", "בארי", "כפר עזה", "נחל עוז", "נירים", "ניר עוז", 
+    "כיסופים", "עין השלושה", "רעים", "חולית", "כרם שלום", "סופה", "סח'נין", "אום אל-פחם", "טייבה", "טירה", 
+    "באקה אל-גרבייה", "כפר קאסם", "ערערה", "ג'סר א-זרקא", "פוריידיס", "ג'לג'וליה"
+];
+
+const approvedArabCities = [];
+
+const excludeKeywords = ["כפר", "אבו", "עין", "דיר", "משהד", "מג'ד", "חורפיש", "בועיינה", "יאנוח", "ג'ת", "ירכא", "ראמה", "ג'ש", "ביר", "חמאם", "אחסם", "שעב", "דבוריה", "טורעאן", "כאבול", "זמר", "פוריידיס", "ג'סר", "ריינה", "עילוט", "מזרעה", "כסרא", "סמיע", "סאג'ור", "כסלון", "מוקייבלה", "שיבלי", "אום"];
+
+const extraExclusions = [
+    "פוריידיס", "איכסאל", "נחף", "כאוכב", "ג'לג'וליה", "כפר קאסם", "טירה", "טייבה", 
+    "קלנסווה", "ערערה", "חורפיש", "מזרעה", "בוקעאתא", "מג'דל שמס", "מסעדה", "עין קנייה", 
+    "לקיה", "תל שבע", "חורה", "כסייפה", "ערערה בנגב", "שגב שלום", "אום אל-פחם", 
+    "באקה אל-גרבייה", "נצרת", "סח'נין", "רהט", "שפרעם", "עיילבון", "טובא זנגריה"
+];
+
+const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([31.5, 34.8], 8);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
+
+let touchStartY = 0;
+let currentTranslateY = 0;
+const sidebar = document.getElementById('sidebar');
+
+sidebar.addEventListener('touchstart', e => {
+    if (sidebar.scrollTop <= 0) {
+        touchStartY = e.touches[0].clientY;
+        sidebar.classList.remove('transitioning');
     }
+}, {passive: true});
 
-    function triggerDopamineEffects(points) {
-      const flash = document.getElementById('flashOverlay');
-      flash.classList.add('active');
-      setTimeout(() => flash.classList.remove('active'), 200);
-
-      const scoreBoard = document.querySelector('.score-board');
-      const rect = scoreBoard.getBoundingClientRect();
-
-      const popup = document.createElement('div');
-      popup.className = 'dopamine-popup';
-      popup.innerText = `+${points} 🎉`;
-      popup.style.left = `${rect.left + 20}px`;
-      popup.style.top = `${rect.top}px`;
-
-      document.body.appendChild(popup);
-      setTimeout(() => popup.remove(), 1200);
+sidebar.addEventListener('touchmove', e => {
+    if (sidebar.scrollTop <= 0) {
+        let touchY = e.touches[0].clientY;
+        const diff = touchY - touchStartY;
+        if (diff > 0 && sidebar.classList.contains('open')) {
+            sidebar.style.transform = `translateY(${diff}px)`;
+            currentTranslateY = diff;
+        }
     }
+}, {passive: true});
 
-    function addMarker(city) {
-      const arrowIcon = L.divIcon({
-        className: 'custom-arrow-icon',
-        html: `<div style="transform: scale(${arrowScale}); font-size: 24px;">📍</div>`,
-        iconSize: [30, 30],
-        iconAnchor: [15, 30]
-      });
-
-      L.marker([city.lat, city.lng], { icon: arrowIcon })
-        .addTo(map)
-        .bindPopup(`<div class="distance-display-label">${city.canonicalName}</div>`)
-        .openPopup();
-
-      map.panTo([city.lat, city.lng]);
+sidebar.addEventListener('touchend', () => {
+    sidebar.classList.add('transitioning');
+    if (currentTranslateY > 150) {
+        toggleSidebar(false);
+    } else {
+        sidebar.style.transform = '';
     }
+    currentTranslateY = 0;
+});
 
-    function toggleSettings() {
-      const modal = document.getElementById('settingsModal');
-      modal.classList.toggle('active');
+map.on('click', () => { if(window.innerWidth <= 850) toggleSidebar(false); });
+
+function getGameDayIndex() {
+    const startDate = new Date(2026, 5, 24); // 24 ביוני 2026
+    const today = new Date();
+    startDate.setHours(0,0,0,0);
+    today.setHours(0,0,0,0);
+    const diffTime = Math.abs(today - startDate);
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+}
+
+function getDailyKey() {
+    const d = new Date();
+    return `v7-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+
+function checkFirstToPlayToday() {
+    const todayKey = getDailyKey();
+    const lastPlayed = localStorage.getItem('israele_last_played_date');
+    if (lastPlayed !== todayKey) {
+        localStorage.setItem('israele_last_played_date', todayKey);
+        return true;
     }
+    return false;
+}
 
-    document.getElementById('arrowSizeRange').addEventListener('input', (e) => {
-      arrowScale = parseFloat(e.target.value);
-      document.getElementById('arrowSizeVal').innerText = arrowScale.toFixed(1);
-      document.documentElement.style.setProperty('--arrow-scale', arrowScale);
-      localStorage.setItem('arrowScale', arrowScale);
+function seededShuffle(arr, seedString) {
+    let hash = 0;
+    for (let i = 0; i < seedString.length; i++) {
+        hash = ((hash << 5) - hash) + seedString.charCodeAt(i);
+    }
+    let random = () => {
+        let x = Math.sin(hash++) * 10000;
+        return x - Math.floor(x);
+    };
+    let shuffled = [...arr];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
+async function loadData() {
+    try {
+        const response = await fetch('MapIsrael.geojson');
+        const data = await response.json();
+        
+        allCities = data.features.map(f => ({
+            name: (f.properties["name:he"] || f.properties["name"] || "").trim(),
+            lat: f.geometry.coordinates[1],
+            lon: f.geometry.coordinates[0]
+        })).filter(c => c.name !== "");
+
+        // --- MANUAL OVERRIDE CHECK ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTarget = urlParams.get('target');
+
+        if (urlTarget) {
+            target = allCities.find(c => c.name === urlTarget.trim());
+        }
+
+        if (!target) {
+            try {
+                const configResp = await fetch('config.json');
+                const configData = await configResp.json();
+                if (configData && configData.manualTarget && configData.manualTarget.trim() !== "") {
+                    target = allCities.find(c => c.name === configData.manualTarget.trim());
+                }
+            } catch (e) {
+                // Ignore missing config file
+            }
+        }
+
+        // --- AUTOMATIC TARGET SELECTION ---
+        if (!target) {
+            const dayIndex = getGameDayIndex();
+            const changeoverIndex = 45; // 8.8.2026
+
+            if (dayIndex >= changeoverIndex) {
+                const availablePool = settlementPool.filter(sName => allCities.some(c => c.name === sName));
+                const poolIndex = dayIndex - changeoverIndex;
+
+                const seedStr = getDailyKey();
+                let hash = 0;
+                for (let i = 0; i < seedStr.length; i++) hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
+                const seededRandom = Math.abs(Math.sin(hash));
+
+                if (poolIndex < availablePool.length) {
+                    const chosenName = availablePool[poolIndex];
+                    target = allCities.find(c => c.name === chosenName);
+                } else {
+                    const citiesOutsidePool = allCities.filter(c => !settlementPool.includes(c.name));
+                    
+                    if (citiesOutsidePool.length > 0) {
+                        target = citiesOutsidePool[Math.floor(seededRandom * citiesOutsidePool.length)];
+                    } else {
+                        target = allCities[Math.floor(seededRandom * allCities.length)];
+                    }
+                }
+            } else {
+                const baseSequence = ["כרי דשא", "קרית גת", "אילת", "גן נר", "נווה ירק", "עדנים", "ירוחם", "כפר הנשיא", "איתנים", "לב יתיר", "גינוסר", "הר עמשא", "אשקלון"];
+                const customSequence = seededShuffle(baseSequence, "isramaster-fixed-seed-2026");
+
+                const validTargets = allCities.filter(city => {
+                    const isExcludedByKeyword = excludeKeywords.some(kw => city.name.includes(kw));
+                    const isExcludedByName = extraExclusions.includes(city.name);
+                    return !(isExcludedByKeyword || isExcludedByName);
+                });
+
+                if (dayIndex < customSequence.length) {
+                    const nextCityName = customSequence[dayIndex];
+                    target = allCities.find(c => c.name === nextCityName);
+                    if (!target) {
+                        target = validTargets[dayIndex % validTargets.length];
+                    }
+                } else {
+                    const remainingTargets = validTargets.filter(city => !customSequence.includes(city.name));
+                    const seedStr = getDailyKey();
+                    let hash = 0;
+                    for (let i = 0; i < seedStr.length; i++) hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
+                    const seededRandom = Math.abs(Math.sin(hash));
+                    
+                    target = remainingTargets[Math.floor(seededRandom * remainingTargets.length)];
+                }
+            }
+        }
+
+        const container = document.getElementById('lifePoints');
+        container.innerHTML = '';
+        for(let i=0; i<10; i++) {
+            const div = document.createElement('div');
+            div.className = 'life-circle';
+            div.id = `life-${9-i}`;
+            container.appendChild(div);
+        }
+        
+        const dl = document.getElementById('cityList');
+        dl.innerHTML = '';
+        [...new Set(allCities.map(c => c.name))].sort().forEach(name => {
+            let o = document.createElement('option'); o.value = name; dl.appendChild(o);
+        });
+
+        restoreGameState();
+    } catch (e) { console.error("Error loading data", e); }
+}
+
+function restoreGameState() {
+    const stats = JSON.parse(localStorage.getItem('israeleStats')) || { history: {} };
+    const today = getDailyKey();
+    playerName = localStorage.getItem('israele_player_name') || "";
+
+    if (stats.history && stats.history[today]) {
+        const todayData = stats.history[today];
+        document.getElementById('setup-overlay').style.display = 'none';
+        
+        if (todayData.unlockedClues) {
+            unlockedClues = todayData.unlockedClues;
+        }
+        
+        if (todayData.score !== undefined) {
+            totalScore = todayData.score;
+            document.getElementById('scoreDisplay').innerText = totalScore;
+        }
+
+        todayData.guessesToday.forEach(cityName => {
+            let isClue = false;
+            if (todayData.clueGuessesToday && todayData.clueGuessesToday.includes(cityName)) {
+                isClue = true;
+            }
+            processGuess(cityName, true, isClue);
+        });
+        if (todayData.isGameOverToday) endGame(todayData.lastResultWasWin, todayData.lastAttemptsCount, true);
+    }
+}
+
+function getLevenshteinDistance(a, b) {
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) matrix[i][j] = matrix[i - 1][j - 1];
+            else matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
+        }
+    }
+    return matrix[b.length][a.length];
+}
+
+function clearErrorOnType() {
+    const errorDiv = document.getElementById('errorMsg');
+    if (errorDiv.classList.contains('visible')) {
+        errorDiv.classList.remove('visible');
+    }
+}
+
+function triggerPointsPopup(points, label = "") {
+    const popup = document.getElementById('points-popup');
+    popup.innerHTML = `+${points} ${label ? `<div style="font-size:16px">${label}</div>` : ''}`;
+    popup.classList.add('show');
+    setTimeout(() => {
+        popup.classList.remove('show');
+    }, 1200);
+}
+
+function makeGuess() {
+    const input = document.getElementById('cityInput');
+    let val = input.value.trim();
+    const errorDiv = document.getElementById('errorMsg');
+    if (!val || isGameOver) return;
+    
+    // Alias Replacements
+    if (val === "תל אביב") val = "תל אביב יפו";
+    if (val === "פרדס חנה") val = "פרדס חנה כרכור";
+    if (val === "מודיעין") val = "מודיעין מכבים רעות";
+
+    const guess = allCities.find(c => c.name === val);
+    
+    if (!guess) {
+        clearTimeout(errorTimeout);
+        input.classList.add('shake');
+        setTimeout(() => input.classList.remove('shake'), 400);
+
+        let bestMatch = null;
+        for (let city of allCities) {
+            if (getLevenshteinDistance(val, city.name) <= 2) { bestMatch = city.name; break; }
+        }
+
+        errorDiv.classList.add('visible');
+        errorDiv.classList.remove('suggestion-active');
+
+        if (bestMatch) {
+            errorDiv.classList.add('suggestion-active');
+            errorDiv.innerHTML = `האם התכוונת ל:<br><span class="suggestion-link" onclick="applySuggestion('${bestMatch}')">${bestMatch}?</span>`;
+        } else {
+            errorDiv.innerHTML = `היישוב לא מופיע במאגר ❌`;
+            errorTimeout = setTimeout(() => { errorDiv.classList.remove('visible'); }, 4000);
+        }
+        return;
+    }
+    
+    errorDiv.classList.remove('visible');
+    processGuess(val);
+    input.value = "";
+}
+
+function applySuggestion(name) {
+    document.getElementById('cityInput').value = name;
+    document.getElementById('errorMsg').classList.remove('visible');
+    makeGuess();
+}
+
+function getClosestNeighbor(targetCity) {
+    let closest = null;
+    let minDistance = Infinity;
+    
+    allCities.forEach(c => {
+        if (c.name !== targetCity.name && !currentGuessesList.includes(c.name)) {
+            let d = calculateDistance(targetCity.lat, targetCity.lon, c.lat, c.lon);
+            if (d < minDistance) {
+                minDistance = d;
+                closest = c;
+            }
+        }
     });
+    return closest ? closest.name : "לא נמצא";
+}
 
-    document.getElementById('distanceSizeRange').addEventListener('input', (e) => {
-      distanceFontScale = parseFloat(e.target.value);
-      document.getElementById('distanceSizeVal').innerText = distanceFontScale.toFixed(1);
-      document.documentElement.style.setProperty('--distance-font-scale', distanceFontScale);
-      localStorage.setItem('distanceFontScale', distanceFontScale);
-    });
+function generateFiveRegionalOptions() {
+    let listWithDistances = allCities
+        .filter(c => c.name !== target.name && !currentGuessesList.includes(c.name))
+        .map(c => ({
+            name: c.name,
+            dist: calculateDistance(target.lat, target.lon, c.lat, c.lon)
+        }));
+    
+    listWithDistances.sort((a,b) => a.dist - b.dist);
+    
+    let options = listWithDistances.slice(0, 4).map(o => o.name);
+    options.push(target.name);
+    
+    return options.sort(() => Math.random() - 0.5);
+}
 
-    document.getElementById('cityInput').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') submitGuess();
+function updateCluesHubTriggerUI() {
+    const trigger = document.getElementById('clue-hub-trigger');
+    if (unlockedClues.eligible) {
+        const bothUsed = unlockedClues.closestNeighborUsed && unlockedClues.fiveOptionsUsed;
+        if (!bothUsed) {
+            trigger.classList.add('glow-active');
+            return;
+        }
+    }
+    trigger.classList.remove('glow-active');
+}
+
+function openCluesHub() {
+    const overlay = document.getElementById('clues-box-overlay');
+    const container = document.getElementById('cluesModalContainer');
+    const explanation = document.getElementById('clue-modal-explanation');
+    container.innerHTML = '';
+
+    if (!unlockedClues.eligible) {
+        explanation.innerHTML = `🔒 <b>מרכז הרמזים נעול!</b><br>הרמזים ייפתחו אוטומטית ברגע שתצליחו לנחש יישוב שנמצא <b>במרחק של 10 ק"מ או פחות</b> מהיעד.`;
+    } else {
+        explanation.innerHTML = `🎉 <b>כל הכבוד! הגעתם אל מתחת ל-10 ק"מ!</b><br>בזכות הקרבה המטורפת שלכם ליעד, הרמזים הבאים פתוחים בפניכם:`;
+        
+        if (!unlockedClues.closestNeighborUsed) {
+            container.innerHTML += `<button class="clue-btn" onclick="useClosestNeighborClue()">🏡 השכן הקרוב ביותר</button>`;
+        } else {
+            container.innerHTML += `<button class="clue-btn used" disabled>🏡 רמז השכן הקרוב כבר נוצל ✅</button>`;
+        }
+
+        if (!unlockedClues.fiveOptionsUsed) {
+            container.innerHTML += `<button class="clue-btn" style="background: linear-gradient(45deg, #e74c3c, #c0392b);" onclick="triggerFiveOptionsWarning()">🧩 1 מתוך 5 אפשרויות</button>`;
+        } else {
+            container.innerHTML += `<button class="clue-btn used" disabled>🧩 רמז 5 האפשרויות כבר נוצל ✅</button>`;
+        }
+    }
+
+    overlay.style.display = 'flex';
+}
+
+function closeCluesHub() {
+    document.getElementById('clues-box-overlay').style.display = 'none';
+}
+
+function openSettings() {
+    document.getElementById('settings-overlay').style.display = 'flex';
+}
+
+function closeSettings() {
+    document.getElementById('settings-overlay').style.display = 'none';
+}
+
+function updateFontSettings(type, val) {
+    if (type === 'settlement') {
+        document.documentElement.style.setProperty('--settlement-font-size', `${val}px`);
+        document.getElementById('settlementSizeVal').innerText = val;
+    } else if (type === 'distance') {
+        document.documentElement.style.setProperty('--distance-font-size', `${val}px`);
+        document.getElementById('distanceSizeVal').innerText = val;
+    }
+}
+
+function useClosestNeighborClue() {
+    if(unlockedClues.closestNeighborUsed) return;
+    unlockedClues.closestNeighborUsed = true;
+    closeCluesHub();
+    updateCluesHubTriggerUI();
+    
+    const neighborName = getClosestNeighbor(target);
+    processGuess(neighborName, false, true); 
+}
+
+function triggerFiveOptionsWarning() {
+    closeCluesHub();
+    document.getElementById('warning-modal-overlay').style.display = 'flex';
+}
+
+function confirmAndOpenFiveOptions() {
+    if(unlockedClues.fiveOptionsUsed) return;
+    document.getElementById('warning-modal-overlay').style.display = 'none';
+    
+    const container = document.getElementById('hintOptionsContainer');
+    container.innerHTML = '';
+    
+    const options = generateFiveRegionalOptions();
+    options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'hint-opt-btn';
+        btn.innerText = opt;
+        btn.onclick = () => {
+            unlockedClues.fiveOptionsUsed = true;
+            document.getElementById('clue-modal-overlay').style.display = 'none';
+            updateCluesHubTriggerUI();
+            
+            saveProgress(opt, false);
+            
+            if (opt === target.name) {
+                endGame(true, attempts, false);
+            } else {
+                endGame(false, 0, false);
+            }
+        };
+        container.appendChild(btn);
     });
-  </script>
+    
+    document.getElementById('clue-modal-overlay').style.display = 'flex';
+}
+
+function processGuess(cityName, isRestoring = false, isClueGuess = false) {
+    let guess = allCities.find(c => c.name === cityName);
+    if (!guess) return;
+
+    if (!currentGuessesList.includes(cityName)) {
+        currentGuessesList.push(cityName);
+    }
+
+    if (!isClueGuess) {
+        attempts--;
+        const lifeCircle = document.getElementById(`life-${attempts}`);
+        if(lifeCircle) lifeCircle.classList.add('lost');
+    }
+
+    const dist = calculateDistance(guess.lat, guess.lon, target.lat, target.lon);
+    const bearing = (Math.atan2(target.lon - guess.lon, target.lat - guess.lat) * 180 / Math.PI + 360) % 360;
+    const ratio = Math.pow(Math.min(dist / 150, 1), 0.35);
+    const color = `rgb(255, ${Math.floor(255 * ratio)}, ${Math.floor(100 * ratio)})`;
+
+    // Point System & Animation FX
+    if (!isRestoring) {
+        let addedPoints = Math.max(10, Math.round(1000 - (dist * 6)));
+        let labelMsg = "ניחוש קרוב!";
+        if (dist === 0) {
+            addedPoints += 2000;
+            labelMsg = "פגיעה בול!";
+        }
+        totalScore += addedPoints;
+        document.getElementById('scoreDisplay').innerText = totalScore;
+        triggerPointsPopup(addedPoints, labelMsg);
+    }
+
+    if (dist <= 10) {
+        unlockedClues.eligible = true;
+    }
+    updateCluesHubTriggerUI();
+
+    let markerHtml = ``;
+    if(isClueGuess) {
+        markerHtml = `<div class="marker-bubble" style="border-color:var(--purple); background:#f8efff; color:var(--purple);"><div class="marker-settlement-title">✨ רמז: ${guess.name}</div><div class="marker-distance-text">${dist.toFixed(1)} ק"מ <span class="marker-arrow" style="transform:rotate(${bearing}deg)">⬆️</span></div></div><div class="marker-dot" style="background-color:var(--purple)"></div>`;
+    } else {
+        markerHtml = `<div class="marker-bubble" style="border-color:${color}"><div class="marker-settlement-title">${guess.name}</div><div class="marker-distance-text">${dist.toFixed(1)} ק"מ <span class="marker-arrow" style="transform:rotate(${bearing}deg)">⬆️</span></div></div><div class="marker-dot" style="background-color:${color}"></div>`;
+    }
+
+    const icon = L.divIcon({
+        className: 'custom-marker',
+        html: markerHtml,
+        iconSize: [0, 0], iconAnchor: [0, 48]
+    });
+    L.marker([guess.lat, guess.lon], { icon: icon }).addTo(map);
+    
+    const row = document.createElement('div');
+    if (isClueGuess) {
+        row.className = 'guess-row special-clue';
+        row.style.background = 'linear-gradient(45deg, #9b59b6, #2c3e50)';
+        row.style.color = '#fff';
+        row.innerHTML = `<span>🔮 רמז: ${guess.name}</span> <span>${dist.toFixed(1)} ק"מ <span style="display:inline-block; transform:rotate(${bearing}deg)">⬆️</span></span>`;
+    } else {
+        row.className = 'guess-row';
+        row.style.background = color;
+        row.innerHTML = `<span>${guess.name}</span> <span>${dist.toFixed(1)} ק"מ <span style="display:inline-block; transform:rotate(${bearing}deg)">⬆️</span></span>`;
+    }
+    document.getElementById('feedback').prepend(row);
+
+    if (!isRestoring) {
+        saveProgress(cityName, isClueGuess);
+        const sidebarPadding = window.innerWidth > 850 ? [400, 0] : [0, 0];
+        map.flyTo([guess.lat, guess.lon], 11, {
+            paddingTopLeft: sidebarPadding,
+            duration: 1.5
+        });
+    }
+
+    if (cityName === target.name) endGame(true, attempts, isRestoring);
+    else if (attempts === 0) endGame(false, attempts, isRestoring);
+}
+
+function saveProgress(cityName, isClueGuess) {
+    let stats = JSON.parse(localStorage.getItem('israeleStats')) || { played:0, wins:0, streak:0, totalGuesses:0, history: {}, gaveUpCount: 0 };
+    const today = getDailyKey();
+    if (!stats.history) stats.history = {};
+    if (!stats.history[today]) stats.history[today] = { guessesToday: [], clueGuessesToday: [], isGameOverToday: false };
+    if (!stats.history[today].clueGuessesToday) stats.history[today].clueGuessesToday = [];
+    
+    stats.history[today].guessesToday.push(cityName);
+    if(isClueGuess) {
+        stats.history[today].clueGuessesToday.push(cityName);
+    }
+    stats.history[today].unlockedClues = unlockedClues;
+    stats.history[today].score = totalScore;
+    
+    localStorage.setItem('israeleStats', JSON.stringify(stats));
+}
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2-lat1)*Math.PI/180;
+    const dLon = (lon2-lon1)*Math.PI/180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function setLeaderboardTimeframe(tf) {
+    currentTimeframe = tf;
+    document.querySelectorAll('.leaderboard-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`btn-time-${tf}`).classList.add('active');
+    
+    const stats = JSON.parse(localStorage.getItem('israeleStats')) || { history: {} };
+    const today = getDailyKey();
+    let gaveUpThisTurn = false;
+    let userScore = 0;
+    if (stats.history[today]) {
+        userScore = stats.history[today].score || totalScore;
+        gaveUpThisTurn = !stats.history[today].lastResultWasWin && stats.history[today].lastAttemptsCount > 0;
+    }
+    generateGlobalDistribution(userScore, gaveUpThisTurn);
+}
+
+function submitPlayerName() {
+    const val = document.getElementById('playerNameInput').value.trim();
+    if (val) {
+        playerName = val;
+        localStorage.setItem('israele_player_name', playerName);
+        document.getElementById('nameEntryContainer').innerHTML = `<div style="font-weight:bold; font-size:16px;">👤 שחקן רשום: ${playerName}</div>`;
+        setLeaderboardTimeframe(currentTimeframe);
+    }
+}
+
+function generateGlobalDistribution(userScore, gaveUpThisTurn = false) {
+    const day = getGameDayIndex();
+    
+    // Scale distributions dynamically depending on active timeframe tab
+    let multiplier = 1;
+    if (currentTimeframe === 'week') multiplier = 7;
+    if (currentTimeframe === 'all') multiplier = 30;
+
+    const baseDistribution = [0.4, 1.8, 4.5, 12.3, 21.0, 24.2, 16.5, 9.2, 5.3, 2.8].map(v => v * multiplier); 
+    let baseGaveUp = 13.0 * multiplier; 
+    
+    let dynamicDist = baseDistribution.map((v, i) => {
+        let shift = Math.sin(day + i) * 0.4 * multiplier;
+        return Math.max(0.1, v + shift);
+    });
+    let dynamicGaveUp = Math.max(5.0, baseGaveUp + Math.cos(day) * 2);
+    
+    const totalSum = dynamicDist.reduce((a, b) => a + b, 0) + dynamicGaveUp;
+    
+    const container = document.getElementById('globalDistributionChart');
+    container.innerHTML = '';
+    
+    const maxVal = Math.max(...dynamicDist, dynamicGaveUp);
+    
+    for (let i = 0; i < 10; i++) {
+        const row = document.createElement('div');
+        row.className = 'dist-row';
+        if (!gaveUpThisTurn && (10 - attempts) === (i + 1)) {
+            row.classList.add('current-user');
+        }
+        
+        const pct = Math.round((dynamicDist[i] / totalSum) * 100);
+        const widthPct = Math.max(8, (dynamicDist[i] / maxVal) * 85); 
+        
+        let labelPrefix = `${i+1} ניסיונות`;
+        if (playerName && row.classList.contains('current-user')) {
+            labelPrefix = `⭐ ${playerName}`;
+        }
+
+        row.innerHTML = `
+            <div class="dist-label">${labelPrefix}</div>
+            <div class="dist-bar-wrapper">
+                <div class="dist-bar" style="width: ${widthPct}%">${pct}%</div>
+            </div>
+        `;
+        container.appendChild(row);
+    }
+
+    const surrenderRow = document.createElement('div');
+    surrenderRow.className = 'dist-row';
+    if (gaveUpThisTurn) {
+        surrenderRow.classList.add('current-user');
+    }
+    const surrenderPct = Math.round((dynamicGaveUp / totalSum) * 100);
+    const surrenderWidthPct = Math.max(8, (dynamicGaveUp / maxVal) * 85);
+
+    let surrenderLabel = "🏳️ ויתרו";
+    if (playerName && gaveUpThisTurn) surrenderLabel = `🏳️ ${playerName}`;
+
+    surrenderRow.innerHTML = `
+        <div class="dist-label">${surrenderLabel}</div>
+        <div class="dist-bar-wrapper">
+            <div class="dist-bar" style="width: ${surrenderWidthPct}%; background-color: #e74c3c;">${surrenderPct}%</div>
+        </div>
+    `;
+    container.appendChild(surrenderRow);
+}
+
+function shareGame(platform) {
+    const usedHintsCount = (unlockedClues.closestNeighborUsed ? 1 : 0) + (unlockedClues.fiveOptionsUsed ? 1 : 0);
+    const finalGuesses = 10 - attempts;
+    const day = getGameDayIndex() + 1;
+    
+    let resultEmojis = "";
+    if (attempts > 0 && isGameOver && document.getElementById('vic-title').innerText.includes("פגיעה")) {
+        resultEmojis = "🎯 פגעתי בול!";
+    } else {
+        resultEmojis = "🏳️ לא הצלחתי היום...";
+    }
+    
+    const textToShare = `IsraMaster האתגר היומי #יעד_${day}\n${resultEmojis}\n🏆 ניקוד: ${totalScore}\n🛰️ ניסיונות: ${finalGuesses}/10\n🔮 רמזים שנוצלו: ${usedHintsCount}/2\n\nבואו לנסות גם אתם ב-isramaster.com! 🗺️✨`;
+    
+    if (platform === 'whatsapp') {
+        const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(textToShare)}`;
+        window.open(url, '_blank');
+    } else if (platform === 'instagram') {
+        const instagramUrl = `instagram://sharesheet?text=${encodeURIComponent(textToShare)}`;
+        window.location.href = instagramUrl;
+        
+        setTimeout(() => {
+            navigator.clipboard.writeText(textToShare).then(() => {
+                alert("📋 נתוני המשחק הועתקו ללוח! אם האפליקציה לא נפתחה אוטומטית, תוכלו לפתוח את האינסטגרם ולהדביק ישירות בסטורי שלכם 📸");
+            }).catch(err => {
+                console.error('שגיאה בהעתקה', err);
+            });
+        }, 800);
+    }
+}
+
+function endGame(win, remaining, alreadyProcessed = false) {
+    isGameOver = true;
+    closeConfirm();
+    document.getElementById('cityInput').disabled = true;
+    document.getElementById('submitBtn').disabled = true;
+
+    let stats = JSON.parse(localStorage.getItem('israeleStats')) || { played:0, wins:0, streak:0, totalGuesses:0, history: {}, gaveUpCount: 0 };
+    const today = getDailyKey();
+
+    if (!stats.history[today]) stats.history[today] = { guessesToday: [], clueGuessesToday: [], isGameOverToday: false };
+    
+    let gaveUpThisTurn = (!win && remaining === attempts && attempts > 0);
+
+    attempts = remaining;
+
+    if (!alreadyProcessed) {
+        if (checkFirstToPlayToday()) {
+            totalScore += 500;
+            triggerPointsPopup(500, "🏆 ראשון לשחק היום!");
+        }
+    }
+
+    if (!alreadyProcessed && !stats.history[today].isGameOverToday) {
+        stats.played = (stats.played || 0) + 1;
+        stats.history[today].isGameOverToday = true;
+        stats.history[today].lastResultWasWin = win;
+        stats.history[today].lastAttemptsCount = remaining;
+        stats.history[today].score = totalScore;
+        if(win) { 
+            stats.wins = (stats.wins || 0) + 1; 
+            stats.streak = (stats.streak || 0) + 1; 
+            stats.totalGuesses = (stats.totalGuesses || 0) + (10 - remaining); 
+        } else { 
+            stats.streak = 0; 
+            if (remaining > 0) {
+                stats.gaveUpCount = (stats.gaveUpCount || 0) + 1;
+            }
+        }
+        localStorage.setItem('israeleStats', JSON.stringify(stats));
+    }
+    
+    const usedHintsCount = (unlockedClues.closestNeighborUsed ? 1 : 0) + (unlockedClues.fiveOptionsUsed ? 1 : 0);
+    document.getElementById('hints-count-summary').innerHTML = `🔮 השתמשת ב-<b>${usedHintsCount}</b> מתוך 2 הרמזים האפשריים.`;
+
+    if (playerName) {
+        document.getElementById('nameEntryContainer').innerHTML = `<div style="font-weight:bold; font-size:16px;">👤 שחקן רשום: ${playerName}</div>`;
+    }
+
+    document.getElementById('st-score').innerText = totalScore;
+    document.getElementById('st-winpct').innerText = stats.played > 0 ? Math.round(((stats.wins || 0) / stats.played) * 100) + "%" : "0%";
+    document.getElementById('st-streak').innerText = stats.streak || 0;
+    document.getElementById('st-avg').innerText = stats.wins > 0 ? ((stats.totalGuesses || 0) / stats.wins).toFixed(1) : "0";
+    
+    const userScore = win ? (10 - remaining) : 0;
+    
+    let currentGaveUpFlag = gaveUpThisTurn || (stats.history[today] && !stats.history[today].lastResultWasWin && stats.history[today].lastAttemptsCount > 0);
+    generateGlobalDistribution(userScore, currentGaveUpFlag);
+
+    document.getElementById('victory-overlay').style.display = 'flex';
+    document.getElementById('vic-title').innerText = win ? "פגיעה בול! 🎯" : "לא היום... 🚩";
+    document.getElementById('vic-msg').innerText = `היעד היה: ${target.name}`;
+    
+    L.marker([target.lat, target.lon]).addTo(map).bindPopup(`<b>${target.name}</b>`).openPopup();
+    if (!alreadyProcessed) {
+         const sidebarPadding = window.innerWidth > 850 ? [400, 0] : [0, 0];
+         map.flyTo([target.lat, target.lon], 12, { paddingTopLeft: sidebarPadding });
+    }
+}
+
+function toggleSidebar(forceOpen) {
+    sidebar.classList.add('transitioning');
+    sidebar.style.transform = '';
+    if (forceOpen === true) sidebar.classList.add('open');
+    else if (forceOpen === false) sidebar.classList.remove('open');
+    else sidebar.classList.toggle('open');
+}
+
+function startGame() { document.getElementById('setup-overlay').style.display = 'none'; }
+function toggleInstructions(show) { document.getElementById('how-to-play-overlay').style.display = show ? 'flex' : 'none'; }
+function hideOverlay() { document.getElementById('victory-overlay').style.display = 'none'; }
+function showConfirm() { if(!isGameOver) document.getElementById('confirm-overlay').style.display = 'flex'; }
+function closeConfirm() { document.getElementById('confirm-overlay').style.display = 'none'; }
+
+window.onload = loadData;
+</script>
 </body>
 </html>
