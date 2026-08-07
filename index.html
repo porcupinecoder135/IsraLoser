@@ -31,7 +31,7 @@
       z-index: 1;
     }
 
-    /* Top Left Control Box */
+    /* Controls Panel */
     .controls-container {
       position: absolute;
       top: 15px;
@@ -90,7 +90,7 @@
       align-items: center;
     }
 
-    /* Larger, Prominent Top Right Leaderboard */
+    /* Enlarged & Prominent Top Right Leaderboard */
     .leaderboard-container {
       position: absolute;
       top: 15px;
@@ -100,12 +100,12 @@
       padding: 20px;
       border-radius: 16px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-      width: 320px;
+      width: 340px;
       border: 3px solid #f1c40f;
     }
 
     .leaderboard-title {
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 800;
       color: #2c3e50;
       text-align: center;
@@ -124,24 +124,24 @@
     .leaderboard-item {
       display: flex;
       justify-content: space-between;
-      padding: 8px 12px;
+      padding: 10px 14px;
       background: #f8f9fa;
       border-radius: 8px;
       font-weight: bold;
-      font-size: 16px;
+      font-size: 17px;
     }
 
-    .leaderboard-item:nth-child(1) { background: #fff3cd; color: #856404; font-size: 18px; }
+    .leaderboard-item:nth-child(1) { background: #fff3cd; color: #856404; font-size: 19px; }
     .leaderboard-item:nth-child(2) { background: #e2e3e5; color: #383d41; }
     .leaderboard-item:nth-child(3) { background: #ffe8d6; color: #721c24; }
 
-    /* Dopamine / Rewarding Score Popup Animation */
+    /* High-Dopamine Reward Visual Effects */
     .dopamine-popup {
       position: absolute;
       font-weight: 900;
-      font-size: 32px;
+      font-size: 36px;
       color: #2ecc71;
-      text-shadow: 0 0 10px rgba(46, 204, 113, 0.6), 2px 2px 4px rgba(0,0,0,0.3);
+      text-shadow: 0 0 12px rgba(46, 204, 113, 0.8), 2px 2px 4px rgba(0,0,0,0.4);
       pointer-events: none;
       z-index: 2000;
       animation: floatUpAndBurst 1.2s ease-out forwards;
@@ -154,7 +154,7 @@
       }
       30% {
         opacity: 1;
-        transform: scale(1.4) translateY(-20px);
+        transform: scale(1.5) translateY(-20px);
       }
       70% {
         opacity: 1;
@@ -166,7 +166,6 @@
       }
     }
 
-    /* Screen Overlay Celebration Flash */
     .celebration-flash {
       position: absolute;
       top: 0;
@@ -175,7 +174,8 @@
       height: 100vh;
       pointer-events: none;
       z-index: 1500;
-      border: 8px solid #2ecc71;
+      border: 10px solid #2ecc71;
+      box-shadow: inset 0 0 20px #2ecc71;
       opacity: 0;
       transition: opacity 0.1s ease-in-out;
     }
@@ -236,10 +236,9 @@
       width: 100%;
     }
 
-    /* Dynamic Sizing Targets */
+    /* Dynamic Scale Modifiers */
     .custom-arrow-icon {
       transform-origin: center;
-      transition: transform 0.1s ease;
     }
 
     .distance-display-label {
@@ -270,7 +269,7 @@
     </div>
   </div>
 
-  <!-- Prominent Leaderboard -->
+  <!-- Prominent Top-Right Leaderboard -->
   <div class="leaderboard-container">
     <div class="leaderboard-title">🏆 טבלת מובילים</div>
     <ul class="leaderboard-list" id="leaderboardList">
@@ -281,7 +280,7 @@
     </ul>
   </div>
 
-  <!-- Settings Button & Modal -->
+  <!-- Settings Control Button & Modal -->
   <button class="settings-btn" onclick="toggleSettings()">⚙️</button>
   <div class="settings-modal" id="settingsModal">
     <h3 style="margin-bottom: 5px;">הגדרות תצוגה</h3>
@@ -298,7 +297,7 @@
   </div>
 
   <script>
-    // Database with alternate names / aliases
+    // Database with alternate name/alias mappings
     const CITIES_DATABASE = [
       {
         names: ["תל אביב", "תל אביב יפו", "תל אביב-יפו"],
@@ -343,7 +342,7 @@
       attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    // Apply Settings on Load
+    // Load Persistent Settings
     document.documentElement.style.setProperty('--arrow-scale', arrowScale);
     document.documentElement.style.setProperty('--distance-font-scale', distanceFontScale);
 
@@ -352,12 +351,10 @@
     document.getElementById('distanceSizeRange').value = distanceFontScale;
     document.getElementById('distanceSizeVal').innerText = distanceFontScale.toFixed(1);
 
-    // Normalize String Function
     function normalizeInput(str) {
       return str.trim().replace(/-/g, ' ').replace(/\s+/g, ' ');
     }
 
-    // Match City Input
     function findCity(inputName) {
       const cleanInput = normalizeInput(inputName);
       return CITIES_DATABASE.find(city => 
@@ -365,7 +362,6 @@
       );
     }
 
-    // Process Guess
     function submitGuess() {
       const inputEl = document.getElementById('cityInput');
       const guessedName = inputEl.value;
@@ -375,14 +371,10 @@
         const addedPoints = 100;
         currentScore += addedPoints;
         
-        // Update Score Elements
         document.getElementById('scoreValue').innerText = currentScore;
         document.getElementById('playerLeaderboardScore').innerText = currentScore;
 
-        // Trigger Animations
         triggerDopamineEffects(addedPoints);
-
-        // Add Marker to Map
         addMarker(matchedCity);
 
         inputEl.value = '';
@@ -391,14 +383,11 @@
       }
     }
 
-    // High-Dopamine Reward Visual Effects
     function triggerDopamineEffects(points) {
-      // 1. Screen Border Flash
       const flash = document.getElementById('flashOverlay');
       flash.classList.add('active');
       setTimeout(() => flash.classList.remove('active'), 200);
 
-      // 2. Animated Floating Score Popup
       const scoreBoard = document.querySelector('.score-board');
       const rect = scoreBoard.getBoundingClientRect();
 
@@ -409,11 +398,9 @@
       popup.style.top = `${rect.top}px`;
 
       document.body.appendChild(popup);
-
       setTimeout(() => popup.remove(), 1200);
     }
 
-    // Add Marker & Custom Scaled Labels
     function addMarker(city) {
       const arrowIcon = L.divIcon({
         className: 'custom-arrow-icon',
@@ -430,7 +417,6 @@
       map.panTo([city.lat, city.lng]);
     }
 
-    // Settings Toggle & Event Handlers
     function toggleSettings() {
       const modal = document.getElementById('settingsModal');
       modal.classList.toggle('active');
@@ -450,7 +436,6 @@
       localStorage.setItem('distanceFontScale', distanceFontScale);
     });
 
-    // Enter Key Submission
     document.getElementById('cityInput').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') submitGuess();
     });
