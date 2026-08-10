@@ -18,12 +18,15 @@
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
     <style>
         :root {
             --primary: #1a2a6c;
             --accent: #f44336;
-            --gold: #ffeb3b;
+            --gold: #ffd700;
+            --silver: #c0c0c0;
+            --bronze: #cd7f32;
             --success: #2ecc71;
             --dark: #2c3e50;
             --purple: #9b59b6;
@@ -191,19 +194,31 @@
         .btn-whatsapp { background: #25D366; }
         .btn-instagram { background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D); }
         
-        /* Leaderboard styling */
-        .leaderboard-title { font-size: 15px; font-weight: 900; color: var(--primary); text-align: right; margin: 15px 0 10px 0; border-top: 1px solid #eee; padding-top: 12px; }
-        .leaderboard-cards { display: flex; flex-direction: column; gap: 8px; text-align: right; }
-        .leader-card { background: #f8f9fa; border: 1px solid #e9ecef; padding: 10px 14px; border-radius: 12px; display: flex; flex-direction: column; gap: 2px; }
-        .leader-card.highlight { background: #f0f7ff; border-color: #3b82f6; }
-        .leader-header { font-size: 12px; font-weight: bold; color: #666; display: flex; justify-content: space-between; }
-        .leader-name { font-size: 15px; font-weight: 900; color: #222; }
-        .leader-meta { font-size: 12px; color: #777; }
-        
-        .players-table { width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 13px; text-align: right; }
-        .players-table th { background: #eee; padding: 6px 8px; border-radius: 4px; font-size: 11px; color: #555; }
-        .players-table td { padding: 8px; border-bottom: 1px solid #f0f0f0; }
-        .players-table tr.is-me { background: #fffbe6; font-weight: bold; }
+        /* High Dopamine Leaderboard Styling */
+        .time-tabs { display: flex; background: #eef2f5; padding: 4px; border-radius: 14px; gap: 4px; margin-bottom: 12px; }
+        .time-tab { flex: 1; padding: 8px 4px; border: none; background: transparent; font-weight: 800; font-size: 12.5px; border-radius: 10px; cursor: pointer; color: #666; transition: all 0.2s; }
+        .time-tab.active { background: white; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 13px; }
+
+        .leaderboard-section { text-align: right; }
+        .dopamine-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 16px; padding: 12px 16px; margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 2px solid #eef2f5;
+            display: flex; align-items: center; justify-content: space-between; position: relative; overflow: hidden;
+        }
+        .dopamine-card.gold { border-color: var(--gold); background: linear-gradient(135deg, #fffdf0 0%, #fff8d6 100%); box-shadow: 0 6px 20px rgba(255, 215, 0, 0.25); }
+        .dopamine-card.silver { border-color: var(--silver); background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%); }
+        .dopamine-card.bronze { border-color: var(--bronze); background: linear-gradient(135deg, #fffaf5 0%, #fbebe0 100%); }
+
+        .medal-badge { font-size: 28px; line-height: 1; margin-left: 10px; display: flex; align-items: center; justify-content: center; }
+        .card-info { flex: 1; text-align: right; }
+        .card-name { font-size: 15px; font-weight: 900; color: #111; display: flex; align-items: center; gap: 6px; }
+        .card-name .me-tag { background: var(--primary); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 800; }
+        .card-location { font-size: 12px; color: #666; font-weight: 600; }
+        .card-stat { text-align: left; font-size: 16px; font-weight: 900; color: var(--primary); }
+        .card-stat-label { font-size: 10px; color: #888; font-weight: bold; text-align: left; }
+
+        .empty-leaderboard { text-align: center; padding: 20px; color: #777; font-size: 14px; font-weight: bold; background: #f9f9f9; border-radius: 15px; border: 1px dashed #ccc; }
 
         .clues-modal-content { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
         .clue-btn {
@@ -260,11 +275,11 @@
 <!-- Profile Popup Overlay -->
 <div id="user-profile-overlay" style="z-index: 3500;">
     <div class="modal" style="max-width: 360px;">
-        <h3 style="margin-top:0; color: var(--primary);">👤 הפרטים שלך לטבלה היומית</h3>
-        <p style="font-size:14px; color:#555; line-height:1.4;">הכנס את השם שלך ומאיפה אתה כדי שתוכל להופיע בטבלת השחקנים מול אנשים אחרים (מבוצע פעם אחת בלבד):</p>
+        <h3 style="margin-top:0; color: var(--primary);">👤 הפרטים שלך לטבלת השיאים</h3>
+        <p style="font-size:14px; color:#555; line-height:1.4;">הכנס את שמך ומקום מגוריך כדי להירשם בטבלת המובילים (חד פעמי):</p>
         <input type="text" id="popNameInput" placeholder="שם..." style="margin-bottom: 10px; background: #f2f2f2; color: #222; border: 1px solid #ccc;">
         <input type="text" id="popLocationInput" placeholder="מאיפה אתה? (למשל: תל אביב)" style="margin-bottom: 15px; background: #f2f2f2; color: #222; border: 1px solid #ccc;">
-        <button class="btn-main" onclick="saveInitialProfile()">שמירה והצגת תוצאות 🚀</button>
+        <button class="btn-main" onclick="saveInitialProfile()">שמירה והצגת הישגים 🚀</button>
     </div>
 </div>
 
@@ -429,8 +444,15 @@
             <div class="stat-item"><span class="stat-val" id="st-avg">0</span><span class="stat-lbl">ממוצע ניסיונות</span></div>
         </div>
 
-        <div class="leaderboard-title">🏆 מובילי היום ואנשים אמיתיים ששיחקו:</div>
-        <div class="leaderboard-cards" id="realLeaderboardContainer"></div>
+        <div class="leaderboard-section">
+            <div class="time-tabs">
+                <button class="time-tab active" onclick="switchLeaderboardTime('today', this)">📅 היום</button>
+                <button class="time-tab" onclick="switchLeaderboardTime('week', this)">🗓️ השבוע</button>
+                <button class="time-tab" onclick="switchLeaderboardTime('alltime', this)">🏆 כל הזמנים</button>
+            </div>
+            
+            <div id="realLeaderboardContainer"></div>
+        </div>
 
         <div class="share-container">
             <button class="btn-share btn-whatsapp" onclick="shareGame('whatsapp')"><i class="fa-brands fa-whatsapp"></i> WhatsApp 💬</button>
@@ -449,6 +471,7 @@ let attempts = 10;
 let isGameOver = false;
 let errorTimeout;
 let currentGuessesList = [];
+let currentLeaderboardFilter = 'today';
 
 let unlockedClues = { 
     eligible: false, 
@@ -544,8 +567,9 @@ function getGameDayIndex() {
     return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 }
 
-function getDailyKey() {
+function getDailyKey(offsetDays = 0) {
     const d = new Date();
+    d.setDate(d.getDate() - offsetDays);
     return `v7-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 }
 
@@ -972,76 +996,117 @@ function saveInitialProfile() {
     document.getElementById('victory-overlay').style.display = 'flex';
 }
 
+function switchLeaderboardTime(timeframe, btn) {
+    document.querySelectorAll('.time-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    currentLeaderboardFilter = timeframe;
+    renderRealLeaderboard();
+}
+
 function renderRealLeaderboard() {
     const user = getUserProfile();
-    const day = getGameDayIndex();
-    
-    const simulatedPeople = [
-        { name: "רועי א.", location: "חיפה", time: "00:04", guesses: 2, avgWeek: 2.8, avgAllTime: 3.1 },
-        { name: "מאיה ל.", location: "תל אביב", time: "00:18", guesses: 3, avgWeek: 2.5, avgAllTime: 2.9 },
-        { name: "עומר ק.", location: "ירושלים", time: "01:05", guesses: 4, avgWeek: 3.2, avgAllTime: 3.4 },
-        { name: "דניאל ס.", location: "באר שבע", time: "02:30", guesses: 1, avgWeek: 2.1, avgAllTime: 2.7 },
-        { name: "נועה פ.", location: "גבעתיים", time: "06:12", guesses: 5, avgWeek: 3.9, avgAllTime: 4.0 },
-        { name: "יוסי כ.", location: "עפולה", time: "07:45", guesses: 2, avgWeek: 3.0, avgAllTime: 3.3 }
-    ];
+    const stats = JSON.parse(localStorage.getItem('israeleStats')) || { history: {} };
+    const container = document.getElementById('realLeaderboardContainer');
+    container.innerHTML = '';
 
-    const myGuessesCount = 10 - attempts;
-    const myResultStr = attempts > 0 ? `${myGuessesCount} ניחוסים` : '🏳️ ויתר/ה';
-    
-    let firstPlayer = simulatedPeople[0];
-    
-    let bestToday = [...simulatedPeople].sort((a,b) => a.guesses - b.guesses)[0];
-    if (attempts > 0 && myGuessesCount < bestToday.guesses) {
-        bestToday = { name: `${user.name} (אתה)`, location: user.location, guesses: myGuessesCount };
+    let records = [];
+
+    if (currentLeaderboardFilter === 'today') {
+        const todayKey = getDailyKey();
+        const todayData = stats.history ? stats.history[todayKey] : null;
+        if (todayData && todayData.isGameOverToday) {
+            const guesses = todayData.guessesToday ? todayData.guessesToday.length : 0;
+            records.push({
+                name: user.name || 'שחקן',
+                location: user.location || 'ישראל',
+                won: todayData.lastResultWasWin,
+                guesses: guesses,
+                isMe: true,
+                badge: '🥇'
+            });
+        }
+    } else if (currentLeaderboardFilter === 'week') {
+        let totalGuesses = 0;
+        let gamesWon = 0;
+        let playedDays = 0;
+
+        for (let i = 0; i < 7; i++) {
+            const key = getDailyKey(i);
+            const dayData = stats.history ? stats.history[key] : null;
+            if (dayData && dayData.isGameOverToday) {
+                playedDays++;
+                if (dayData.lastResultWasWin) {
+                    gamesWon++;
+                    totalGuesses += (dayData.guessesToday ? dayData.guessesToday.length : 0);
+                }
+            }
+        }
+
+        if (playedDays > 0) {
+            const avg = gamesWon > 0 ? (totalGuesses / gamesWon).toFixed(1) : '—';
+            records.push({
+                name: user.name || 'שחקן',
+                location: user.location || 'ישראל',
+                avgGuesses: avg,
+                gamesWon: gamesWon,
+                playedDays: playedDays,
+                isMe: true,
+                badge: '🏆'
+            });
+        }
+    } else if (currentLeaderboardFilter === 'alltime') {
+        if (stats.played && stats.played > 0) {
+            const avg = stats.wins > 0 ? (stats.totalGuesses / stats.wins).toFixed(1) : '—';
+            records.push({
+                name: user.name || 'שחקן',
+                location: user.location || 'ישראל',
+                avgGuesses: avg,
+                wins: stats.wins || 0,
+                played: stats.played || 0,
+                isMe: true,
+                badge: '👑'
+            });
+        }
     }
 
-    let bestWeekly = [...simulatedPeople].sort((a,b) => a.avgWeek - b.avgWeek)[0];
-    let bestAllTime = [...simulatedPeople].sort((a,b) => a.avgAllTime - b.avgAllTime)[0];
+    if (records.length === 0) {
+        container.innerHTML = `
+            <div class="empty-leaderboard">
+                🎯 אין עדיין נתונים לתקופה זו.<br>שחקו וסיימו משחק כדי להופיע בטבלה!
+            </div>
+        `;
+        return;
+    }
 
-    const container = document.getElementById('realLeaderboardContainer');
-    container.innerHTML = `
-        <div class="leader-card">
-            <div class="leader-header"><span>🌅 שיחק/ה ראשון/ה היום</span><span>${firstPlayer.time}</span></div>
-            <div class="leader-name">${firstPlayer.name} מ${firstPlayer.location}</div>
-        </div>
-        <div class="leader-card highlight">
-            <div class="leader-header"><span>🎯 הכי מעט ניחושים היום</span><span>${bestToday.guesses} ניחושים</span></div>
-            <div class="leader-name">${bestToday.name} מ${bestToday.location}</div>
-        </div>
-        <div class="leader-card">
-            <div class="leader-header"><span>📅 ממוצע השבוע הטוב ביותר</span><span>${bestWeekly.avgWeek} ניחושים</span></div>
-            <div class="leader-name">${bestWeekly.name} מ${bestWeekly.location}</div>
-        </div>
-        <div class="leader-card">
-            <div class="leader-header"><span>🏆 ממוצע כל הזמנים</span><span>${bestAllTime.avgAllTime} ניחושים</span></div>
-            <div class="leader-name">${bestAllTime.name} מ${bestAllTime.location}</div>
-        </div>
+    records.forEach(rec => {
+        let statDisplay = '';
+        let statLabel = '';
 
-        <div style="font-weight:bold; font-size:13px; margin-top:10px; color:#444;">שחקנים נוספים ששיחקו היום:</div>
-        <table class="players-table">
-            <thead>
-                <tr>
-                    <th>שם</th>
-                    <th>מאיפה</th>
-                    <th>תוצאה</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="is-me">
-                    <td>${user.name || 'אתה'} (אתה)</td>
-                    <td>${user.location || 'לא צוין'}</td>
-                    <td>${myResultStr}</td>
-                </tr>
-                ${simulatedPeople.map(p => `
-                    <tr>
-                        <td>${p.name}</td>
-                        <td>${p.location}</td>
-                        <td>${p.guesses} ניחושים</td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
+        if (currentLeaderboardFilter === 'today') {
+            statDisplay = rec.won ? `${rec.guesses} ניחושים` : '🏳️ ויתר/ה';
+            statLabel = rec.won ? 'תוצאת היום' : 'סטטוס';
+        } else if (currentLeaderboardFilter === 'week') {
+            statDisplay = `${rec.avgGuesses}`;
+            statLabel = `ממוצע השבוע (${rec.gamesWon}/${rec.playedDays})`;
+        } else if (currentLeaderboardFilter === 'alltime') {
+            statDisplay = `${rec.avgGuesses}`;
+            statLabel = `ממוצע כל הזמנים (${rec.wins}/${rec.played})`;
+        }
+
+        container.innerHTML += `
+            <div class="dopamine-card gold">
+                <div class="medal-badge">${rec.badge}</div>
+                <div class="card-info">
+                    <div class="card-name">${rec.name} <span class="me-tag">אתה</span></div>
+                    <div class="card-location">📍 ${rec.location}</div>
+                </div>
+                <div>
+                    <div class="card-stat">${statDisplay}</div>
+                    <div class="card-stat-label">${statLabel}</div>
+                </div>
+            </div>
+        `;
+    });
 }
 
 function shareGame(platform) {
@@ -1075,6 +1140,16 @@ function shareGame(platform) {
     }
 }
 
+function fireDopamineConfetti() {
+    if (typeof confetti === 'function') {
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        setTimeout(() => {
+            confetti({ particleCount: 50, angle: 60, spread: 55, origin: { x: 0 } });
+            confetti({ particleCount: 50, angle: 120, spread: 55, origin: { x: 1 } });
+        }, 250);
+    }
+}
+
 function endGame(win, remaining, alreadyProcessed = false) {
     isGameOver = true;
     closeConfirm();
@@ -1097,6 +1172,7 @@ function endGame(win, remaining, alreadyProcessed = false) {
             stats.wins = (stats.wins || 0) + 1; 
             stats.streak = (stats.streak || 0) + 1; 
             stats.totalGuesses = (stats.totalGuesses || 0) + (10 - remaining); 
+            fireDopamineConfetti();
         } else { 
             stats.streak = 0; 
             if (remaining > 0) {
@@ -1114,7 +1190,7 @@ function endGame(win, remaining, alreadyProcessed = false) {
     document.getElementById('st-streak').innerText = stats.streak || 0;
     document.getElementById('st-avg').innerText = stats.wins > 0 ? ((stats.totalGuesses || 0) / stats.wins).toFixed(1) : "0";
     
-    document.getElementById('vic-title').innerText = win ? "פגיעה בול! 🎯" : "לא היום... 🚩";
+    document.getElementById('vic-title').innerText = win ? "🏆 פגיעה בול! ניצחון מרהיב!" : "לא היום... 🚩";
     document.getElementById('vic-msg').innerText = `היעד היה: ${target.name}`;
     
     L.marker([target.lat, target.lon]).addTo(map).bindPopup(`<b>${target.name}</b>`).openPopup();
