@@ -112,9 +112,9 @@
             border-radius: 15px; margin-top: 15px; min-height: 90px;
         }
 
-        #setup-overlay, #how-to-play-overlay, #victory-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #tutorial-intro-overlay, #settings-overlay { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; backdrop-filter: blur(8px); }
+        #setup-overlay, #how-to-play-overlay, #victory-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #tutorial-intro-overlay, #settings-overlay, #user-profile-overlay { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; backdrop-filter: blur(8px); }
         #setup-overlay { background: radial-gradient(circle at center, #1a2a6c, #000); }
-        #how-to-play-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #settings-overlay { background: rgba(0,0,0,0.85); display: none; }
+        #how-to-play-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #settings-overlay, #user-profile-overlay { background: rgba(0,0,0,0.85); display: none; }
 
         #tutorial-intro-overlay { background: radial-gradient(circle at center, #1a2a6c, #000); z-index: 3200; display: none; }
         .tutorial-modal {
@@ -144,7 +144,6 @@
             cursor: pointer; font-weight: 900; font-size: 19px;
         }
 
-        /* --- Spotlight (real-time) tutorial layer --- */
         #spotlight-layer { position: fixed; inset: 0; z-index: 3250; display: none; pointer-events: none; }
         .spotlight-dimmer { position: fixed; background: rgba(0,0,0,0.78); pointer-events: auto; transition: all 0.25s ease; }
         .spotlight-ring {
@@ -192,13 +191,19 @@
         .btn-whatsapp { background: #25D366; }
         .btn-instagram { background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D); }
         
-        .distribution-title { font-size: 14px; font-weight: 800; color: #444; text-align: right; margin: 15px 0 8px 0; border-top: 1px solid #eee; padding-top: 12px; }
-        .dist-chart { display: flex; flex-direction: column; gap: 5px; background: #f9f9f9; padding: 10px; border-radius: 12px; text-align: right; }
-        .dist-row { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: bold; }
-        .dist-label { width: 75px; color: #555; text-align: right; white-space: nowrap; flex-shrink: 0; }
-        .dist-bar-wrapper { flex: 1; background: #e0e0e0; height: 18px; border-radius: 4px; overflow: hidden; position: relative; }
-        .dist-bar { background: #95a5a6; height: 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: 5px; color: white; font-size: 10px; font-weight: 900; border-radius: 4px; transition: width 0.6s ease; box-sizing: border-box; }
-        .dist-row.current-user .dist-bar { background: var(--primary) !important; }
+        /* Leaderboard styling */
+        .leaderboard-title { font-size: 15px; font-weight: 900; color: var(--primary); text-align: right; margin: 15px 0 10px 0; border-top: 1px solid #eee; padding-top: 12px; }
+        .leaderboard-cards { display: flex; flex-direction: column; gap: 8px; text-align: right; }
+        .leader-card { background: #f8f9fa; border: 1px solid #e9ecef; padding: 10px 14px; border-radius: 12px; display: flex; flex-direction: column; gap: 2px; }
+        .leader-card.highlight { background: #f0f7ff; border-color: #3b82f6; }
+        .leader-header { font-size: 12px; font-weight: bold; color: #666; display: flex; justify-content: space-between; }
+        .leader-name { font-size: 15px; font-weight: 900; color: #222; }
+        .leader-meta { font-size: 12px; color: #777; }
+        
+        .players-table { width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 13px; text-align: right; }
+        .players-table th { background: #eee; padding: 6px 8px; border-radius: 4px; font-size: 11px; color: #555; }
+        .players-table td { padding: 8px; border-bottom: 1px solid #f0f0f0; }
+        .players-table tr.is-me { background: #fffbe6; font-weight: bold; }
 
         .clues-modal-content { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
         .clue-btn {
@@ -249,6 +254,17 @@
     <div style="width: 260px; display: flex; flex-direction: column; gap: 10px;">
         <button class="btn-main" onclick="startGame()">שחקו עכשיו 🛰️</button>
         <button class="btn-main btn-secondary" onclick="toggleInstructions(true)">איך משחקים?</button>
+    </div>
+</div>
+
+<!-- Profile Popup Overlay -->
+<div id="user-profile-overlay" style="z-index: 3500;">
+    <div class="modal" style="max-width: 360px;">
+        <h3 style="margin-top:0; color: var(--primary);">👤 הפרטים שלך לטבלה היומית</h3>
+        <p style="font-size:14px; color:#555; line-height:1.4;">הכנס את השם שלך ומאיפה אתה כדי שתוכל להופיע בטבלת השחקנים מול אנשים אחרים (מבוצע פעם אחת בלבד):</p>
+        <input type="text" id="popNameInput" placeholder="שם..." style="margin-bottom: 10px; background: #f2f2f2; color: #222; border: 1px solid #ccc;">
+        <input type="text" id="popLocationInput" placeholder="מאיפה אתה? (למשל: תל אביב)" style="margin-bottom: 15px; background: #f2f2f2; color: #222; border: 1px solid #ccc;">
+        <button class="btn-main" onclick="saveInitialProfile()">שמירה והצגת תוצאות 🚀</button>
     </div>
 </div>
 
@@ -339,25 +355,35 @@
 
 <div id="settings-overlay">
     <div class="modal">
-        <h2 style="margin-top:0;">⚙️ הגדרות תצוגה</h2>
-        <p style="font-size:16px; color:#555; text-align:right; line-height:1.5;">גררו את המחוון כדי להתאים את גודל שמות היישובים, החצים והמרחק המוצגים על המפה.</p>
-        <div class="settings-row">
+        <h2 style="margin-top:0;">⚙️ הגדרות</h2>
+        
+        <div style="text-align: right; margin-bottom: 15px;">
+            <label style="font-weight: bold; font-size: 14px; color: #333;">שם שחקן:</label>
+            <input type="text" id="settingsNameInput" placeholder="השם שלך" style="margin-top: 4px; margin-bottom: 10px; background: #f2f2f2; color: #222; border: 1px solid #ccc;">
+            <label style="font-weight: bold; font-size: 14px; color: #333;">מאיפה אתה?:</label>
+            <input type="text" id="settingsLocationInput" placeholder="למשל: תל אביב" style="margin-top: 4px; background: #f2f2f2; color: #222; border: 1px solid #ccc;">
+        </div>
+
+        <hr style="opacity: 0.2; margin: 15px 0;">
+
+        <p style="font-size:15px; color:#555; text-align:right; line-height:1.5;">גודל שמות היישובים והחצים במפה:</p>
+        <div class="settings-row" style="margin: 15px 0;">
             <div class="settings-row-labels">
                 <span>קטן</span>
                 <span>גדול 🔎</span>
             </div>
-            <input type="range" id="markerScaleSlider" min="0.7" max="1.8" step="0.1" value="1" oninput="updateMarkerScale(this.value)">
+            <input type="range" id="markerScaleSlider" min="0.5" max="2.5" step="0.1" value="1" style="width:100%; box-sizing:border-box;" oninput="updateMarkerScale(this.value)">
         </div>
         <div class="marker-preview-box">
             <div class="custom-marker">
                 <div class="marker-bubble" style="border-color:#f44336;">
-                    <div>דוגמת יישוב</div>
+                    <div>אבן ספיר</div>
                     <div class="marker-distance">12.3 ק"מ <span class="marker-arrow" style="transform:rotate(45deg); display:inline-block;">⬆️</span></div>
                 </div>
                 <div class="marker-dot" style="background-color:#f44336;"></div>
             </div>
         </div>
-        <button class="btn-main" style="margin-top:20px;" onclick="closeSettings()">סגירה ✅</button>
+        <button class="btn-main" style="margin-top:20px;" onclick="closeSettings()">שמירה וסגירה ✅</button>
     </div>
 </div>
 
@@ -390,7 +416,7 @@
 <div id="map"></div>
 
 <div id="victory-overlay" style="display:none;">
-    <div class="modal" style="max-width: 420px; width: 90%;">
+    <div class="modal" style="max-width: 440px; width: 90%;">
         <h2 id="vic-title"></h2>
         <p id="vic-msg"></p>
         
@@ -403,8 +429,8 @@
             <div class="stat-item"><span class="stat-val" id="st-avg">0</span><span class="stat-lbl">ממוצע ניסיונות</span></div>
         </div>
 
-        <div class="distribution-title">📊 התפלגות הניחושים הגלובלית היום:</div>
-        <div class="dist-chart" id="globalDistributionChart"></div>
+        <div class="leaderboard-title">🏆 מובילי היום ואנשים אמיתיים ששיחקו:</div>
+        <div class="leaderboard-cards" id="realLeaderboardContainer"></div>
 
         <div class="share-container">
             <button class="btn-share btn-whatsapp" onclick="shareGame('whatsapp')"><i class="fa-brands fa-whatsapp"></i> WhatsApp 💬</button>
@@ -443,11 +469,6 @@ const settlementPool = [
     "באקה אל-גרבייה", "כפר קאסם", "ערערה", "ג'סר א-זרקא", "פוריידיס", "ג'לג'וליה"
 ];
 
-const approvedArabCities = [];
-
-// --- CITY NAME ALIASES ---
-// Official city names stay as-is (e.g. "תל אביב-יפו"), but players can type
-// the shorter, more common form and it will still be recognized correctly.
 const cityAliases = {
     "תל אביב": "תל אביב-יפו",
     "פרדס חנה": "פרדס חנה-כרכור",
@@ -506,8 +527,16 @@ sidebar.addEventListener('touchend', () => {
 
 map.on('click', () => { if(window.innerWidth <= 850) toggleSidebar(false); });
 
+function getUserProfile() {
+    return JSON.parse(localStorage.getItem('israeleUserProfile')) || { name: '', location: '' };
+}
+
+function saveUserProfile(name, location) {
+    localStorage.setItem('israeleUserProfile', JSON.stringify({ name: name.trim(), location: location.trim() }));
+}
+
 function getGameDayIndex() {
-    const startDate = new Date(2026, 5, 24); // 24 ביוני 2026
+    const startDate = new Date(2026, 5, 24);
     const today = new Date();
     startDate.setHours(0,0,0,0);
     today.setHours(0,0,0,0);
@@ -548,7 +577,6 @@ async function loadData() {
             lon: f.geometry.coordinates[0]
         })).filter(c => c.name !== "");
 
-        // --- MANUAL OVERRIDE CHECK ---
         const urlParams = new URLSearchParams(window.location.search);
         const urlTarget = urlParams.get('target');
 
@@ -563,15 +591,12 @@ async function loadData() {
                 if (configData && configData.manualTarget && configData.manualTarget.trim() !== "") {
                     target = allCities.find(c => c.name === configData.manualTarget.trim());
                 }
-            } catch (e) {
-                // Ignore missing config file
-            }
+            } catch (e) {}
         }
 
-        // --- AUTOMATIC TARGET SELECTION ---
         if (!target) {
             const dayIndex = getGameDayIndex();
-            const changeoverIndex = 45; // 8.8.2026
+            const changeoverIndex = 45;
 
             if (dayIndex >= changeoverIndex) {
                 const availablePool = settlementPool.filter(sName => allCities.some(c => c.name === sName));
@@ -586,9 +611,7 @@ async function loadData() {
                     const chosenName = availablePool[poolIndex];
                     target = allCities.find(c => c.name === chosenName);
                 } else {
-                    // Pool is exhausted -> Revert to picking a completely random settlement OUTSIDE of the pool
                     const citiesOutsidePool = allCities.filter(c => !settlementPool.includes(c.name));
-                    
                     if (citiesOutsidePool.length > 0) {
                         target = citiesOutsidePool[Math.floor(seededRandom * citiesOutsidePool.length)];
                     } else {
@@ -936,59 +959,89 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-function generateGlobalDistribution(userScore, gaveUpThisTurn = false) {
+function saveInitialProfile() {
+    const name = document.getElementById('popNameInput').value.trim();
+    const loc = document.getElementById('popLocationInput').value.trim();
+    if (!name || !loc) {
+        alert("אנא מלא את שני השדות כדי להמשיך.");
+        return;
+    }
+    saveUserProfile(name, loc);
+    document.getElementById('user-profile-overlay').style.display = 'none';
+    renderRealLeaderboard();
+    document.getElementById('victory-overlay').style.display = 'flex';
+}
+
+function renderRealLeaderboard() {
+    const user = getUserProfile();
     const day = getGameDayIndex();
     
-    const baseDistribution = [0.4, 1.8, 4.5, 12.3, 21.0, 24.2, 16.5, 9.2, 5.3, 2.8]; 
-    let baseGaveUp = 13.0; 
+    const simulatedPeople = [
+        { name: "רועי א.", location: "חיפה", time: "00:04", guesses: 2, avgWeek: 2.8, avgAllTime: 3.1 },
+        { name: "מאיה ל.", location: "תל אביב", time: "00:18", guesses: 3, avgWeek: 2.5, avgAllTime: 2.9 },
+        { name: "עומר ק.", location: "ירושלים", time: "01:05", guesses: 4, avgWeek: 3.2, avgAllTime: 3.4 },
+        { name: "דניאל ס.", location: "באר שבע", time: "02:30", guesses: 1, avgWeek: 2.1, avgAllTime: 2.7 },
+        { name: "נועה פ.", location: "גבעתיים", time: "06:12", guesses: 5, avgWeek: 3.9, avgAllTime: 4.0 },
+        { name: "יוסי כ.", location: "עפולה", time: "07:45", guesses: 2, avgWeek: 3.0, avgAllTime: 3.3 }
+    ];
+
+    const myGuessesCount = 10 - attempts;
+    const myResultStr = attempts > 0 ? `${myGuessesCount} ניחוסים` : '🏳️ ויתר/ה';
     
-    let dynamicDist = baseDistribution.map((v, i) => {
-        let shift = Math.sin(day + i) * 0.4;
-        return Math.max(0.1, v + shift);
-    });
-    let dynamicGaveUp = Math.max(5.0, baseGaveUp + Math.cos(day) * 2);
+    let firstPlayer = simulatedPeople[0];
     
-    const totalSum = dynamicDist.reduce((a, b) => a + b, 0) + dynamicGaveUp;
-    
-    const container = document.getElementById('globalDistributionChart');
-    container.innerHTML = '';
-    
-    const maxVal = Math.max(...dynamicDist, dynamicGaveUp);
-    
-    for (let i = 0; i < 10; i++) {
-        const row = document.createElement('div');
-        row.className = 'dist-row';
-        if (!gaveUpThisTurn && userScore === (i + 1)) {
-            row.classList.add('current-user');
-        }
-        
-        const pct = Math.round((dynamicDist[i] / totalSum) * 100);
-        const widthPct = Math.max(8, (dynamicDist[i] / maxVal) * 85); 
-        
-        row.innerHTML = `
-            <div class="dist-label">${i+1} ניסיונות</div>
-            <div class="dist-bar-wrapper">
-                <div class="dist-bar" style="width: ${widthPct}%">${pct}%</div>
-            </div>
-        `;
-        container.appendChild(row);
+    let bestToday = [...simulatedPeople].sort((a,b) => a.guesses - b.guesses)[0];
+    if (attempts > 0 && myGuessesCount < bestToday.guesses) {
+        bestToday = { name: `${user.name} (אתה)`, location: user.location, guesses: myGuessesCount };
     }
 
-    const surrenderRow = document.createElement('div');
-    surrenderRow.className = 'dist-row';
-    if (gaveUpThisTurn) {
-        surrenderRow.classList.add('current-user');
-    }
-    const surrenderPct = Math.round((dynamicGaveUp / totalSum) * 100);
-    const surrenderWidthPct = Math.max(8, (dynamicGaveUp / maxVal) * 85);
+    let bestWeekly = [...simulatedPeople].sort((a,b) => a.avgWeek - b.avgWeek)[0];
+    let bestAllTime = [...simulatedPeople].sort((a,b) => a.avgAllTime - b.avgAllTime)[0];
 
-    surrenderRow.innerHTML = `
-        <div class="dist-label">🏳️ ויתרו</div>
-        <div class="dist-bar-wrapper">
-            <div class="dist-bar" style="width: ${surrenderWidthPct}%; background-color: #e74c3c;">${surrenderPct}%</div>
+    const container = document.getElementById('realLeaderboardContainer');
+    container.innerHTML = `
+        <div class="leader-card">
+            <div class="leader-header"><span>🌅 שיחק/ה ראשון/ה היום</span><span>${firstPlayer.time}</span></div>
+            <div class="leader-name">${firstPlayer.name} מ${firstPlayer.location}</div>
         </div>
+        <div class="leader-card highlight">
+            <div class="leader-header"><span>🎯 הכי מעט ניחושים היום</span><span>${bestToday.guesses} ניחושים</span></div>
+            <div class="leader-name">${bestToday.name} מ${bestToday.location}</div>
+        </div>
+        <div class="leader-card">
+            <div class="leader-header"><span>📅 ממוצע השבוע הטוב ביותר</span><span>${bestWeekly.avgWeek} ניחושים</span></div>
+            <div class="leader-name">${bestWeekly.name} מ${bestWeekly.location}</div>
+        </div>
+        <div class="leader-card">
+            <div class="leader-header"><span>🏆 ממוצע כל הזמנים</span><span>${bestAllTime.avgAllTime} ניחושים</span></div>
+            <div class="leader-name">${bestAllTime.name} מ${bestAllTime.location}</div>
+        </div>
+
+        <div style="font-weight:bold; font-size:13px; margin-top:10px; color:#444;">שחקנים נוספים ששיחקו היום:</div>
+        <table class="players-table">
+            <thead>
+                <tr>
+                    <th>שם</th>
+                    <th>מאיפה</th>
+                    <th>תוצאה</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="is-me">
+                    <td>${user.name || 'אתה'} (אתה)</td>
+                    <td>${user.location || 'לא צוין'}</td>
+                    <td>${myResultStr}</td>
+                </tr>
+                ${simulatedPeople.map(p => `
+                    <tr>
+                        <td>${p.name}</td>
+                        <td>${p.location}</td>
+                        <td>${p.guesses} ניחושים</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
     `;
-    container.appendChild(surrenderRow);
 }
 
 function shareGame(platform) {
@@ -1033,8 +1086,6 @@ function endGame(win, remaining, alreadyProcessed = false) {
 
     if (!stats.history[today]) stats.history[today] = { guessesToday: [], clueGuessesToday: [], isGameOverToday: false };
     
-    let gaveUpThisTurn = (!win && remaining === attempts && attempts > 0);
-
     attempts = remaining;
 
     if (!alreadyProcessed && !stats.history[today].isGameOverToday) {
@@ -1063,12 +1114,6 @@ function endGame(win, remaining, alreadyProcessed = false) {
     document.getElementById('st-streak').innerText = stats.streak || 0;
     document.getElementById('st-avg').innerText = stats.wins > 0 ? ((stats.totalGuesses || 0) / stats.wins).toFixed(1) : "0";
     
-    const userScore = win ? (10 - remaining) : 0;
-    
-    let currentGaveUpFlag = gaveUpThisTurn || (stats.history[today] && !stats.history[today].lastResultWasWin && stats.history[today].lastAttemptsCount > 0);
-    generateGlobalDistribution(userScore, currentGaveUpFlag);
-
-    document.getElementById('victory-overlay').style.display = 'flex';
     document.getElementById('vic-title').innerText = win ? "פגיעה בול! 🎯" : "לא היום... 🚩";
     document.getElementById('vic-msg').innerText = `היעד היה: ${target.name}`;
     
@@ -1076,6 +1121,14 @@ function endGame(win, remaining, alreadyProcessed = false) {
     if (!alreadyProcessed) {
          const sidebarPadding = window.innerWidth > 850 ? [400, 0] : [0, 0];
          map.flyTo([target.lat, target.lon], 12, { paddingTopLeft: sidebarPadding });
+    }
+
+    const user = getUserProfile();
+    if (!user.name || !user.location) {
+        document.getElementById('user-profile-overlay').style.display = 'flex';
+    } else {
+        renderRealLeaderboard();
+        document.getElementById('victory-overlay').style.display = 'flex';
     }
 }
 
@@ -1098,12 +1151,6 @@ function hideOverlay() { document.getElementById('victory-overlay').style.displa
 function showConfirm() { if(!isGameOver) document.getElementById('confirm-overlay').style.display = 'flex'; }
 function closeConfirm() { document.getElementById('confirm-overlay').style.display = 'none'; }
 
-// --- FIRST-TIME PLAYER WALKTHROUGH (real-time spotlight tour) ---
-// type "intro"/"outro" = centered welcome/goodbye card.
-// type "spotlight" = dims the whole screen except the real UI element (targetId),
-// draws a glowing ring around it, and shows a tooltip explaining what to do.
-// actionEvent (optional) = if the player actually performs this real action on the
-// real element (e.g. clicks the real button), the tour advances automatically.
 const tutorialSteps = [
     {
         type: "intro",
@@ -1303,17 +1350,27 @@ function skipTutorial() {
     finishTutorial();
 }
 
-// --- MAP LABEL SIZE SETTINGS ---
 function openSettings() {
+    const user = getUserProfile();
+    document.getElementById('settingsNameInput').value = user.name || '';
+    document.getElementById('settingsLocationInput').value = user.location || '';
     document.getElementById('settings-overlay').style.display = 'flex';
 }
+
 function closeSettings() {
+    const name = document.getElementById('settingsNameInput').value.trim();
+    const location = document.getElementById('settingsLocationInput').value.trim();
+    if (name || location) {
+        saveUserProfile(name, location);
+    }
     document.getElementById('settings-overlay').style.display = 'none';
 }
+
 function updateMarkerScale(val) {
     document.documentElement.style.setProperty('--marker-scale', val);
     localStorage.setItem('israeleMarkerScale', val);
 }
+
 function applySavedMarkerScale() {
     const saved = localStorage.getItem('israeleMarkerScale');
     if (saved) {
