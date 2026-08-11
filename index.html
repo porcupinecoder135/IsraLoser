@@ -20,6 +20,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
+    <!-- Firebase SDKs for Realtime Database -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
     <style>
         :root {
             --primary: #1a2a6c;
@@ -194,7 +198,6 @@
         .btn-whatsapp { background: #25D366; }
         .btn-instagram { background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D); }
         
-        /* High Dopamine Leaderboard Styling */
         .time-tabs { display: flex; background: #eef2f5; padding: 4px; border-radius: 14px; gap: 4px; margin-bottom: 12px; }
         .time-tab { flex: 1; padding: 8px 4px; border: none; background: transparent; font-weight: 800; font-size: 12.5px; border-radius: 10px; cursor: pointer; color: #666; transition: all 0.2s; }
         .time-tab.active { background: white; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 13px; }
@@ -216,7 +219,6 @@
         .card-name .me-tag { background: var(--primary); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 800; }
         .card-location { font-size: 12px; color: #666; font-weight: 600; }
         .card-stat { text-align: left; font-size: 16px; font-weight: 900; color: var(--primary); }
-        .card-stat-label { font-size: 10px; color: #888; font-weight: bold; text-align: left; }
 
         .empty-leaderboard { text-align: center; padding: 20px; color: #777; font-size: 14px; font-weight: bold; background: #f9f9f9; border-radius: 15px; border: 1px dashed #ccc; }
 
@@ -272,7 +274,6 @@
     </div>
 </div>
 
-<!-- Profile Popup Overlay -->
 <div id="user-profile-overlay" style="z-index: 3500;">
     <div class="modal" style="max-width: 360px;">
         <h3 style="margin-top:0; color: var(--primary);">👤 הפרטים שלך לטבלת השיאים</h3>
@@ -465,6 +466,23 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+// --- FIREBASE INITIALIZATION ---
+// Replace the values below with your Firebase project credentials
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.database();
+
 let allCities = [];
 let target;
 let attempts = 10;
@@ -1003,15 +1021,57 @@ function switchLeaderboardTime(timeframe, btn) {
     renderRealLeaderboard();
 }
 
-async function renderRealLeaderboard() {
-    const container = document.getElementById('realLeaderboardContainer');
-    container.innerHTML = 'Loading...';
+async function sendScoreToBackend(win, guesses) {
+    const user = getUserProfile();
+    if (!user.name) return;
 
     try {
-        const response = await fetch(`https://your-api-domain.com/api/scores?timeframe=${currentLeaderboardFilter}&date=${getDailyKey()}`);
-        const records = await response.json();
+        const scoreRef = db.ref('scores').push();
+        await scoreRef.set({
+            name: user.name,
+            location: user.location,
+            dateKey: getDailyKey(),
+            timestamp: Date.now(),
+            guesses: guesses,
+            won: win
+        });
+    } catch (err) {
+        console.error('Failed to submit score:', err);
+    }
+}
 
-        if (!records || records.length === 0) {
+async function renderRealLeaderboard() {
+    const container = document.getElementById('realLeaderboardContainer');
+    container.innerHTML = 'טוען נתונים...';
+
+    try {
+        const snapshot = await db.ref('scores').once('value');
+        const data = snapshot.val();
+
+        if (!data) {
+            container.innerHTML = `<div class="empty-leaderboard">🎯 אין עדיין נתונים לתקופה זו.</div>`;
+            return;
+        }
+
+        let records = Object.values(data);
+        const now = Date.now();
+        const todayKey = getDailyKey();
+
+        // Filter based on selected tab
+        if (currentLeaderboardFilter === 'today') {
+            records = records.filter(r => r.dateKey === todayKey);
+        } else if (currentLeaderboardFilter === 'week') {
+            const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+            records = records.filter(r => now - r.timestamp <= sevenDaysMs);
+        }
+
+        // Sort: Won games first, then by lowest guess count
+        records.sort((a, b) => {
+            if (a.won !== b.won) return b.won ? 1 : -1;
+            return a.guesses - b.guesses;
+        });
+
+        if (records.length === 0) {
             container.innerHTML = `<div class="empty-leaderboard">🎯 אין עדיין נתונים לתקופה זו.</div>`;
             return;
         }
@@ -1019,12 +1079,12 @@ async function renderRealLeaderboard() {
         container.innerHTML = '';
         const currentUser = getUserProfile();
 
-        records.forEach((rec, index) => {
+        records.slice(0, 50).forEach((rec, index) => {
             const isMe = rec.name === currentUser.name && rec.location === currentUser.location;
             const badge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤';
 
             container.innerHTML += `
-                <div class="dopamine-card ${index === 0 ? 'gold' : ''}">
+                <div class="dopamine-card ${index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}">
                     <div class="medal-badge">${badge}</div>
                     <div class="card-info">
                         <div class="card-name">${rec.name} ${isMe ? '<span class="me-tag">אתה</span>' : ''}</div>
@@ -1037,6 +1097,7 @@ async function renderRealLeaderboard() {
             `;
         });
     } catch (err) {
+        console.error(err);
         container.innerHTML = '<div class="empty-leaderboard">שגיאה שטעינת טבלת המובילים</div>';
     }
 }
@@ -1083,28 +1144,6 @@ function fireDopamineConfetti() {
 }
 
 function endGame(win, remaining, alreadyProcessed = false) {
-
-    async function sendScoreToBackend(win, guesses) {
-    const user = getUserProfile();
-    if (!user.name) return;
-
-    try {
-        await fetch('https://your-api-domain.com/api/scores', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: user.name,
-                location: user.location,
-                date: getDailyKey(),
-                guesses: 10 - remaining,
-                won: win
-            })
-        });
-    } catch (err) {
-        console.error('Failed to submit score:', err);
-    }
-
-    
     isGameOver = true;
     closeConfirm();
     document.getElementById('cityInput').disabled = true;
@@ -1134,6 +1173,7 @@ function endGame(win, remaining, alreadyProcessed = false) {
             }
         }
         localStorage.setItem('israeleStats', JSON.stringify(stats));
+        sendScoreToBackend(win, 10 - remaining);
     }
     
     const usedHintsCount = (unlockedClues.closestNeighborUsed ? 1 : 0) + (unlockedClues.fiveOptionsUsed ? 1 : 0);
