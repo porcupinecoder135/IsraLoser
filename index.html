@@ -1003,112 +1003,44 @@ function switchLeaderboardTime(timeframe, btn) {
     renderRealLeaderboard();
 }
 
-function renderRealLeaderboard() {
-    const user = getUserProfile();
-    const stats = JSON.parse(localStorage.getItem('israeleStats')) || { history: {} };
+async function renderRealLeaderboard() {
     const container = document.getElementById('realLeaderboardContainer');
-    container.innerHTML = '';
+    container.innerHTML = 'Loading...';
 
-    let records = [];
+    try {
+        const response = await fetch(`https://your-api-domain.com/api/scores?timeframe=${currentLeaderboardFilter}&date=${getDailyKey()}`);
+        const records = await response.json();
 
-    if (currentLeaderboardFilter === 'today') {
-        const todayKey = getDailyKey();
-        const todayData = stats.history ? stats.history[todayKey] : null;
-        if (todayData && todayData.isGameOverToday) {
-            const guesses = todayData.guessesToday ? todayData.guessesToday.length : 0;
-            records.push({
-                name: user.name || 'שחקן',
-                location: user.location || 'ישראל',
-                won: todayData.lastResultWasWin,
-                guesses: guesses,
-                isMe: true,
-                badge: '🥇'
-            });
-        }
-    } else if (currentLeaderboardFilter === 'week') {
-        let totalGuesses = 0;
-        let gamesWon = 0;
-        let playedDays = 0;
-
-        for (let i = 0; i < 7; i++) {
-            const key = getDailyKey(i);
-            const dayData = stats.history ? stats.history[key] : null;
-            if (dayData && dayData.isGameOverToday) {
-                playedDays++;
-                if (dayData.lastResultWasWin) {
-                    gamesWon++;
-                    totalGuesses += (dayData.guessesToday ? dayData.guessesToday.length : 0);
-                }
-            }
+        if (!records || records.length === 0) {
+            container.innerHTML = `<div class="empty-leaderboard">🎯 אין עדיין נתונים לתקופה זו.</div>`;
+            return;
         }
 
-        if (playedDays > 0) {
-            const avg = gamesWon > 0 ? (totalGuesses / gamesWon).toFixed(1) : '—';
-            records.push({
-                name: user.name || 'שחקן',
-                location: user.location || 'ישראל',
-                avgGuesses: avg,
-                gamesWon: gamesWon,
-                playedDays: playedDays,
-                isMe: true,
-                badge: '🏆'
-            });
-        }
-    } else if (currentLeaderboardFilter === 'alltime') {
-        if (stats.played && stats.played > 0) {
-            const avg = stats.wins > 0 ? (stats.totalGuesses / stats.wins).toFixed(1) : '—';
-            records.push({
-                name: user.name || 'שחקן',
-                location: user.location || 'ישראל',
-                avgGuesses: avg,
-                wins: stats.wins || 0,
-                played: stats.played || 0,
-                isMe: true,
-                badge: '👑'
-            });
-        }
-    }
+        container.innerHTML = '';
+        const currentUser = getUserProfile();
 
-    if (records.length === 0) {
-        container.innerHTML = `
-            <div class="empty-leaderboard">
-                🎯 אין עדיין נתונים לתקופה זו.<br>שחקו וסיימו משחק כדי להופיע בטבלה!
-            </div>
-        `;
-        return;
-    }
+        records.forEach((rec, index) => {
+            const isMe = rec.name === currentUser.name && rec.location === currentUser.location;
+            const badge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤';
 
-    records.forEach(rec => {
-        let statDisplay = '';
-        let statLabel = '';
-
-        if (currentLeaderboardFilter === 'today') {
-            statDisplay = rec.won ? `${rec.guesses} ניחושים` : '🏳️ ויתר/ה';
-            statLabel = rec.won ? 'תוצאת היום' : 'סטטוס';
-        } else if (currentLeaderboardFilter === 'week') {
-            statDisplay = `${rec.avgGuesses}`;
-            statLabel = `ממוצע השבוע (${rec.gamesWon}/${rec.playedDays})`;
-        } else if (currentLeaderboardFilter === 'alltime') {
-            statDisplay = `${rec.avgGuesses}`;
-            statLabel = `ממוצע כל הזמנים (${rec.wins}/${rec.played})`;
-        }
-
-        container.innerHTML += `
-            <div class="dopamine-card gold">
-                <div class="medal-badge">${rec.badge}</div>
-                <div class="card-info">
-                    <div class="card-name">${rec.name} <span class="me-tag">אתה</span></div>
-                    <div class="card-location">📍 ${rec.location}</div>
+            container.innerHTML += `
+                <div class="dopamine-card ${index === 0 ? 'gold' : ''}">
+                    <div class="medal-badge">${badge}</div>
+                    <div class="card-info">
+                        <div class="card-name">${rec.name} ${isMe ? '<span class="me-tag">אתה</span>' : ''}</div>
+                        <div class="card-location">📍 ${rec.location}</div>
+                    </div>
+                    <div>
+                        <div class="card-stat">${rec.won ? rec.guesses + ' ניחושים' : '🏳️ ויתר/ה'}</div>
+                    </div>
                 </div>
-                <div>
-                    <div class="card-stat">${statDisplay}</div>
-                    <div class="card-stat-label">${statLabel}</div>
-                </div>
-            </div>
-        `;
-    });
+            `;
+        });
+    } catch (err) {
+        container.innerHTML = '<div class="empty-leaderboard">שגיאה שטעינת טבלת המובילים</div>';
+    }
 }
-
+    
 function shareGame(platform) {
     const usedHintsCount = (unlockedClues.closestNeighborUsed ? 1 : 0) + (unlockedClues.fiveOptionsUsed ? 1 : 0);
     const finalGuesses = 10 - attempts;
@@ -1151,6 +1083,28 @@ function fireDopamineConfetti() {
 }
 
 function endGame(win, remaining, alreadyProcessed = false) {
+
+    async function sendScoreToBackend(win, guesses) {
+    const user = getUserProfile();
+    if (!user.name) return;
+
+    try {
+        await fetch('https://your-api-domain.com/api/scores', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: user.name,
+                location: user.location,
+                date: getDailyKey(),
+                guesses: 10 - remaining,
+                won: win
+            })
+        });
+    } catch (err) {
+        console.error('Failed to submit score:', err);
+    }
+
+    
     isGameOver = true;
     closeConfirm();
     document.getElementById('cityInput').disabled = true;
