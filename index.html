@@ -472,13 +472,13 @@
 const firebaseConfig = {
   apiKey: "AIzaSyDUWY4CAQZCxhbc5mkVMZp4QSwgVQL9lB0",
   authDomain: "isramaster-75a90.firebaseapp.com",
+  databaseURL: "https://isramaster-75a90-default-rtdb.firebaseio.com", // <-- ADD THIS LINE
   projectId: "isramaster-75a90",
   storageBucket: "isramaster-75a90.firebasestorage.app",
   messagingSenderId: "669845000477",
   appId: "1:669845000477:web:280289f5dcc42d85cd91f4",
   measurementId: "G-W0W4TZKQXK"
 };
-
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
