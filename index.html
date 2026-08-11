@@ -467,18 +467,17 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // --- FIREBASE INITIALIZATION ---
-// Replace the values below with your Firebase project credentials
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyDUWY4CAQZCxhbc5mkVMZp4QSwgVQL9lB0",
   authDomain: "isramaster-75a90.firebaseapp.com",
-  databaseURL: "https://isramaster-75a90-default-rtdb.firebaseio.com", // <-- ADD THIS LINE
+  databaseURL: "https://isramaster-75a90-default-rtdb.firebaseio.com",
   projectId: "isramaster-75a90",
   storageBucket: "isramaster-75a90.firebasestorage.app",
   messagingSenderId: "669845000477",
   appId: "1:669845000477:web:280289f5dcc42d85cd91f4",
   measurementId: "G-W0W4TZKQXK"
 };
+
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
@@ -491,6 +490,7 @@ let isGameOver = false;
 let errorTimeout;
 let currentGuessesList = [];
 let currentLeaderboardFilter = 'today';
+let pendingScore = null;
 
 let unlockedClues = { 
     eligible: false, 
@@ -1011,6 +1011,12 @@ function saveInitialProfile() {
     }
     saveUserProfile(name, loc);
     document.getElementById('user-profile-overlay').style.display = 'none';
+
+    if (pendingScore) {
+        sendScoreToBackend(pendingScore.win, pendingScore.guesses);
+        pendingScore = null;
+    }
+
     renderRealLeaderboard();
     document.getElementById('victory-overlay').style.display = 'flex';
 }
@@ -1058,7 +1064,6 @@ async function renderRealLeaderboard() {
         const now = Date.now();
         const todayKey = getDailyKey();
 
-        // Filter based on selected tab
         if (currentLeaderboardFilter === 'today') {
             records = records.filter(r => r.dateKey === todayKey);
         } else if (currentLeaderboardFilter === 'week') {
@@ -1066,7 +1071,6 @@ async function renderRealLeaderboard() {
             records = records.filter(r => now - r.timestamp <= sevenDaysMs);
         }
 
-        // Sort: Won games first, then by lowest guess count
         records.sort((a, b) => {
             if (a.won !== b.won) return b.won ? 1 : -1;
             return a.guesses - b.guesses;
@@ -1196,6 +1200,7 @@ function endGame(win, remaining, alreadyProcessed = false) {
 
     const user = getUserProfile();
     if (!user.name || !user.location) {
+        pendingScore = { win: win, guesses: 10 - remaining };
         document.getElementById('user-profile-overlay').style.display = 'flex';
     } else {
         renderRealLeaderboard();
