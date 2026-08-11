@@ -198,9 +198,21 @@
         .btn-whatsapp { background: #25D366; }
         .btn-instagram { background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D); }
         
-        .time-tabs { display: flex; background: #eef2f5; padding: 4px; border-radius: 14px; gap: 4px; margin-bottom: 12px; }
+        .time-tabs { display: flex; background: #eef2f5; padding: 4px; border-radius: 14px; gap: 4px; margin-bottom: 8px; }
         .time-tab { flex: 1; padding: 8px 4px; border: none; background: transparent; font-weight: 800; font-size: 12.5px; border-radius: 10px; cursor: pointer; color: #666; transition: all 0.2s; }
         .time-tab.active { background: white; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 13px; }
+
+        .leaderboard-rules-box {
+            font-size: 11.5px;
+            background: #f8fafc;
+            color: #475569;
+            padding: 8px 10px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            text-align: center;
+            border: 1px dashed #cbd5e1;
+            line-height: 1.35;
+        }
 
         .leaderboard-section { text-align: right; }
         .dopamine-card {
@@ -452,6 +464,10 @@
                 <button class="time-tab" onclick="switchLeaderboardTime('alltime', this)">🏆 כל הזמנים</button>
             </div>
             
+            <div class="leaderboard-rules-box">
+                💡 <b>חוקי הדירוג:</b> בלשוניות השבוע וכל הזמנים מוצג ממוצע הניסיונות של השחקן. ויתור נחשב כ-10 ניסיונות.
+            </div>
+
             <div id="realLeaderboardContainer"></div>
         </div>
 
@@ -1066,44 +1082,105 @@ async function renderRealLeaderboard() {
 
         if (currentLeaderboardFilter === 'today') {
             records = records.filter(r => r.dateKey === todayKey);
-        } else if (currentLeaderboardFilter === 'week') {
-            const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-            records = records.filter(r => now - r.timestamp <= sevenDaysMs);
-        }
 
-        records.sort((a, b) => {
-            if (a.won !== b.won) return b.won ? 1 : -1;
-            return a.guesses - b.guesses;
-        });
+            records.sort((a, b) => {
+                if (a.won !== b.won) return b.won ? 1 : -1;
+                return a.guesses - b.guesses;
+            });
 
-        if (records.length === 0) {
-            container.innerHTML = `<div class="empty-leaderboard">🎯 אין עדיין נתונים לתקופה זו.</div>`;
-            return;
-        }
+            if (records.length === 0) {
+                container.innerHTML = `<div class="empty-leaderboard">🎯 אין עדיין נתונים לתקופה זו.</div>`;
+                return;
+            }
 
-        container.innerHTML = '';
-        const currentUser = getUserProfile();
+            container.innerHTML = '';
+            const currentUser = getUserProfile();
 
-        records.slice(0, 50).forEach((rec, index) => {
-            const isMe = rec.name === currentUser.name && rec.location === currentUser.location;
-            const badge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤';
+            records.slice(0, 50).forEach((rec, index) => {
+                const isMe = rec.name === currentUser.name && rec.location === currentUser.location;
+                const badge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤';
 
-            container.innerHTML += `
-                <div class="dopamine-card ${index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}">
-                    <div class="medal-badge">${badge}</div>
-                    <div class="card-info">
-                        <div class="card-name">${rec.name} ${isMe ? '<span class="me-tag">אתה</span>' : ''}</div>
-                        <div class="card-location">📍 ${rec.location}</div>
+                container.innerHTML += `
+                    <div class="dopamine-card ${index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}">
+                        <div class="medal-badge">${badge}</div>
+                        <div class="card-info">
+                            <div class="card-name">${rec.name} ${isMe ? '<span class="me-tag">אתה</span>' : ''}</div>
+                            <div class="card-location">📍 ${rec.location}</div>
+                        </div>
+                        <div>
+                            <div class="card-stat">${rec.won ? rec.guesses + ' ניחושים' : '🏳️ ויתר/ה'}</div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="card-stat">${rec.won ? rec.guesses + ' ניחושים' : '🏳️ ויתר/ה'}</div>
+                `;
+            });
+        } else {
+            // 'week' or 'alltime'
+            if (currentLeaderboardFilter === 'week') {
+                const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+                records = records.filter(r => now - r.timestamp <= sevenDaysMs);
+            }
+
+            if (records.length === 0) {
+                container.innerHTML = `<div class="empty-leaderboard">🎯 אין עדיין נתונים לתקופה זו.</div>`;
+                return;
+            }
+
+            // Aggregate statistics per unique user
+            const userStats = {};
+            records.forEach(rec => {
+                const userKey = `${rec.name.trim()}__${rec.location.trim()}`;
+                if (!userStats[userKey]) {
+                    userStats[userKey] = {
+                        name: rec.name,
+                        location: rec.location,
+                        totalGames: 0,
+                        totalTries: 0
+                    };
+                }
+                userStats[userKey].totalGames += 1;
+                // If the player gave up (won === false), count as 10 tries
+                const effectiveTries = rec.won ? rec.guesses : 10;
+                userStats[userKey].totalTries += effectiveTries;
+            });
+
+            let userList = Object.values(userStats).map(u => ({
+                ...u,
+                avgGuesses: u.totalTries / u.totalGames
+            }));
+
+            // Sort ascending by average tries; tiebreak by most games played
+            userList.sort((a, b) => {
+                if (a.avgGuesses !== b.avgGuesses) {
+                    return a.avgGuesses - b.avgGuesses;
+                }
+                return b.totalGames - a.totalGames;
+            });
+
+            container.innerHTML = '';
+            const currentUser = getUserProfile();
+
+            userList.slice(0, 50).forEach((user, index) => {
+                const isMe = user.name === currentUser.name && user.location === currentUser.location;
+                const badge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤';
+                const avgStr = (user.avgGuesses % 1 === 0) ? user.avgGuesses.toFixed(0) : user.avgGuesses.toFixed(1);
+
+                container.innerHTML += `
+                    <div class="dopamine-card ${index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}">
+                        <div class="medal-badge">${badge}</div>
+                        <div class="card-info">
+                            <div class="card-name">${user.name} ${isMe ? '<span class="me-tag">אתה</span>' : ''}</div>
+                            <div class="card-location">📍 ${user.location} • ${user.totalGames} משחקים</div>
+                        </div>
+                        <div>
+                            <div class="card-stat">${avgStr} ממוצע ניחושים</div>
+                        </div>
                     </div>
-                </div>
-            `;
-        });
+                `;
+            });
+        }
     } catch (err) {
         console.error(err);
-        container.innerHTML = '<div class="empty-leaderboard">שגיאה שטעינת טבלת המובילים</div>';
+        container.innerHTML = '<div class="empty-leaderboard">שגיאה בטעינת טבלת המובילים</div>';
     }
 }
     
