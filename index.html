@@ -1720,9 +1720,6 @@ function replayGameFromRecord(guessesList, dateKey, playerName, isOwn) {
 
     const replayTarget = getTargetForDateKey(dateKey) || target;
     const parts = dateKey.split('-');
-
-    const replayTarget = getTargetForDateKey(dateKey) || target;
-    const parts = dateKey.split('-');
     const formattedDate = parts.length >= 4 ? `${parts[3]}.${parts[2]}.${parts[1]}` : dateKey;
 
     const bannerText = isOwn 
