@@ -1893,6 +1893,64 @@ function applySavedMarkerScale() {
     }
 }
 
+// 1. Clear previous guess layers and display ONLY the selected player's guesses
+function showPlayerGuesses(playerId) {
+    // Clear all existing markers/polylines from the map
+    if (window.guessLayersGroup) {
+        window.guessLayersGroup.clearLayers();
+    } else {
+        window.guessLayersGroup = L.layerGroup().addTo(map);
+    }
+
+    // Retrieve selected player's data
+    const player = playersData[playerId];
+    if (!player || !player.guesses) return;
+
+    // Display only the active player's guesses
+    player.guesses.forEach(guess => {
+        const marker = L.marker([guess.lat, guess.lng]).bindPopup(`Guess: ${guess.settlementName}`);
+        const line = L.polyline([[guess.lat, guess.lng], [guess.targetLat, guess.targetLng]], {
+            color: '#ff3366',
+            weight: 2,
+            dashArray: '5, 10'
+        });
+        
+        window.guessLayersGroup.addLayer(marker);
+        window.guessLayersGroup.addLayer(line);
+    });
+
+    // Zoom/pan map to fit only this player's guess bounds
+    if (window.guessLayersGroup.getLayers().length > 0) {
+        map.fitBounds(window.guessLayersGroup.getBounds(), { padding: [30, 30] });
+    }
+}
+
+// 2. Remove 'יואד' from settlement 'עדנים' and force re-registration
+function resetUserFromSettlement(settlementName, userName) {
+    // Firebase / Database node reference update example
+    const settlementRef = firebase.database().ref(`settlements/${settlementName}/players`);
+
+    settlementRef.once('value', snapshot => {
+        const players = snapshot.val() || {};
+        for (let key in players) {
+            if (players[key].name === userName || key === userName) {
+                // Delete user entry
+                firebase.database().ref(`settlements/${settlementName}/players/${key}`).remove();
+                
+                // Clear local storage if executed on target device
+                localStorage.removeItem('registeredSettlement');
+                localStorage.removeItem('playerName');
+                
+                console.log(`User ${userName} successfully removed from ${settlementName}.`);
+                break;
+            }
+        }
+    });
+}
+
+// Execute the removal for יואד in עדנים
+resetUserFromSettlement('עדנים', 'יואד');
+
 applySavedMarkerScale();
 window.onload = async function() {
     await initServerTime();
