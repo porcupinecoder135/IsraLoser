@@ -1341,6 +1341,13 @@ async function openPlayerProfile(userKey, userId, name, location) {
     hideOverlay();
     const isOwn = game.userId === currentUser.userId || (game.name === currentUser.name && game.location === currentUser.location);
     replayGameFromRecord(game.guessesList || [], game.dateKey, game.name, isOwn);
+
+    setTimeout(() => {
+        document.getElementById('victory-overlay').style.display = 'none';
+        document.getElementById('public-profile-overlay').style.display = 'none';
+        document.getElementById('archive-modal-overlay').style.display = 'none';
+        document.getElementById('leaderboard-toggle').classList.remove('visible');
+    }, 0);
 };
 
             item.innerHTML = `
