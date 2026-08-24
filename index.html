@@ -1337,12 +1337,11 @@ async function openPlayerProfile(userKey, userId, name, location) {
             const item = document.createElement('div');
             item.className = 'archive-item';
             item.onclick = () => {
-                closePublicProfileModal();
-                hideOverlay();
-                const isOwn = game.userId === currentUser.userId || (game.name === currentUser.name && game.location === currentUser.location);
-                replayGameFromRecord(game.guessesList || [], game.dateKey, game.name, isOwn);
-                document.getElementById('leaderboard-toggle').classList.remove('visible');
-            };
+    closePublicProfileModal();
+    hideOverlay();
+    const isOwn = game.userId === currentUser.userId || (game.name === currentUser.name && game.location === currentUser.location);
+    replayGameFromRecord(game.guessesList || [], game.dateKey, game.name, isOwn);
+};
 
             item.innerHTML = `
                 <span>📅 ${displayDate}</span>
