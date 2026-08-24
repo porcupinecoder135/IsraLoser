@@ -1712,6 +1712,15 @@ function stopGameReplay() {
 function replayGameFromRecord(guessesList, dateKey, playerName, isOwn) {
     stopGameReplay();
 
+    // Hide all end-game UI, popups, and toggle buttons right after stopGameReplay()
+    document.getElementById('victory-overlay').style.display = 'none';
+    document.getElementById('public-profile-overlay').style.display = 'none';
+    document.getElementById('archive-modal-overlay').style.display = 'none';
+    document.getElementById('leaderboard-toggle').classList.remove('visible');
+
+    const replayTarget = getTargetForDateKey(dateKey) || target;
+    const parts = dateKey.split('-');
+
     const replayTarget = getTargetForDateKey(dateKey) || target;
     const parts = dateKey.split('-');
     const formattedDate = parts.length >= 4 ? `${parts[3]}.${parts[2]}.${parts[1]}` : dateKey;
