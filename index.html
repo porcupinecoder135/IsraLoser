@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
+    <!-- Firebase SDKs for Realtime Database -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -127,9 +128,9 @@
             border-radius: 15px; margin-top: 15px; min-height: 90px;
         }
 
-        #setup-overlay, #how-to-play-overlay, #victory-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #tutorial-intro-overlay, #settings-overlay, #user-profile-overlay { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; backdrop-filter: blur(8px); }
+        #setup-overlay, #how-to-play-overlay, #victory-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #tutorial-intro-overlay, #settings-overlay, #user-profile-overlay, #archive-modal-overlay { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; backdrop-filter: blur(8px); }
         #setup-overlay { background: radial-gradient(circle at center, #1a2a6c, #000); }
-        #how-to-play-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #settings-overlay, #user-profile-overlay { background: rgba(0,0,0,0.85); display: none; }
+        #how-to-play-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #settings-overlay, #user-profile-overlay, #archive-modal-overlay { background: rgba(0,0,0,0.85); display: none; }
 
         #tutorial-intro-overlay { background: radial-gradient(circle at center, #1a2a6c, #000); z-index: 3200; display: none; }
         .tutorial-modal {
@@ -200,6 +201,11 @@
 
         .used-hints-summary { font-size: 14px; font-weight: bold; color: var(--purple); margin: 5px 0 15px 0; background: #f5f0fa; padding: 6px; border-radius: 8px; }
         
+        .anonymous-players-box {
+            font-size: 13px; font-weight: bold; color: var(--primary); background: #eef4fc;
+            padding: 8px 12px; border-radius: 10px; margin-bottom: 12px; text-align: center; border: 1px solid #cce0ff;
+        }
+
         .share-container { display: flex; gap: 10px; margin-top: 15px; }
         .btn-share { flex: 1; padding: 12px; border: none; border-radius: 12px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: opacity 0.2s; }
         .btn-share:active { transform: scale(0.98); }
@@ -209,8 +215,6 @@
         .time-tabs { display: flex; background: #eef2f5; padding: 4px; border-radius: 14px; gap: 4px; margin-bottom: 8px; }
         .time-tab { flex: 1; padding: 8px 4px; border: none; background: transparent; font-weight: 800; font-size: 12.5px; border-radius: 10px; cursor: pointer; color: #666; transition: all 0.2s; }
         .time-tab.active { background: white; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 13px; }
-
-        .anon-badge-box { display: flex; align-items: center; justify-content: center; gap: 6px; background: #f1f5f9; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 8px; border: 1px solid #e2e8f0; }
 
         .leaderboard-rules-box {
             font-size: 11.5px;
@@ -230,7 +234,9 @@
             border-radius: 16px; padding: 12px 16px; margin-bottom: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 2px solid #eef2f5;
             display: flex; align-items: center; justify-content: space-between; position: relative; overflow: hidden;
+            cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
+        .dopamine-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
         .dopamine-card.gold { border-color: var(--gold); background: linear-gradient(135deg, #fffdf0 0%, #fff8d6 100%); box-shadow: 0 6px 20px rgba(255, 215, 0, 0.25); }
         .dopamine-card.silver { border-color: var(--silver); background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%); }
         .dopamine-card.bronze { border-color: var(--bronze); background: linear-gradient(135deg, #fffaf5 0%, #fbebe0 100%); }
@@ -242,28 +248,8 @@
         .card-location { font-size: 12px; color: #666; font-weight: 600; }
         .card-stat { text-align: left; font-size: 16px; font-weight: 900; color: var(--primary); }
 
-        .btn-view-game {
-            background: #eef2f5; border: none; border-radius: 8px; padding: 6px 10px;
-            font-size: 12px; font-weight: bold; color: var(--primary); cursor: pointer;
-            margin-top: 4px; display: inline-flex; align-items: center; gap: 4px;
-            transition: background 0.2s;
-        }
-        .btn-view-game:hover { background: #dce4ec; }
-
         .empty-leaderboard { text-align: center; padding: 20px; color: #777; font-size: 14px; font-weight: bold; background: #f9f9f9; border-radius: 15px; border: 1px dashed #ccc; }
         .next-game-countdown { margin-top: 12px; font-size: 13px; font-weight: bold; opacity: 0.85; letter-spacing: 0.5px; }
-
-        #replay-banner {
-            position: fixed; top: 15px; right: 15px; z-index: 2500;
-            background: rgba(26, 42, 108, 0.95); color: white; border: 2px solid var(--gold);
-            padding: 12px 20px; border-radius: 20px; font-weight: bold; font-size: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: none; align-items: center; gap: 12px;
-            backdrop-filter: blur(4px);
-        }
-        #replay-banner button {
-            background: var(--accent); border: none; color: white; font-weight: bold;
-            padding: 6px 12px; border-radius: 10px; cursor: pointer;
-        }
 
         .clues-modal-content { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
         .clue-btn {
@@ -294,6 +280,27 @@
             50% { transform: scale(1.02); }
         }
 
+        /* --- TOP REPLAY BANNER --- */
+        #replay-banner {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 2500;
+            background: linear-gradient(90deg, #1a2a6c, #2a5298); color: white;
+            padding: 12px 20px; display: none; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4); font-weight: bold; font-size: 15px;
+        }
+        #replay-banner .btn-exit-replay {
+            background: var(--accent); color: white; border: none; padding: 8px 16px;
+            border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .archive-list { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; max-height: 250px; overflow-y: auto; text-align: right; }
+        .archive-item {
+            background: #f8f9fa; border: 1px solid #ddd; padding: 12px 15px; border-radius: 12px;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+            font-weight: bold; color: #333; transition: background 0.2s;
+        }
+        .archive-item:hover { background: #eef2f5; border-color: var(--primary); }
+
         @media (max-width: 850px) {
             #sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 65vh; transform: translateY(100%); border-radius: 25px 25px 0 0; transition: transform 0.1s linear; }
             #sidebar.open { transform: translateY(0); }
@@ -309,8 +316,8 @@
 <body>
 
 <div id="replay-banner">
-    <span id="replay-banner-text">אתה צופה במשחק של...</span>
-    <button onclick="stopReplay()">יציאה מצפייה ✕</button>
+    <span id="replay-info-text">👀 צופה במשחק...</span>
+    <button class="btn-exit-replay" onclick="stopGameReplay()">יציאה מהשחזור ❌</button>
 </div>
 
 <div id="setup-overlay">
@@ -326,8 +333,8 @@
     <div class="modal" style="max-width: 360px;">
         <h3 style="margin-top:0; color: var(--primary);">👤 רוצה להופיע בטבלת המובילים?</h3>
         <p style="font-size:14px; color:#555; line-height:1.4;">ההרשמה משמשת אך ורק כדי להציג אותך בטבלת המובילים המשותפת. אפשר גם להישאר אנונימי/ת ולהמשיך לשחק בלי להירשם.</p>
-        <input type="text" id="popNameInput" placeholder="שם פרטי בלבד..." style="margin-bottom: 10px; background: #f2f2f2; color: #222; border: 1px solid #ccc;">
-        <input type="text" id="popLocationInput" placeholder="מאיפה אתה? (בחרו מהרשימה)" list="placesDatalist" style="margin-bottom: 15px; background: #f2f2f2; color: #222; border: 1px solid #ccc;">
+        <input type="text" id="popNameInput" placeholder="שם..." style="margin-bottom: 10px; background: #f2f2f2; color: #222; border: 1px solid #ccc;">
+        <input type="text" id="popLocationInput" placeholder="מאיפה אתה? (למשל: תל אביב)" style="margin-bottom: 15px; background: #f2f2f2; color: #222; border: 1px solid #ccc;">
         <button class="btn-main" onclick="saveInitialProfile()">הרשמה לטבלת המובילים 🚀</button>
         <button class="btn-main btn-secondary" onclick="stayAnonymous()">הישאר אנונימי 🙈</button>
     </div>
@@ -366,6 +373,15 @@
         <h3 style="color: var(--purple); margin-top:0;">🧩 בחרו את הניחוש הסופי שלכם:</h3>
         <p style="font-size:13px; color:#666; margin-bottom:12px;">אחד מהיישובים הבאים הוא היעד האמיתי. בחירה תסיים את המשחק!</p>
         <div class="hint-options-grid" id="hintOptionsContainer"></div>
+    </div>
+</div>
+
+<div id="archive-modal-overlay">
+    <div class="modal" style="max-width: 400px;">
+        <h3 style="color: var(--primary); margin-top:0;">📜 ארכיון משחקים קודמים</h3>
+        <p style="font-size:13px; color:#666; margin-bottom:10px;">בחר משחק מהעבר כדי לצפות בשחזור מלא מחדש:</p>
+        <div class="archive-list" id="archiveListContainer"></div>
+        <button class="btn-main btn-secondary" style="margin-top:15px;" onclick="closeArchiveModal()">סגירה</button>
     </div>
 </div>
 
@@ -423,10 +439,10 @@
         <h2 style="margin-top:0;">⚙️ הגדרות</h2>
         
         <div style="text-align: right; margin-bottom: 15px;">
-            <label style="font-weight: bold; font-size: 14px; color: #333;">שם שחקן (שם פרטי):</label>
-            <input type="text" id="settingsNameInput" placeholder="השם הפרטי שלך" style="margin-top: 4px; margin-bottom: 10px; background: #f2f2f2; color: #222; border: 1px solid #ccc;">
+            <label style="font-weight: bold; font-size: 14px; color: #333;">שם שחקן:</label>
+            <input type="text" id="settingsNameInput" placeholder="השם שלך" style="margin-top: 4px; margin-bottom: 10px; background: #f2f2f2; color: #222; border: 1px solid #ccc;">
             <label style="font-weight: bold; font-size: 14px; color: #333;">מאיפה אתה?:</label>
-            <input type="text" id="settingsLocationInput" placeholder="למשל: תל אביב" list="placesDatalist" style="margin-top: 4px; background: #f2f2f2; color: #222; border: 1px solid #ccc;">
+            <input type="text" id="settingsLocationInput" placeholder="למשל: תל אביב" style="margin-top: 4px; background: #f2f2f2; color: #222; border: 1px solid #ccc;">
             <div id="profileChangeNote" style="font-size: 12px; color: #888; margin-top: 6px;"></div>
         </div>
 
@@ -470,7 +486,6 @@
     
     <input type="text" id="cityInput" placeholder="שם היישוב..." list="cityList" autocomplete="off" onkeypress="if(event.key === 'Enter') makeGuess()" oninput="clearErrorOnType()">
     <datalist id="cityList"></datalist>
-    <datalist id="placesDatalist"></datalist>
     
     <div style="display: flex; gap: 8px; margin-top: 10px;">
         <button id="submitBtn" class="btn-main" style="margin-top:0; flex: 3;" onclick="makeGuess()">ניחוש 🚀</button>
@@ -483,22 +498,13 @@
 
 <div id="map"></div>
 
-<div id="game-archive-overlay" style="position:fixed; inset:0; z-index:3600; display:none; background:rgba(0,0,0,.88); color:#222; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;">
-    <div class="modal" style="max-width:620px; width:95%; max-height:90vh;">
-        <h2 style="margin-top:0; color:var(--primary);">📚 ארכיון משחקים</h2>
-        <p style="font-size:13px; color:#666; line-height:1.5; margin-top:-5px;">
-            משחקים שנשמרו החל מ־24 באוגוסט 2026. אפשר לצפות במשחק שלך או במשחק של שחקן מטבלת המובילים.
-        </p>
-        <div id="archive-content">טוען ארכיון...</div>
-        <button class="btn-main btn-secondary" style="margin-top:15px;" onclick="closeGameArchive()">סגירה</button>
-    </div>
-</div>
-
 <div id="victory-overlay" style="display:none;">
     <div class="modal" style="max-width: 440px; width: 90%;">
         <h2 id="vic-title"></h2>
         <p id="vic-msg"></p>
         
+        <div id="anonymous-count-box" class="anonymous-players-box">🕵️‍♀️ <b>0</b> שחקנים אנונימיים שיחקו היום</div>
+
         <div id="hints-count-summary" class="used-hints-summary"></div>
 
         <div class="stats-grid">
@@ -508,6 +514,8 @@
             <div class="stat-item"><span class="stat-val" id="st-avg">0</span><span class="stat-lbl">ממוצע ניסיונות</span></div>
         </div>
 
+        <button class="btn-main" style="background: var(--purple); margin-bottom: 12px;" onclick="openArchiveModal()">📜 ארכיון משחקים</button>
+
         <div class="leaderboard-section">
             <div class="time-tabs">
                 <button class="time-tab active" onclick="switchLeaderboardTime('today', this)">📅 היום</button>
@@ -515,16 +523,11 @@
                 <button class="time-tab" onclick="switchLeaderboardTime('alltime', this)">🏆 כל הזמנים</button>
             </div>
             
-            <div id="anonPlayersBadge" class="anon-badge-box">
-                🙈 שחקנים אנונימיים ששיחקו: <span id="anonCountVal">0</span>
-            </div>
-
             <div id="realLeaderboardContainer"></div>
 
             <div class="leaderboard-rules-box">
-                💡 <b>חוקי הדירוג:</b> בלשוניות השבוע וכל הזמנים מוצג ממוצע הניסיונות של השחקן. תיקו בתוצאה מעניק מדליה זהה!
+                💡 <b>חוקי הדירוג:</b> בלשוניות השבוע וכל הזמנים מוצג ממוצע הניסיונות של השחקן. ויתור נחשב כ-10 ניסיונות. לחץ על שחקן כדי לצפות במשחק שלו!
             </div>
-            <button class="btn-main" style="background:#34495e; margin-top:10px;" onclick="openGameArchive()">📚 ארכיון משחקים — מ־24.8.2026</button>
         </div>
 
         <div class="share-container">
@@ -539,6 +542,7 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+// --- FIREBASE INITIALIZATION ---
 const firebaseConfig = {
   apiKey: "AIzaSyDUWY4CAQZCxhbc5mkVMZp4QSwgVQL9lB0",
   authDomain: "isramaster-75a90.firebaseapp.com",
@@ -555,6 +559,7 @@ if (!firebase.apps.length) {
 }
 const db = firebase.database();
 
+// --- SERVER-SYNCED TIME ---
 let serverTimeOffset = 0;
 
 function getServerNow() {
@@ -596,8 +601,9 @@ let errorTimeout;
 let currentGuessesList = [];
 let currentLeaderboardFilter = 'today';
 let pendingScore = null;
-let replayMarkers = [];
-let replayTimeout = null;
+
+let activeReplayTimeouts = [];
+let activeReplayMarkers = [];
 
 let unlockedClues = { 
     eligible: false, 
@@ -694,14 +700,6 @@ function getUserProfile() {
     return profile;
 }
 
-function verifySingleFirstName(name) {
-    const trimmed = name.trim();
-    if (trimmed.includes(' ')) {
-        return confirm(`הכנסת יותר משם אחד ("${trimmed}"). האם אתה בטוח שזהו שמיך הפרטי?`);
-    }
-    return true;
-}
-
 function saveUserProfile(name, location) {
     const profile = getUserProfile();
     profile.name = name.trim();
@@ -742,7 +740,6 @@ async function propagateProfileUpdate(userId, name, location) {
 }
 
 function changeUserProfile(name, location) {
-    if (!verifySingleFirstName(name)) return false;
     const status = getProfileChangeStatus();
     if (!status.canChange) {
         alert(`אפשר לשנות שם או מקום מגורים רק פעם ב-3 חודשים. אפשר לשנות שוב בעוד ${status.daysLeft} ימים.`);
@@ -800,6 +797,41 @@ function seededShuffle(arr, seedString) {
     return shuffled;
 }
 
+function getTargetForDateKey(dateKey) {
+    const parts = dateKey.split('-');
+    if (parts.length < 4) return null;
+    const year = parseInt(parts[1], 10);
+    const month = parseInt(parts[2], 10);
+    const day = parseInt(parts[3], 10);
+    
+    const targetUTC = Date.UTC(year, month - 1, day);
+    const startUTC = Date.UTC(2026, 5, 24);
+    const dayIndex = Math.floor((targetUTC - startUTC) / (1000 * 60 * 60 * 24));
+    
+    const changeoverIndex = 45;
+    if (dayIndex >= changeoverIndex) {
+        const availablePool = settlementPool.filter(sName => allCities.some(c => c.name === sName));
+        const poolIndex = dayIndex - changeoverIndex;
+        let hash = 0;
+        for (let i = 0; i < dateKey.length; i++) hash = ((hash << 5) - hash) + dateKey.charCodeAt(i);
+        const seededRandom = Math.abs(Math.sin(hash));
+
+        if (poolIndex < availablePool.length) {
+            return allCities.find(c => c.name === availablePool[poolIndex]);
+        } else {
+            const citiesOutsidePool = allCities.filter(c => !settlementPool.includes(c.name));
+            return citiesOutsidePool.length > 0 ? citiesOutsidePool[Math.floor(seededRandom * citiesOutsidePool.length)] : allCities[Math.floor(seededRandom * allCities.length)];
+        }
+    } else {
+        const baseSequence = ["כרי דשא", "קרית גת", "אילת", "גן נר", "נווה ירק", "עדנים", "ירוחם", "כפר הנשיא", "איתנים", "לב יתיר", "גינוסר", "הר עמשא", "אשקלון"];
+        const customSequence = seededShuffle(baseSequence, "isramaster-fixed-seed-2026");
+        if (dayIndex >= 0 && dayIndex < customSequence.length) {
+            return allCities.find(c => c.name === customSequence[dayIndex]);
+        }
+    }
+    return null;
+}
+
 async function loadData() {
     try {
         const response = await fetch('MapIsrael.geojson');
@@ -829,55 +861,7 @@ async function loadData() {
         }
 
         if (!target) {
-            const dayIndex = getGameDayIndex();
-            const changeoverIndex = 45;
-
-            if (dayIndex >= changeoverIndex) {
-                const availablePool = settlementPool.filter(sName => allCities.some(c => c.name === sName));
-                const poolIndex = dayIndex - changeoverIndex;
-
-                const seedStr = getDailyKey();
-                let hash = 0;
-                for (let i = 0; i < seedStr.length; i++) hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
-                const seededRandom = Math.abs(Math.sin(hash));
-
-                if (poolIndex < availablePool.length) {
-                    const chosenName = availablePool[poolIndex];
-                    target = allCities.find(c => c.name === chosenName);
-                } else {
-                    const citiesOutsidePool = allCities.filter(c => !settlementPool.includes(c.name));
-                    if (citiesOutsidePool.length > 0) {
-                        target = citiesOutsidePool[Math.floor(seededRandom * citiesOutsidePool.length)];
-                    } else {
-                        target = allCities[Math.floor(seededRandom * allCities.length)];
-                    }
-                }
-            } else {
-                const baseSequence = ["כרי דשא", "קרית גת", "אילת", "גן נר", "נווה ירק", "עדנים", "ירוחם", "כפר הנשיא", "איתנים", "לב יתיר", "גינוסר", "הר עמשא", "אשקלון"];
-                const customSequence = seededShuffle(baseSequence, "isramaster-fixed-seed-2026");
-
-                const validTargets = allCities.filter(city => {
-                    const isExcludedByKeyword = excludeKeywords.some(kw => city.name.includes(kw));
-                    const isExcludedByName = extraExclusions.includes(city.name);
-                    return !(isExcludedByKeyword || isExcludedByName);
-                });
-
-                if (dayIndex < customSequence.length) {
-                    const nextCityName = customSequence[dayIndex];
-                    target = allCities.find(c => c.name === nextCityName);
-                    if (!target) {
-                        target = validTargets[dayIndex % validTargets.length];
-                    }
-                } else {
-                    const remainingTargets = validTargets.filter(city => !customSequence.includes(city.name));
-                    const seedStr = getDailyKey();
-                    let hash = 0;
-                    for (let i = 0; i < seedStr.length; i++) hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
-                    const seededRandom = Math.abs(Math.sin(hash));
-                    
-                    target = remainingTargets[Math.floor(seededRandom * remainingTargets.length)];
-                }
-            }
+            target = getTargetForDateKey(getDailyKey());
         }
 
         const container = document.getElementById('lifePoints');
@@ -889,14 +873,10 @@ async function loadData() {
             container.appendChild(div);
         }
         
-        const sortedNames = [...new Set(allCities.map(c => c.name))].sort();
         const dl = document.getElementById('cityList');
-        const placesDl = document.getElementById('placesDatalist');
         dl.innerHTML = '';
-        placesDl.innerHTML = '';
-        sortedNames.forEach(name => {
+        [...new Set(allCities.map(c => c.name))].sort().forEach(name => {
             let o = document.createElement('option'); o.value = name; dl.appendChild(o);
-            let pOpt = document.createElement('option'); pOpt.value = name; placesDl.appendChild(pOpt);
         });
 
         restoreGameState();
@@ -1145,7 +1125,8 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
         html: markerHtml,
         iconSize: [0, 0], iconAnchor: [0, 48]
     });
-    L.marker([guess.lat, guess.lon], { icon: icon }).addTo(map);
+    const marker = L.marker([guess.lat, guess.lon], { icon: icon }).addTo(map);
+    activeReplayMarkers.push(marker);
     
     const row = document.createElement('div');
     if (isClueGuess) {
@@ -1185,7 +1166,6 @@ function saveProgress(cityName, isClueGuess) {
         stats.history[today].clueGuessesToday.push(cityName);
     }
     stats.history[today].unlockedClues = unlockedClues;
-    if (target) stats.history[today].targetName = target.name;
     
     localStorage.setItem('israeleStats', JSON.stringify(stats));
 }
@@ -1205,7 +1185,6 @@ function saveInitialProfile() {
         alert("אנא מלא את שני השדות כדי להמשיך.");
         return;
     }
-    if (!verifySingleFirstName(name)) return;
     saveUserProfile(name, loc);
     document.getElementById('user-profile-overlay').style.display = 'none';
 
@@ -1220,9 +1199,8 @@ function saveInitialProfile() {
 function stayAnonymous() {
     markUserAnonymous();
     document.getElementById('user-profile-overlay').style.display = 'none';
-
     if (pendingScore) {
-        sendAnonymousGameToBackend(pendingScore.win, pendingScore.guesses);
+        sendAnonymousPlayToBackend();
         pendingScore = null;
     }
 }
@@ -1236,231 +1214,49 @@ function switchLeaderboardTime(timeframe, btn) {
 
 async function sendScoreToBackend(win, guesses) {
     const user = getUserProfile();
-    if (!user.name || user.anonymous) {
-        if (user.anonymous) sendAnonymousGameToBackend(win, guesses);
-        return;
-    }
+    if (!user.name || user.anonymous) return;
 
     try {
-        const stats = JSON.parse(localStorage.getItem('israeleStats')) || { history: {} };
-        const todayKey = getDailyKey();
-        const guessesList = stats.history[todayKey] ? stats.history[todayKey].guessesToday || [] : [];
-
         const scoreRef = db.ref('scores').push();
         await scoreRef.set({
             userId: user.userId,
             name: user.name,
             location: user.location,
-            dateKey: todayKey,
+            dateKey: getDailyKey(),
             timestamp: Date.now(),
             guesses: guesses,
             won: win,
-            isAnonymous: false,
-            targetName: target ? target.name : null,
-            guessesSequence: guessesList
+            guessesList: currentGuessesList
         });
     } catch (err) {
         console.error('Failed to submit score:', err);
     }
 }
 
-async function sendAnonymousGameToBackend(win, guesses) {
+async function sendAnonymousPlayToBackend() {
     try {
-        const scoreRef = db.ref('scores').push();
-        await scoreRef.set({
-            userId: 'anonymous',
-            name: 'אנונימי',
-            location: '',
+        const anonRef = db.ref('anonymousPlays').push();
+        await anonRef.set({
             dateKey: getDailyKey(),
-            timestamp: Date.now(),
-            guesses: guesses,
-            won: win,
-            isAnonymous: true,
-            targetName: target ? target.name : null,
-            guessesSequence: (() => {
-                const stats = JSON.parse(localStorage.getItem('israeleStats')) || { history: {} };
-                const today = getDailyKey();
-                return stats.history && stats.history[today] ? (stats.history[today].guessesToday || []) : [];
-            })()
+            timestamp: Date.now()
         });
     } catch (err) {
-        console.error('Failed to submit anonymous game:', err);
+        console.error('Failed to submit anonymous play:', err);
     }
 }
 
-function getMedalForRank(rank) {
-    if (rank === 1) return '🥇';
-    if (rank === 2) return '🥈';
-    if (rank === 3) return '🥉';
-    return '👤';
-}
-
-function playReplay(playerName, sequence, targetName = null, dateKey = null) {
-    if (!sequence || sequence.length === 0) {
-        alert('לא נשמרו ניחושים עבור משחק זה.');
-        return;
-    }
-
-    hideOverlay();
-    closeGameArchive();
-    stopReplay();
-
-    const replayTarget = targetName ? allCities.find(c => c.name === targetName) : target;
-    if (!replayTarget) {
-        alert('לא ניתן למצוא את יעד המשחק הארכיוני.');
-        return;
-    }
-
-    document.getElementById('replay-banner-text').innerText =
-        `אתה צופה במשחק של ${playerName}${dateKey ? ` • ${formatArchiveDate(dateKey)}` : ''}`;
-    document.getElementById('replay-banner').style.display = 'flex';
-
-    let index = 0;
-    function step() {
-        if (index >= sequence.length) return;
-
-        // Only the current guess is visible.
-        replayMarkers.forEach(m => map.removeLayer(m));
-        replayMarkers = [];
-
-        const cityName = sequence[index];
-        const guess = allCities.find(c => c.name === cityName);
-
-        if (guess) {
-            const dist = calculateDistance(guess.lat, guess.lon, replayTarget.lat, replayTarget.lon);
-            const bearing = (Math.atan2(replayTarget.lon - guess.lon, replayTarget.lat - guess.lat) * 180 / Math.PI + 360) % 360;
-            const ratio = Math.pow(Math.min(dist / 150, 1), 0.35);
-            const color = `rgb(255, ${Math.floor(255 * ratio)}, ${Math.floor(100 * ratio)})`;
-
-            const markerHtml = `<div class="marker-bubble" style="border-color:${color}"><div>${guess.name}</div><div class="marker-distance">${dist.toFixed(1)} ק"מ <span class="marker-arrow" style="transform:rotate(${bearing}deg)">⬆️</span></div></div><div class="marker-dot" style="background-color:${color}"></div>`;
-            const icon = L.divIcon({ className: 'custom-marker', html: markerHtml, iconSize: [0, 0], iconAnchor: [0, 48] });
-            const m = L.marker([guess.lat, guess.lon], { icon: icon }).addTo(map);
-            replayMarkers.push(m);
-            map.flyTo([guess.lat, guess.lon], 11, { duration: 1 });
-        }
-
-        index++;
-        if (index < sequence.length) replayTimeout = setTimeout(step, 2500);
-    }
-    step();
-}
-function stopReplay() {
-    if (replayTimeout) { clearTimeout(replayTimeout); replayTimeout = null; }
-    replayMarkers.forEach(m => map.removeLayer(m));
-    replayMarkers = [];
-    document.getElementById('replay-banner').style.display = 'none';
-}
-
-function replayMyPastGame(dateKey) {
-    const stats = JSON.parse(localStorage.getItem('israeleStats')) || { history: {} };
-    if (stats.history && stats.history[dateKey]) {
-        const seq = stats.history[dateKey].guessesToday || [];
-        playReplay('המשחק שלך', seq);
-    } else {
-        alert('לא נמצאו נתוני משחק קודם לתאריך זה.');
-    }
-}
-
-const ARCHIVE_START_UTC = Date.UTC(2026, 7, 24);
-
-function archiveDateToUTC(dateKey) {
-    if (!dateKey) return null;
-    const match = String(dateKey).match(/^v7-(\d{4})-(\d{1,2})-(\d{1,2})$/);
-    if (!match) return null;
-    return Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-}
-
-function isArchiveDate(dateKey) {
-    const t = archiveDateToUTC(dateKey);
-    return t !== null && t >= ARCHIVE_START_UTC;
-}
-
-function formatArchiveDate(dateKey) {
-    const t = archiveDateToUTC(dateKey);
-    if (t === null) return dateKey || '';
-    const d = new Date(t);
-    return `${d.getUTCDate()}.${d.getUTCMonth() + 1}.${d.getUTCFullYear()}`;
-}
-
-function getOwnArchiveGames() {
-    const stats = JSON.parse(localStorage.getItem('israeleStats')) || { history: {} };
-    return Object.entries(stats.history || {})
-        .filter(([dateKey, game]) => isArchiveDate(dateKey) && game && game.guessesToday && game.guessesToday.length)
-        .map(([dateKey, game]) => ({
-            dateKey,
-            sequence: game.guessesToday || [],
-            targetName: game.targetName || null,
-            won: game.lastResultWasWin,
-            guesses: game.lastAttemptsCount != null ? 10 - game.lastAttemptsCount : game.guessesToday.length
-        }))
-        .sort((a,b) => (archiveDateToUTC(b.dateKey) || 0) - (archiveDateToUTC(a.dateKey) || 0));
-}
-
-function archiveRecordButton(rec, label) {
-    const sequence = rec.guessesSequence || rec.sequence || [];
-    if (!sequence.length) return '';
-    const safeSequence = JSON.stringify(sequence).replace(/"/g, '&quot;');
-    const safeName = String(label || rec.name || 'שחקן').replace(/'/g, "\'");
-    const safeTarget = String(rec.targetName || '').replace(/'/g, "\'");
-    const safeDate = String(rec.dateKey || '').replace(/'/g, "\'");
-    return `<button class="btn-view-game" onclick="playReplay('${safeName}', ${safeSequence}, '${safeTarget}', '${safeDate}')">👁️ צפה במשחק</button>`;
-}
-
-async function openGameArchive() {
-    document.getElementById('game-archive-overlay').style.display = 'flex';
-    const container = document.getElementById('archive-content');
-    container.innerHTML = 'טוען ארכיון...';
-
-    const ownGames = getOwnArchiveGames();
-    let records = [];
+async function fetchAndRenderAnonymousCount() {
     try {
-        const snapshot = await db.ref('scores').once('value');
-        const data = snapshot.val() || {};
-        records = Object.values(data).filter(r => isArchiveDate(r.dateKey) && r.guessesSequence && r.guessesSequence.length);
-    } catch (err) {
-        console.error('Failed to load archive:', err);
+        const todayKey = getDailyKey();
+        const snap = await db.ref('anonymousPlays').orderByChild('dateKey').equalTo(todayKey).once('value');
+        const count = snap.numChildren();
+        const box = document.getElementById('anonymous-count-box');
+        if (box) {
+            box.innerHTML = `🕵️‍♀️ <b>${count}</b> שחקנים אנונימיים שיחקו היום`;
+        }
+    } catch (e) {
+        console.error('Failed to fetch anonymous plays count:', e);
     }
-
-    const ownUser = getUserProfile();
-    const grouped = {};
-
-    ownGames.forEach(g => {
-        if (!grouped[g.dateKey]) grouped[g.dateKey] = [];
-        grouped[g.dateKey].push({ ...g, isOwn: true });
-    });
-
-    records.forEach(r => {
-        const key = r.dateKey;
-        if (!grouped[key]) grouped[key] = [];
-        const isOwn = ownUser.userId && r.userId === ownUser.userId;
-        if (!isOwn || !ownGames.some(g => g.dateKey === key)) grouped[key].push(r);
-    });
-
-    const dates = Object.keys(grouped).sort((a,b) => (archiveDateToUTC(b)||0) - (archiveDateToUTC(a)||0));
-    if (!dates.length) {
-        container.innerHTML = `<div class="empty-leaderboard">📚 אין עדיין משחקים בארכיון החל מ־24.8.2026.</div>`;
-        return;
-    }
-
-    container.innerHTML = dates.map(dateKey => `
-        <div style="margin-bottom:18px;">
-            <h3 style="margin:0 0 8px; color:var(--primary); border-bottom:1px solid #ddd; padding-bottom:6px;">📅 ${formatArchiveDate(dateKey)}</h3>
-            ${grouped[dateKey].map(rec => `
-                <div class="dopamine-card" style="margin-bottom:7px;">
-                    <div class="card-info">
-                        <div class="card-name">${rec.isOwn ? '👤 המשחק שלך' : (rec.name || 'אנונימי')}</div>
-                        <div class="card-location">${rec.location ? '📍 ' + rec.location + ' • ' : ''}${rec.won ? (rec.guesses || rec.sequence?.length || '?') + ' ניחושים' : '🏳️ לא הצליח/ה'}</div>
-                    </div>
-                    <div style="text-align:left;">${archiveRecordButton(rec, rec.isOwn ? 'המשחק שלך' : (rec.name || 'אנונימי'))}</div>
-                </div>
-            `).join('')}
-        </div>
-    `).join('');
-}
-
-function closeGameArchive() {
-    const el = document.getElementById('game-archive-overlay');
-    if (el) el.style.display = 'none';
 }
 
 async function renderRealLeaderboard() {
@@ -1472,37 +1268,23 @@ async function renderRealLeaderboard() {
         const data = snapshot.val();
 
         if (!data) {
-            document.getElementById('anonCountVal').innerText = '0';
             container.innerHTML = `<div class="empty-leaderboard">🎯 אין עדיין נתונים לתקופה זו.</div>`;
             return;
         }
 
-        let records = Object.values(data);
+        let records = Object.entries(data).map(([key, val]) => ({ ...val, id: key }));
         const now = Date.now();
         const todayKey = getDailyKey();
 
-        let filteredRecords = [];
         if (currentLeaderboardFilter === 'today') {
-            filteredRecords = records.filter(r => r.dateKey === todayKey);
-        } else if (currentLeaderboardFilter === 'week') {
-            const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-            filteredRecords = records.filter(r => now - r.timestamp <= sevenDaysMs);
-        } else {
-            filteredRecords = records;
-        }
+            records = records.filter(r => r.dateKey === todayKey);
 
-        const anonCount = filteredRecords.filter(r => r.isAnonymous || r.userId === 'anonymous').length;
-        document.getElementById('anonCountVal').innerText = anonCount;
-
-        let namedRecords = filteredRecords.filter(r => !r.isAnonymous && r.userId !== 'anonymous');
-
-        if (currentLeaderboardFilter === 'today') {
-            namedRecords.sort((a, b) => {
+            records.sort((a, b) => {
                 if (a.won !== b.won) return b.won ? 1 : -1;
                 return a.guesses - b.guesses;
             });
 
-            if (namedRecords.length === 0) {
+            if (records.length === 0) {
                 container.innerHTML = `<div class="empty-leaderboard">🎯 אין עדיין נתונים לתקופה זו.</div>`;
                 return;
             }
@@ -1510,53 +1292,59 @@ async function renderRealLeaderboard() {
             container.innerHTML = '';
             const currentUser = getUserProfile();
 
-            let currentRank = 1;
-            namedRecords.slice(0, 50).forEach((rec, index) => {
-                if (index > 0) {
-                    const prev = namedRecords[index - 1];
-                    if (rec.won !== prev.won || rec.guesses !== prev.guesses) {
-                        currentRank = index + 1;
-                    }
-                }
-
+            records.slice(0, 50).forEach((rec, index) => {
                 const isMe = rec.name === currentUser.name && rec.location === currentUser.location;
-                const badge = getMedalForRank(currentRank);
-                const hasSequence = rec.guessesSequence && rec.guessesSequence.length > 0;
+                const badge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤';
 
-                let cardClass = currentRank === 1 ? 'gold' : currentRank === 2 ? 'silver' : currentRank === 3 ? 'bronze' : '';
+                const card = document.createElement('div');
+                card.className = `dopamine-card ${index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}`;
+                card.onclick = () => {
+                    hideOverlay();
+                    const isOwn = rec.userId === currentUser.userId || isMe;
+                    replayGameFromRecord(rec.guessesList || [], rec.dateKey, rec.name, isOwn);
+                };
 
-                container.innerHTML += `
-                    <div class="dopamine-card ${cardClass}">
-                        <div class="medal-badge">${badge}</div>
-                        <div class="card-info">
-                            <div class="card-name">${rec.name} ${isMe ? '<span class="me-tag">אתה</span>' : ''}</div>
-                            <div class="card-location">📍 ${rec.location}</div>
-                        </div>
-                        <div style="text-align: left;">
-                            <div class="card-stat">${rec.won ? rec.guesses + ' ניחושים' : '🏳️ ויתר/ה'}</div>
-                            ${hasSequence ? `<button class="btn-view-game" onclick="playReplay('${rec.name}', ${JSON.stringify(rec.guessesSequence).replace(/"/g, '&quot;')})">👁️ צפה במשחק</button>` : ''}
-                        </div>
+                card.innerHTML = `
+                    <div class="medal-badge">${badge}</div>
+                    <div class="card-info">
+                        <div class="card-name">${rec.name} ${isMe ? '<span class="me-tag">אתה</span>' : ''}</div>
+                        <div class="card-location">📍 ${rec.location}</div>
+                    </div>
+                    <div>
+                        <div class="card-stat">${rec.won ? rec.guesses + ' ניחושים' : '🏳️ ויתר/ה'}</div>
                     </div>
                 `;
+                container.appendChild(card);
             });
         } else {
+            if (currentLeaderboardFilter === 'week') {
+                const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+                records = records.filter(r => now - r.timestamp <= sevenDaysMs);
+            }
+
+            if (records.length === 0) {
+                container.innerHTML = `<div class="empty-leaderboard">🎯 אין עדיין נתונים לתקופה זו.</div>`;
+                return;
+            }
+
             const userStats = {};
-            namedRecords.forEach(rec => {
+            records.forEach(rec => {
                 const userKey = `${rec.name.trim()}__${rec.location.trim()}`;
                 if (!userStats[userKey]) {
                     userStats[userKey] = {
                         name: rec.name,
                         location: rec.location,
+                        userId: rec.userId,
                         totalGames: 0,
                         totalTries: 0,
-                        latestSequence: rec.guessesSequence || []
+                        latestRecord: rec
                     };
                 }
                 userStats[userKey].totalGames += 1;
                 const effectiveTries = rec.won ? rec.guesses : 10;
                 userStats[userKey].totalTries += effectiveTries;
-                if (rec.guessesSequence && rec.guessesSequence.length > 0) {
-                    userStats[userKey].latestSequence = rec.guessesSequence;
+                if (rec.timestamp > userStats[userKey].latestRecord.timestamp) {
+                    userStats[userKey].latestRecord = rec;
                 }
             });
 
@@ -1572,43 +1360,34 @@ async function renderRealLeaderboard() {
                 return b.totalGames - a.totalGames;
             });
 
-            if (userList.length === 0) {
-                container.innerHTML = `<div class="empty-leaderboard">🎯 אין עדיין נתונים לתקופה זו.</div>`;
-                return;
-            }
-
             container.innerHTML = '';
             const currentUser = getUserProfile();
 
-            let currentRank = 1;
             userList.slice(0, 50).forEach((user, index) => {
-                if (index > 0) {
-                    const prev = userList[index - 1];
-                    if (user.avgGuesses !== prev.avgGuesses) {
-                        currentRank = index + 1;
-                    }
-                }
-
                 const isMe = user.name === currentUser.name && user.location === currentUser.location;
-                const badge = getMedalForRank(currentRank);
+                const badge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤';
                 const avgStr = (user.avgGuesses % 1 === 0) ? user.avgGuesses.toFixed(0) : user.avgGuesses.toFixed(1);
-                const hasSequence = user.latestSequence && user.latestSequence.length > 0;
 
-                let cardClass = currentRank === 1 ? 'gold' : currentRank === 2 ? 'silver' : currentRank === 3 ? 'bronze' : '';
+                const card = document.createElement('div');
+                card.className = `dopamine-card ${index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}`;
+                card.onclick = () => {
+                    hideOverlay();
+                    const isOwn = user.userId === currentUser.userId || isMe;
+                    const rec = user.latestRecord;
+                    replayGameFromRecord(rec.guessesList || [], rec.dateKey, rec.name, isOwn);
+                };
 
-                container.innerHTML += `
-                    <div class="dopamine-card ${cardClass}">
-                        <div class="medal-badge">${badge}</div>
-                        <div class="card-info">
-                            <div class="card-name">${user.name} ${isMe ? '<span class="me-tag">אתה</span>' : ''}</div>
-                            <div class="card-location">📍 ${user.location} • ${user.totalGames} משחקים</div>
-                        </div>
-                        <div style="text-align: left;">
-                            <div class="card-stat">${avgStr} ממוצע ניחושים</div>
-                            ${hasSequence ? `<button class="btn-view-game" onclick="playReplay('${user.name}', ${JSON.stringify(user.latestSequence).replace(/"/g, '&quot;')})">👁️ צפה במשחק</button>` : ''}
-                        </div>
+                card.innerHTML = `
+                    <div class="medal-badge">${badge}</div>
+                    <div class="card-info">
+                        <div class="card-name">${user.name} ${isMe ? '<span class="me-tag">אתה</span>' : ''}</div>
+                        <div class="card-location">📍 ${user.location} • ${user.totalGames} משחקים</div>
+                    </div>
+                    <div>
+                        <div class="card-stat">${avgStr} ממוצע ניחושים</div>
                     </div>
                 `;
+                container.appendChild(card);
             });
         }
     } catch (err) {
@@ -1716,7 +1495,7 @@ function endGame(win, remaining, alreadyProcessed = false) {
     const user = getUserProfile();
     if (scoreToSubmit) {
         if (user.anonymous) {
-            sendAnonymousGameToBackend(scoreToSubmit.win, scoreToSubmit.guesses);
+            sendAnonymousPlayToBackend();
         } else if (user.name) {
             sendScoreToBackend(scoreToSubmit.win, scoreToSubmit.guesses);
         } else {
@@ -1769,6 +1548,7 @@ function startNextGameCountdown() {
 
 function showVictoryOverlay() {
     renderRealLeaderboard();
+    fetchAndRenderAnonymousCount();
     document.getElementById('victory-overlay').style.display = 'flex';
     startNextGameCountdown();
 }
@@ -1779,6 +1559,118 @@ function hideOverlay() {
 }
 function showConfirm() { if(!isGameOver) document.getElementById('confirm-overlay').style.display = 'flex'; }
 function closeConfirm() { document.getElementById('confirm-overlay').style.display = 'none'; }
+
+// --- REPLAY & ARCHIVE SYSTEM ---
+function openArchiveModal() {
+    const container = document.getElementById('archiveListContainer');
+    container.innerHTML = '';
+    const stats = JSON.parse(localStorage.getItem('israeleStats')) || { history: {} };
+    const historyKeys = Object.keys(stats.history || {}).sort().reverse();
+
+    if (historyKeys.length === 0) {
+        container.innerHTML = '<div style="color:#777; text-align:center; padding:15px;">אין משחקים שמורים בארכיון.</div>';
+    } else {
+        historyKeys.forEach(dateKey => {
+            const game = stats.history[dateKey];
+            const parts = dateKey.split('-');
+            const displayDate = parts.length >= 4 ? `${parts[3]}.${parts[2]}.${parts[1]}` : dateKey;
+            const status = game.lastResultWasWin ? '🏆 ניצחון' : '🚩 הפסד/טרם הסתיים';
+
+            const item = document.createElement('div');
+            item.className = 'archive-item';
+            item.onclick = () => {
+                closeArchiveModal();
+                hideOverlay();
+                const user = getUserProfile();
+                replayGameFromRecord(game.guessesToday || [], dateKey, user.name || 'שלך', true);
+            };
+
+            item.innerHTML = `
+                <span>📅 משחק בתאריך ${displayDate}</span>
+                <span style="font-weight:900; color:${game.lastResultWasWin ? 'var(--success)' : 'var(--accent)'}">${status}</span>
+            `;
+            container.appendChild(item);
+        });
+    }
+    document.getElementById('archive-modal-overlay').style.display = 'flex';
+}
+
+function closeArchiveModal() {
+    document.getElementById('archive-modal-overlay').style.display = 'none';
+}
+
+function stopGameReplay() {
+    activeReplayTimeouts.forEach(t => clearTimeout(t));
+    activeReplayTimeouts = [];
+    document.getElementById('replay-banner').style.display = 'none';
+    
+    // Clear replay markers
+    activeReplayMarkers.forEach(m => map.removeLayer(m));
+    activeReplayMarkers = [];
+
+    // Reload today's active game state
+    restoreGameState();
+}
+
+function replayGameFromRecord(guessesList, dateKey, playerName, isOwn) {
+    stopGameReplay();
+
+    const replayTarget = getTargetForDateKey(dateKey) || target;
+    const parts = dateKey.split('-');
+    const formattedDate = parts.length >= 4 ? `${parts[3]}.${parts[2]}.${parts[1]}` : dateKey;
+
+    const bannerText = isOwn 
+        ? `👀 צופה במשחק שלך מתאריך ${formattedDate}` 
+        : `👀 צופה במשחק של ${playerName} מתאריך ${formattedDate}`;
+    document.getElementById('replay-info-text').innerText = bannerText;
+    document.getElementById('replay-banner').style.display = 'flex';
+
+    // Clear feedback list
+    document.getElementById('feedback').innerHTML = '';
+
+    if (!guessesList || guessesList.length === 0) {
+        alert('לא נרשמו ניחושים במשחק זה.');
+        return;
+    }
+
+    guessesList.forEach((cityName, index) => {
+        const timeoutId = setTimeout(() => {
+            const guess = allCities.find(c => c.name === cityName);
+            if (!guess) return;
+
+            const dist = calculateDistance(guess.lat, guess.lon, replayTarget.lat, replayTarget.lon);
+            const bearing = (Math.atan2(replayTarget.lon - guess.lon, replayTarget.lat - guess.lat) * 180 / Math.PI + 360) % 360;
+            const ratio = Math.pow(Math.min(dist / 150, 1), 0.35);
+            const color = `rgb(255, ${Math.floor(255 * ratio)}, ${Math.floor(100 * ratio)})`;
+
+            const markerHtml = `<div class="marker-bubble" style="border-color:${color}"><div>${guess.name}</div><div class="marker-distance">${dist.toFixed(1)} ק"מ <span class="marker-arrow" style="transform:rotate(${bearing}deg)">⬆️</span></div></div><div class="marker-dot" style="background-color:${color}"></div>`;
+
+            const icon = L.divIcon({
+                className: 'custom-marker',
+                html: markerHtml,
+                iconSize: [0, 0], iconAnchor: [0, 48]
+            });
+
+            const marker = L.marker([guess.lat, guess.lon], { icon: icon }).addTo(map);
+            activeReplayMarkers.push(marker);
+
+            const row = document.createElement('div');
+            row.className = 'guess-row';
+            row.style.background = color;
+            row.innerHTML = `<span>${guess.name}</span> <span>${dist.toFixed(1)} ק"מ <span style="display:inline-block; transform:rotate(${bearing}deg)">⬆️</span></span>`;
+            document.getElementById('feedback').prepend(row);
+
+            const sidebarPadding = window.innerWidth > 850 ? [400, 0] : [0, 0];
+            map.flyTo([guess.lat, guess.lon], 11, {
+                paddingTopLeft: sidebarPadding,
+                duration: 1.2
+            });
+
+        }, index * 2000);
+
+        activeReplayTimeouts.push(timeoutId);
+    });
+}
 
 const tutorialSteps = [
     {
@@ -2021,64 +1913,6 @@ function applySavedMarkerScale() {
         if (slider) slider.value = saved;
     }
 }
-
-// 1. Clear previous guess layers and display ONLY the selected player's guesses
-function showPlayerGuesses(playerId) {
-    // Clear all existing markers/polylines from the map
-    if (window.guessLayersGroup) {
-        window.guessLayersGroup.clearLayers();
-    } else {
-        window.guessLayersGroup = L.layerGroup().addTo(map);
-    }
-
-    // Retrieve selected player's data
-    const player = playersData[playerId];
-    if (!player || !player.guesses) return;
-
-    // Display only the active player's guesses
-    player.guesses.forEach(guess => {
-        const marker = L.marker([guess.lat, guess.lng]).bindPopup(`Guess: ${guess.settlementName}`);
-        const line = L.polyline([[guess.lat, guess.lng], [guess.targetLat, guess.targetLng]], {
-            color: '#ff3366',
-            weight: 2,
-            dashArray: '5, 10'
-        });
-        
-        window.guessLayersGroup.addLayer(marker);
-        window.guessLayersGroup.addLayer(line);
-    });
-
-    // Zoom/pan map to fit only this player's guess bounds
-    if (window.guessLayersGroup.getLayers().length > 0) {
-        map.fitBounds(window.guessLayersGroup.getBounds(), { padding: [30, 30] });
-    }
-}
-
-// 2. Remove 'יואד' from settlement 'עדנים' and force re-registration
-function resetUserFromSettlement(settlementName, userName) {
-    // Firebase / Database node reference update example
-    const settlementRef = firebase.database().ref(`settlements/${settlementName}/players`);
-
-    settlementRef.once('value', snapshot => {
-        const players = snapshot.val() || {};
-        for (let key in players) {
-            if (players[key].name === userName || key === userName) {
-                // Delete user entry
-                firebase.database().ref(`settlements/${settlementName}/players/${key}`).remove();
-                
-                // Clear local storage if executed on target device
-                localStorage.removeItem('registeredSettlement');
-                localStorage.removeItem('playerName');
-                
-                console.log(`User ${userName} successfully removed from ${settlementName}.`);
-                break;
-            }
-        }
-    });
-}
-
-// Execute the removal for יואד in עדנים
-resetUserFromSettlement('עדנים', 'יואד');
 
 applySavedMarkerScale();
 window.onload = async function() {
