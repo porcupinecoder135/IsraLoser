@@ -1339,9 +1339,25 @@ async function openPlayerProfile(userKey, userId, name, location) {
             item.onclick = () => {
     closePublicProfileModal();
     hideOverlay();
+
+    // 1. Wipe all active markers & polylines directly from the Leaflet map
+    map.eachLayer((layer) => {
+        // Keeps the tile map base layer, removes all user markers/lines/circles
+        if (layer instanceof L.Marker || layer instanceof L.Polyline || layer instanceof L.CircleMarker) {
+            map.removeLayer(layer);
+        }
+    });
+
+    // 2. Clear global arrays if your code tracks them
+    if (typeof guessMarkers !== 'undefined') guessMarkers = [];
+    if (typeof markersGroup !== 'undefined' && markersGroup) markersGroup.clearLayers();
+
     const isOwn = game.userId === currentUser.userId || (game.name === currentUser.name && game.location === currentUser.location);
+    
+    // 3. Start the replay fresh
     replayGameFromRecord(game.guessesList || [], game.dateKey, game.name, isOwn);
 
+    // 4. Hide remaining UI overlays
     setTimeout(() => {
         document.getElementById('victory-overlay').style.display = 'none';
         document.getElementById('public-profile-overlay').style.display = 'none';
