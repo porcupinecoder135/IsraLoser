@@ -120,6 +120,14 @@
         #leaderboard-toggle:active { transform: scale(0.95); }
         #leaderboard-toggle.visible { display: flex; }
 
+        #archive-toggle {
+            position: fixed; top: 139px; left: 15px; z-index: 2005;
+            background: var(--purple); color: white; border: 2px solid rgba(255,255,255,0.25);
+            width: 52px; height: 52px; border-radius: 50%; font-size: 22px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center;
+        }
+        #archive-toggle:active { transform: scale(0.95); }
+
         .settings-row { margin: 25px 0; }
         .settings-row-labels { display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; color: #555; margin-bottom: 10px; }
         #markerScaleSlider { width: 100%; height: 12px; cursor: pointer; accent-color: var(--accent); }
@@ -128,9 +136,9 @@
             border-radius: 15px; margin-top: 15px; min-height: 90px;
         }
 
-        #setup-overlay, #how-to-play-overlay, #victory-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #tutorial-intro-overlay, #settings-overlay, #user-profile-overlay { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; backdrop-filter: blur(8px); }
+        #setup-overlay, #how-to-play-overlay, #victory-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #tutorial-intro-overlay, #settings-overlay, #user-profile-overlay, #archive-modal-overlay, #public-profile-modal-overlay { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; backdrop-filter: blur(8px); }
         #setup-overlay { background: radial-gradient(circle at center, #1a2a6c, #000); }
-        #how-to-play-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #settings-overlay, #user-profile-overlay { background: rgba(0,0,0,0.85); display: none; }
+        #how-to-play-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #settings-overlay, #user-profile-overlay, #archive-modal-overlay, #public-profile-modal-overlay { background: rgba(0,0,0,0.85); display: none; }
 
         #tutorial-intro-overlay { background: radial-gradient(circle at center, #1a2a6c, #000); z-index: 3200; display: none; }
         .tutorial-modal {
@@ -180,7 +188,7 @@
         .spotlight-tooltip .tutorial-text { font-size: 16.5px; margin: 0 0 12px 0; }
         .spotlight-tooltip .tutorial-dots { margin: 8px 0 14px 0; }
         
-        .modal { background: white; padding: 25px; border-radius: 25px; width: 85%; max-width: 380px; color: #333; box-shadow: 0 20px 40px rgba(0,0,0,0.4); max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
+        .modal { background: white; padding: 25px; border-radius: 25px; width: 85%; max-width: 420px; color: #333; box-shadow: 0 20px 40px rgba(0,0,0,0.4); max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
         
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 15px 0; }
         .stat-val { font-size: 18px; font-weight: 900; color: var(--primary); display: block; }
@@ -229,7 +237,9 @@
             border-radius: 16px; padding: 12px 16px; margin-bottom: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 2px solid #eef2f5;
             display: flex; align-items: center; justify-content: space-between; position: relative; overflow: hidden;
+            cursor: pointer; transition: transform 0.15s ease;
         }
+        .dopamine-card:hover { transform: translateY(-2px); }
         .dopamine-card.gold { border-color: var(--gold); background: linear-gradient(135deg, #fffdf0 0%, #fff8d6 100%); box-shadow: 0 6px 20px rgba(255, 215, 0, 0.25); }
         .dopamine-card.silver { border-color: var(--silver); background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%); }
         .dopamine-card.bronze { border-color: var(--bronze); background: linear-gradient(135deg, #fffaf5 0%, #fbebe0 100%); }
@@ -273,6 +283,28 @@
             50% { transform: scale(1.02); }
         }
 
+        /* --- ARCHIVE HUD CONTROL BAR --- */
+        #archive-hud {
+            position: fixed; top: 15px; left: 50%; transform: translateX(-50%); z-index: 2500;
+            background: var(--dark); color: white; padding: 10px 20px; border-radius: 30px;
+            display: none; align-items: center; gap: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            border: 2px solid var(--purple); font-weight: bold; font-size: 14px;
+        }
+        #archive-hud button {
+            background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 15px;
+            padding: 6px 14px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s;
+        }
+        #archive-hud button:hover { background: rgba(255,255,255,0.4); }
+
+        .archive-item {
+            background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 14px; padding: 12px; margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: space-between; text-align: right;
+        }
+        .archive-item .info { display: flex; flex-direction: column; gap: 2px; }
+        .archive-item .title { font-weight: 800; font-size: 14px; color: var(--dark); }
+        .archive-item .meta { font-size: 12px; color: #64748b; }
+        .archive-item .btn-play { background: var(--purple); color: white; border: none; border-radius: 10px; padding: 8px 14px; font-weight: bold; cursor: pointer; }
+
         @media (max-width: 850px) {
             #sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 65vh; transform: translateY(100%); border-radius: 25px 25px 0 0; transition: transform 0.1s linear; }
             #sidebar.open { transform: translateY(0); }
@@ -286,6 +318,13 @@
     </style>
 </head>
 <body>
+
+<div id="archive-hud">
+    <span id="archive-hud-status">🎬 צפייה בארכיון</span>
+    <button onclick="restartArchivePlayback()">🔄 מחדש</button>
+    <button id="archive-pause-btn" onclick="toggleArchivePause()">⏸️ השהה</button>
+    <button onclick="exitArchiveMode()" style="background: var(--accent);">❌ יציאה</button>
+</div>
 
 <div id="setup-overlay">
     <div style="font-size: 45px; font-weight: 900; letter-spacing: 4px;">ISRAMASTER</div>
@@ -360,6 +399,34 @@
     </div>
 </div>
 
+<div id="archive-modal-overlay">
+    <div class="modal">
+        <h2 style="margin-top:0; color:var(--purple);">📜 ארכיון המשחקים שלי</h2>
+        <p style="font-size:13px; color:#666; margin-bottom:15px;">צפה בשחזור הניחושים של המשחקים שלך מהשבוע האחרון step-by-step.</p>
+        <div id="myArchiveList" style="text-align:right;"></div>
+        <button class="btn-main btn-secondary" style="margin-top:15px;" onclick="closeArchiveModal()">סגירה</button>
+    </div>
+</div>
+
+<div id="public-profile-modal-overlay">
+    <div class="modal">
+        <h2 id="pubProfName" style="margin-top:0; color:var(--primary);">👤 פרופיל שחקן</h2>
+        <p id="pubProfLoc" style="font-size:13px; color:#666; margin-bottom:10px;"></p>
+
+        <div class="stats-grid">
+            <div class="stat-item"><span class="stat-val" id="pub-st-played">0</span><span class="stat-lbl">משחקים</span></div>
+            <div class="stat-item"><span class="stat-val" id="pub-st-winpct">0%</span><span class="stat-lbl">ניצחונות</span></div>
+            <div class="stat-item"><span class="stat-val" id="pub-st-streak">0</span><span class="stat-lbl">רצף</span></div>
+            <div class="stat-item"><span class="stat-val" id="pub-st-avg">0</span><span class="stat-lbl">ממוצע</span></div>
+        </div>
+
+        <h3 style="text-align:right; font-size:15px; margin-top:15px; margin-bottom:10px; color:var(--purple);">📜 משחקי השבוע האחרון:</h3>
+        <div id="pubProfArchiveList" style="max-height: 200px; overflow-y: auto;"></div>
+
+        <button class="btn-main btn-secondary" style="margin-top:15px;" onclick="closePublicProfileModal()">סגירה</button>
+    </div>
+</div>
+
 <button id="tutorial-skip-global" onclick="skipTutorial()">דלג על סיור ⏭️</button>
 
 <div id="tutorial-intro-overlay">
@@ -430,6 +497,7 @@
 <button id="mobile-toggle" onclick="toggleSidebar(true)">ניחוש 📊</button>
 <button id="settings-toggle" onclick="openSettings()" title="הגדרות תצוגה">⚙️</button>
 <button id="leaderboard-toggle" onclick="showVictoryOverlay()" title="טבלת המובילים">🏆</button>
+<button id="archive-toggle" onclick="openMyArchiveModal()" title="ארכיון המשחקים">📜</button>
 
 <div id="sidebar">
     <div class="swipe-handle" id="swipeHandle"></div>
@@ -480,7 +548,7 @@
             <div id="realLeaderboardContainer"></div>
 
             <div class="leaderboard-rules-box">
-                💡 <b>חוקי הדירוג:</b> בלשוניות השבוע וכל הזמנים מוצג ממוצע הניסיונות של השחקן. ויתור נחשב כ-10 ניסיונות.
+                💡 <b>חוקי הדירוג:</b> בלשוניות השבוע וכל הזמנים מוצג ממוצע הניסיונות של השחקן. ויתור נחשב כ-10 ניסיונות. לחצו על שחקן כדי לצפות בפרופיל ובארכיון שלו!
             </div>
         </div>
 
@@ -536,7 +604,7 @@ async function resetLeaderboardIfNeeded() {
         const metaRef = db.ref('meta/leaderboardResetV1');
         const result = await metaRef.transaction((current) => {
             if (current === null) return { claimedAt: Date.now() };
-            return;
+            return; 
         });
         if (result && result.committed) {
             await db.ref('scores').remove();
@@ -554,6 +622,15 @@ let errorTimeout;
 let currentGuessesList = [];
 let currentLeaderboardFilter = 'today';
 let pendingScore = null;
+let activeMapMarkers = [];
+
+// --- ARCHIVE & REPLAY SYSTEM VARIABLES ---
+let archivePlaybackTimer = null;
+let archiveCurrentIndex = 0;
+let archiveGuessesSequence = [];
+let archiveTargetCity = null;
+let isArchivePaused = false;
+let archiveDelayMs = 2500; // Delay between guess steps in seconds
 
 let unlockedClues = { 
     eligible: false, 
@@ -701,11 +778,11 @@ function changeUserProfile(name, location) {
     return true;
 }
 
-function getGameDayIndex() {
-    const { year, month, day } = getIsraelDateParts(0);
+function getGameDayIndex(offsetDays = 0) {
+    const { year, month, day } = getIsraelDateParts(offsetDays);
     const todayUTC = Date.UTC(year, month - 1, day);
     const startUTC = Date.UTC(2026, 5, 24);
-    return Math.floor(Math.abs(todayUTC - startUTC) / (1000 * 60 * 60 * 24));
+    return Math.floor((todayUTC - startUTC) / (1000 * 60 * 60 * 24));
 }
 
 function getIsraelDateParts(offsetDays = 0) {
@@ -719,6 +796,50 @@ function getIsraelDateParts(offsetDays = 0) {
 function getDailyKey(offsetDays = 0) {
     const { year, month, day } = getIsraelDateParts(offsetDays);
     return `v7-${year}-${month}-${day}`;
+}
+
+function getTargetForDayIndex(dayIndex) {
+    const changeoverIndex = 45;
+    if (dayIndex >= changeoverIndex) {
+        const availablePool = settlementPool.filter(sName => allCities.some(c => c.name === sName));
+        const poolIndex = dayIndex - changeoverIndex;
+
+        const { year, month, day } = getIsraelDateParts(0); 
+        const seedStr = `v7-${year}-${month}-${day}`;
+        let hash = 0;
+        for (let i = 0; i < seedStr.length; i++) hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
+        const seededRandom = Math.abs(Math.sin(hash));
+
+        if (poolIndex < availablePool.length) {
+            const chosenName = availablePool[poolIndex];
+            return allCities.find(c => c.name === chosenName);
+        } else {
+            const citiesOutsidePool = allCities.filter(c => !settlementPool.includes(c.name));
+            if (citiesOutsidePool.length > 0) {
+                return citiesOutsidePool[Math.floor(seededRandom * citiesOutsidePool.length)];
+            } else {
+                return allCities[Math.floor(seededRandom * allCities.length)];
+            }
+        }
+    } else {
+        const baseSequence = ["כרי דשא", "קרית גת", "אילת", "גן נר", "נווה ירק", "עדנים", "ירוחם", "כפר הנשיא", "איתנים", "לב יתיר", "גינוסר", "הר עמשא", "אשקלון"];
+        const customSequence = seededShuffle(baseSequence, "isramaster-fixed-seed-2026");
+
+        const validTargets = allCities.filter(city => {
+            const isExcludedByKeyword = excludeKeywords.some(kw => city.name.includes(kw));
+            const isExcludedByName = extraExclusions.includes(city.name);
+            return !(isExcludedByKeyword || isExcludedByName);
+        });
+
+        if (dayIndex < customSequence.length) {
+            const nextCityName = customSequence[dayIndex];
+            let t = allCities.find(c => c.name === nextCityName);
+            return t || validTargets[dayIndex % validTargets.length];
+        } else {
+            const remainingTargets = validTargets.filter(city => !customSequence.includes(city.name));
+            return remainingTargets[dayIndex % remainingTargets.length];
+        }
+    }
 }
 
 function getMsUntilNextIsraelMidnight() {
@@ -745,6 +866,12 @@ function seededShuffle(arr, seedString) {
         [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
+}
+
+// Clear all active Leaflet markers from the map before starting a replay or changing games
+function clearMapMarkers() {
+    activeMapMarkers.forEach(m => map.removeLayer(m));
+    activeMapMarkers = [];
 }
 
 async function loadData() {
@@ -776,55 +903,7 @@ async function loadData() {
         }
 
         if (!target) {
-            const dayIndex = getGameDayIndex();
-            const changeoverIndex = 45;
-
-            if (dayIndex >= changeoverIndex) {
-                const availablePool = settlementPool.filter(sName => allCities.some(c => c.name === sName));
-                const poolIndex = dayIndex - changeoverIndex;
-
-                const seedStr = getDailyKey();
-                let hash = 0;
-                for (let i = 0; i < seedStr.length; i++) hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
-                const seededRandom = Math.abs(Math.sin(hash));
-
-                if (poolIndex < availablePool.length) {
-                    const chosenName = availablePool[poolIndex];
-                    target = allCities.find(c => c.name === chosenName);
-                } else {
-                    const citiesOutsidePool = allCities.filter(c => !settlementPool.includes(c.name));
-                    if (citiesOutsidePool.length > 0) {
-                        target = citiesOutsidePool[Math.floor(seededRandom * citiesOutsidePool.length)];
-                    } else {
-                        target = allCities[Math.floor(seededRandom * allCities.length)];
-                    }
-                }
-            } else {
-                const baseSequence = ["כרי דשא", "קרית גת", "אילת", "גן נר", "נווה ירק", "עדנים", "ירוחם", "כפר הנשיא", "איתנים", "לב יתיר", "גינוסר", "הר עמשא", "אשקלון"];
-                const customSequence = seededShuffle(baseSequence, "isramaster-fixed-seed-2026");
-
-                const validTargets = allCities.filter(city => {
-                    const isExcludedByKeyword = excludeKeywords.some(kw => city.name.includes(kw));
-                    const isExcludedByName = extraExclusions.includes(city.name);
-                    return !(isExcludedByKeyword || isExcludedByName);
-                });
-
-                if (dayIndex < customSequence.length) {
-                    const nextCityName = customSequence[dayIndex];
-                    target = allCities.find(c => c.name === nextCityName);
-                    if (!target) {
-                        target = validTargets[dayIndex % validTargets.length];
-                    }
-                } else {
-                    const remainingTargets = validTargets.filter(city => !customSequence.includes(city.name));
-                    const seedStr = getDailyKey();
-                    let hash = 0;
-                    for (let i = 0; i < seedStr.length; i++) hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
-                    const seededRandom = Math.abs(Math.sin(hash));
-                    
-                    target = remainingTargets[Math.floor(seededRandom * remainingTargets.length)];
-                }
-            }
+            target = getTargetForDayIndex(getGameDayIndex(0));
         }
 
         const container = document.getElementById('lifePoints');
@@ -1052,7 +1131,7 @@ function confirmAndOpenFiveOptions() {
     document.getElementById('clue-modal-overlay').style.display = 'flex';
 }
 
-function processGuess(cityName, isRestoring = false, isClueGuess = false) {
+function processGuess(cityName, isRestoring = false, isClueGuess = false, activeTarget = target) {
     let guess = allCities.find(c => c.name === cityName);
     if (!guess) return;
 
@@ -1060,14 +1139,14 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
         currentGuessesList.push(cityName);
     }
 
-    if (!isClueGuess) {
+    if (!isClueGuess && attempts > 0) {
         attempts--;
         const lifeCircle = document.getElementById(`life-${attempts}`);
         if(lifeCircle) lifeCircle.classList.add('lost');
     }
 
-    const dist = calculateDistance(guess.lat, guess.lon, target.lat, target.lon);
-    const bearing = (Math.atan2(target.lon - guess.lon, target.lat - guess.lat) * 180 / Math.PI + 360) % 360;
+    const dist = calculateDistance(guess.lat, guess.lon, activeTarget.lat, activeTarget.lon);
+    const bearing = (Math.atan2(activeTarget.lon - guess.lon, activeTarget.lat - guess.lat) * 180 / Math.PI + 360) % 360;
     const ratio = Math.pow(Math.min(dist / 150, 1), 0.35);
     const color = `rgb(255, ${Math.floor(255 * ratio)}, ${Math.floor(100 * ratio)})`;
 
@@ -1088,7 +1167,8 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
         html: markerHtml,
         iconSize: [0, 0], iconAnchor: [0, 48]
     });
-    L.marker([guess.lat, guess.lon], { icon: icon }).addTo(map);
+    const marker = L.marker([guess.lat, guess.lon], { icon: icon }).addTo(map);
+    activeMapMarkers.push(marker);
     
     const row = document.createElement('div');
     if (isClueGuess) {
@@ -1112,8 +1192,8 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
         });
     }
 
-    if (cityName === target.name) endGame(true, attempts, isRestoring);
-    else if (attempts === 0) endGame(false, attempts, isRestoring);
+    if (cityName === activeTarget.name && activeTarget === target) endGame(true, attempts, isRestoring);
+    else if (attempts === 0 && activeTarget === target) endGame(false, attempts, isRestoring);
 }
 
 function saveProgress(cityName, isClueGuess) {
@@ -1151,7 +1231,7 @@ function saveInitialProfile() {
     document.getElementById('user-profile-overlay').style.display = 'none';
 
     if (pendingScore) {
-        sendScoreToBackend(pendingScore.win, pendingScore.guesses);
+        sendScoreToBackend(pendingScore.win, pendingScore.guesses, pendingScore.guessesList);
         pendingScore = null;
     }
 
@@ -1171,7 +1251,7 @@ function switchLeaderboardTime(timeframe, btn) {
     renderRealLeaderboard();
 }
 
-async function sendScoreToBackend(win, guesses) {
+async function sendScoreToBackend(win, guesses, guessesList = []) {
     const user = getUserProfile();
     if (!user.name || user.anonymous) return;
 
@@ -1184,6 +1264,7 @@ async function sendScoreToBackend(win, guesses) {
             dateKey: getDailyKey(),
             timestamp: Date.now(),
             guesses: guesses,
+            guessesList: guessesList.length > 0 ? guessesList : currentGuessesList,
             won: win
         });
     } catch (err) {
@@ -1191,6 +1272,7 @@ async function sendScoreToBackend(win, guesses) {
     }
 }
 
+// --- UPDATED LEADERBOARD: UNIQUE BY userId ---
 async function renderRealLeaderboard() {
     const container = document.getElementById('realLeaderboardContainer');
     container.innerHTML = 'טוען נתונים...';
@@ -1211,6 +1293,16 @@ async function renderRealLeaderboard() {
         if (currentLeaderboardFilter === 'today') {
             records = records.filter(r => r.dateKey === todayKey);
 
+            // Filter duplicates by userId keeping most recent
+            const userLatestMap = {};
+            records.forEach(r => {
+                const uid = r.userId || `${r.name}_${r.location}`;
+                if (!userLatestMap[uid] || r.timestamp > userLatestMap[uid].timestamp) {
+                    userLatestMap[uid] = r;
+                }
+            });
+            records = Object.values(userLatestMap);
+
             records.sort((a, b) => {
                 if (a.won !== b.won) return b.won ? 1 : -1;
                 return a.guesses - b.guesses;
@@ -1225,11 +1317,12 @@ async function renderRealLeaderboard() {
             const currentUser = getUserProfile();
 
             records.slice(0, 50).forEach((rec, index) => {
-                const isMe = rec.name === currentUser.name && rec.location === currentUser.location;
+                const isMe = rec.userId ? (rec.userId === currentUser.userId) : (rec.name === currentUser.name && rec.location === currentUser.location);
                 const badge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤';
+                const uId = rec.userId || '';
 
                 container.innerHTML += `
-                    <div class="dopamine-card ${index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}">
+                    <div class="dopamine-card ${index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}" onclick="openPublicProfile('${uId}', '${rec.name.replace(/'/g, "\\'")}', '${rec.location.replace(/'/g, "\\'")}')">
                         <div class="medal-badge">${badge}</div>
                         <div class="card-info">
                             <div class="card-name">${rec.name} ${isMe ? '<span class="me-tag">אתה</span>' : ''}</div>
@@ -1252,20 +1345,24 @@ async function renderRealLeaderboard() {
                 return;
             }
 
+            // Aggregate strictly by userId
             const userStats = {};
             records.forEach(rec => {
-                const userKey = `${rec.name.trim()}__${rec.location.trim()}`;
-                if (!userStats[userKey]) {
-                    userStats[userKey] = {
+                const uid = rec.userId || `${rec.name.trim()}__${rec.location.trim()}`;
+                if (!userStats[uid]) {
+                    userStats[uid] = {
+                        userId: rec.userId || '',
                         name: rec.name,
                         location: rec.location,
                         totalGames: 0,
                         totalTries: 0
                     };
                 }
-                userStats[userKey].totalGames += 1;
+                userStats[uid].name = rec.name; // Keep fresh profile info
+                userStats[uid].location = rec.location;
+                userStats[uid].totalGames += 1;
                 const effectiveTries = rec.won ? rec.guesses : 10;
-                userStats[userKey].totalTries += effectiveTries;
+                userStats[uid].totalTries += effectiveTries;
             });
 
             let userList = Object.values(userStats).map(u => ({
@@ -1284,12 +1381,13 @@ async function renderRealLeaderboard() {
             const currentUser = getUserProfile();
 
             userList.slice(0, 50).forEach((user, index) => {
-                const isMe = user.name === currentUser.name && user.location === currentUser.location;
+                const isMe = user.userId ? (user.userId === currentUser.userId) : (user.name === currentUser.name && user.location === currentUser.location);
                 const badge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤';
                 const avgStr = (user.avgGuesses % 1 === 0) ? user.avgGuesses.toFixed(0) : user.avgGuesses.toFixed(1);
+                const uId = user.userId || '';
 
                 container.innerHTML += `
-                    <div class="dopamine-card ${index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}">
+                    <div class="dopamine-card ${index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}" onclick="openPublicProfile('${uId}', '${user.name.replace(/'/g, "\\'")}', '${user.location.replace(/'/g, "\\'")}')">
                         <div class="medal-badge">${badge}</div>
                         <div class="card-info">
                             <div class="card-name">${user.name} ${isMe ? '<span class="me-tag">אתה</span>' : ''}</div>
@@ -1306,6 +1404,209 @@ async function renderRealLeaderboard() {
         console.error(err);
         container.innerHTML = '<div class="empty-leaderboard">שגיאה בטעינת טבלת המובילים</div>';
     }
+}
+
+// --- ARCHIVE & REPLAY SYSTEM IMPLEMENTATION ---
+function openMyArchiveModal() {
+    const modal = document.getElementById('archive-modal-overlay');
+    const container = document.getElementById('myArchiveList');
+    container.innerHTML = '';
+
+    const stats = JSON.parse(localStorage.getItem('israeleStats')) || { history: {} };
+    const history = stats.history || {};
+    
+    let archiveItems = [];
+    for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+        const key = getDailyKey(dayOffset);
+        const dayIdx = getGameDayIndex(dayOffset);
+        const dayTarget = getTargetForDayIndex(dayIdx);
+
+        if (history[key] && history[key].guessesToday && history[key].guessesToday.length > 0) {
+            const dateParts = getIsraelDateParts(dayOffset);
+            archiveItems.push({
+                dateStr: `${dateParts.day}/${dateParts.month}/${dateParts.year}`,
+                targetName: dayTarget.name,
+                targetObj: dayTarget,
+                guesses: history[key].guessesToday,
+                won: history[key].lastResultWasWin
+            });
+        }
+    }
+
+    if (archiveItems.length === 0) {
+        container.innerHTML = '<div class="empty-leaderboard">לא נמצאו משחקים ששוחקו בשבוע האחרון.</div>';
+    } else {
+        archiveItems.forEach(item => {
+            container.innerHTML += `
+                <div class="archive-item">
+                    <div class="info">
+                        <span class="title">📅 ${item.dateStr} - ${item.targetName}</span>
+                        <span class="meta">${item.won ? '✅ ניצחון' : '🏳️ הפסד'} • ${item.guesses.length} ניחושים</span>
+                    </div>
+                    <button class="btn-play" onclick='startArchivePlayback(${JSON.stringify(item.guesses)}, ${JSON.stringify(item.targetObj)}, "${item.dateStr}")'>▶️ הצג</button>
+                </div>
+            `;
+        });
+    }
+
+    modal.style.display = 'flex';
+}
+
+function closeArchiveModal() {
+    document.getElementById('archive-modal-overlay').style.display = 'none';
+}
+
+async function openPublicProfile(userId, name, location) {
+    if (!userId) {
+        alert("פרופיל אינו זמין עבור שחקן זה.");
+        return;
+    }
+    const modal = document.getElementById('public-profile-modal-overlay');
+    document.getElementById('pubProfName').innerText = `👤 ${name}`;
+    document.getElementById('pubProfLoc').innerText = `📍 ${location}`;
+    
+    const archiveContainer = document.getElementById('pubProfArchiveList');
+    archiveContainer.innerHTML = 'טוען נתוני שחקן...';
+    modal.style.display = 'flex';
+
+    try {
+        const snap = await db.ref('scores').orderByChild('userId').equalTo(userId).once('value');
+        const val = snap.val();
+
+        if (!val) {
+            document.getElementById('pub-st-played').innerText = '0';
+            document.getElementById('pub-st-winpct').innerText = '0%';
+            document.getElementById('pub-st-streak').innerText = '0';
+            document.getElementById('pub-st-avg').innerText = '0';
+            archiveContainer.innerHTML = '<div class="empty-leaderboard">אין נתונים שמורים.</div>';
+            return;
+        }
+
+        const userScores = Object.values(val);
+        const totalPlayed = userScores.length;
+        const wins = userScores.filter(s => s.won).length;
+        const totalTries = userScores.reduce((sum, s) => sum + (s.won ? s.guesses : 10), 0);
+        
+        document.getElementById('pub-st-played').innerText = totalPlayed;
+        document.getElementById('pub-st-winpct').innerText = totalPlayed > 0 ? Math.round((wins / totalPlayed) * 100) + '%' : '0%';
+        document.getElementById('pub-st-streak').innerText = '-';
+        document.getElementById('pub-st-avg').innerText = totalPlayed > 0 ? (totalTries / totalPlayed).toFixed(1) : '0';
+
+        archiveContainer.innerHTML = '';
+        
+        // Filter past week archives
+        const now = Date.now();
+        const weekScores = userScores.filter(s => now - s.timestamp <= 7 * 24 * 60 * 60 * 1000);
+
+        if (weekScores.length === 0) {
+            archiveContainer.innerHTML = '<div class="empty-leaderboard">אין משחקים מהשבוע האחרון.</div>';
+        } else {
+            weekScores.sort((a,b) => b.timestamp - a.timestamp).forEach(s => {
+                const dateObj = new Date(s.timestamp);
+                const dateStr = `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()}`;
+                
+                // Estimate target from date key
+                let dayTarget = null;
+                if (s.dateKey) {
+                    const parts = s.dateKey.split('-');
+                    if (parts.length === 4) {
+                        const targetUTC = Date.UTC(parseInt(parts[1]), parseInt(parts[2]) - 1, parseInt(parts[3]));
+                        const startUTC = Date.UTC(2026, 5, 24);
+                        const dIdx = Math.floor((targetUTC - startUTC) / (1000 * 60 * 60 * 24));
+                        dayTarget = getTargetForDayIndex(dIdx);
+                    }
+                }
+                if (!dayTarget) dayTarget = target;
+
+                const guessesList = s.guessesList || [];
+
+                archiveContainer.innerHTML += `
+                    <div class="archive-item">
+                        <div class="info">
+                            <span class="title">📅 ${dateStr} - ${dayTarget.name}</span>
+                            <span class="meta">${s.won ? '✅ ניצחון' : '🏳️ הפסד'} • ${s.guesses} ניחושים</span>
+                        </div>
+                        ${guessesList.length > 0 ? `<button class="btn-play" onclick='closePublicProfileModal(); startArchivePlayback(${JSON.stringify(guessesList)}, ${JSON.stringify(dayTarget)}, "${dateStr}")'>▶️ הצג</button>` : '<span style="font-size:11px; color:#aaa;">אין ניחושים שמורים</span>'}
+                    </div>
+                `;
+            });
+        }
+    } catch (err) {
+        console.error(err);
+        archiveContainer.innerHTML = '<div class="empty-leaderboard">שגיאה בטעינת נתוני שחקן.</div>';
+    }
+}
+
+function closePublicProfileModal() {
+    document.getElementById('public-profile-modal-overlay').style.display = 'none';
+}
+
+function startArchivePlayback(guessesSequence, activeTarget, dateStr) {
+    closeArchiveModal();
+    hideOverlay();
+
+    // CLEAR MAP BEFORE STARTING ARCHIVE REPLAY
+    clearMapMarkers();
+
+    archiveGuessesSequence = guessesSequence;
+    archiveTargetCity = activeTarget;
+    archiveCurrentIndex = 0;
+    isArchivePaused = false;
+
+    document.getElementById('feedback').innerHTML = '';
+    document.getElementById('archive-hud-status').innerText = `🎬 צפייה בארכיון (${dateStr})`;
+    document.getElementById('archive-pause-btn').innerText = '⏸️ השהה';
+    document.getElementById('archive-hud').style.display = 'flex';
+
+    runArchiveStep();
+}
+
+function runArchiveStep() {
+    if (archivePlaybackTimer) clearTimeout(archivePlaybackTimer);
+
+    if (archiveCurrentIndex >= archiveGuessesSequence.length) {
+        document.getElementById('archive-hud-status').innerText = '✅ צפייה בארכיון הסתיימה!';
+        L.marker([archiveTargetCity.lat, archiveTargetCity.lon]).addTo(map).bindPopup(`<b>יעד: ${archiveTargetCity.name}</b>`).openPopup();
+        return;
+    }
+
+    const cityName = archiveGuessesSequence[archiveCurrentIndex];
+    processGuess(cityName, false, false, archiveTargetCity);
+    archiveCurrentIndex++;
+
+    if (!isArchivePaused) {
+        archivePlaybackTimer = setTimeout(runArchiveStep, archiveDelayMs);
+    }
+}
+
+function toggleArchivePause() {
+    isArchivePaused = !isArchivePaused;
+    const btn = document.getElementById('archive-pause-btn');
+    if (isArchivePaused) {
+        if (archivePlaybackTimer) clearTimeout(archivePlaybackTimer);
+        btn.innerText = '▶️ המשך';
+    } else {
+        btn.innerText = '⏸️ השהה';
+        runArchiveStep();
+    }
+}
+
+function restartArchivePlayback() {
+    if (archivePlaybackTimer) clearTimeout(archivePlaybackTimer);
+    clearMapMarkers();
+    document.getElementById('feedback').innerHTML = '';
+    archiveCurrentIndex = 0;
+    isArchivePaused = false;
+    document.getElementById('archive-pause-btn').innerText = '⏸️ השהה';
+    runArchiveStep();
+}
+
+function exitArchiveMode() {
+    if (archivePlaybackTimer) clearTimeout(archivePlaybackTimer);
+    document.getElementById('archive-hud').style.display = 'none';
+    clearMapMarkers();
+    document.getElementById('feedback').innerHTML = '';
+    restoreGameState();
 }
     
 function shareGame(platform) {
@@ -1381,7 +1682,7 @@ function endGame(win, remaining, alreadyProcessed = false) {
             }
         }
         localStorage.setItem('israeleStats', JSON.stringify(stats));
-        scoreToSubmit = { win: win, guesses: 10 - remaining };
+        scoreToSubmit = { win: win, guesses: 10 - remaining, guessesList: currentGuessesList };
     }
     
     const usedHintsCount = (unlockedClues.closestNeighborUsed ? 1 : 0) + (unlockedClues.fiveOptionsUsed ? 1 : 0);
@@ -1395,7 +1696,9 @@ function endGame(win, remaining, alreadyProcessed = false) {
     document.getElementById('vic-title').innerText = win ? "🏆 פגיעה בול! ניצחון מרהיב!" : "לא היום... 🚩";
     document.getElementById('vic-msg').innerText = `היעד היה: ${target.name}`;
     
-    L.marker([target.lat, target.lon]).addTo(map).bindPopup(`<b>${target.name}</b>`).openPopup();
+    const targetMarker = L.marker([target.lat, target.lon]).addTo(map).bindPopup(`<b>${target.name}</b>`).openPopup();
+    activeMapMarkers.push(targetMarker);
+
     if (!alreadyProcessed) {
          const sidebarPadding = window.innerWidth > 850 ? [400, 0] : [0, 0];
          map.flyTo([target.lat, target.lon], 12, { paddingTopLeft: sidebarPadding });
@@ -1406,7 +1709,7 @@ function endGame(win, remaining, alreadyProcessed = false) {
 
     const user = getUserProfile();
     if (scoreToSubmit && user.name && !user.anonymous) {
-        sendScoreToBackend(scoreToSubmit.win, scoreToSubmit.guesses);
+        sendScoreToBackend(scoreToSubmit.win, scoreToSubmit.guesses, scoreToSubmit.guessesList);
     } else if (scoreToSubmit && !user.name && !user.anonymous) {
         pendingScore = scoreToSubmit;
         setTimeout(() => {
@@ -1712,7 +2015,7 @@ function applySavedMarkerScale() {
 applySavedMarkerScale();
 window.onload = async function() {
     await initServerTime();
-    resetLeaderboardIfNeeded();
+    resetLeaderboardIfNeeded(); 
     loadData();
 };
 </script>
