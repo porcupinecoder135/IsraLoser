@@ -263,8 +263,10 @@
 
         #feedback { flex: 1; overflow-y: auto; margin-top: 15px; display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px;}
         .guess-row { padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; color: #000; font-size: 14px; flex-shrink: 0; }
+
         
         .guess-row.special-clue {
+            <a id="contact-btn" href="mailto:your-email@example.com" title="צור קשר">📧</a>
             border: 3px dashed #fff; box-shadow: 0 0 15px rgba(255,255,255,0.4);
             animation: flash-special 1.5s infinite;
         }
@@ -282,6 +284,43 @@
             .tutorial-title { font-size: 22px; }
             .tutorial-text { font-size: 17px; }
             .tutorial-icon { font-size: 48px; }
+        }
+        #contact-btn {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            z-index: 2005;
+            background: var(--dark);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        #contact-btn:hover {
+            background: var(--primary);
+        }
+
+        #contact-btn:active {
+            transform: scale(0.92);
+        }
+
+        @media (max-width: 850px) {
+            #contact-btn {
+                bottom: 80px;
+                right: 15px;
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+            }
         }
     </style>
 </head>
