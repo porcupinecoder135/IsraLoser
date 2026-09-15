@@ -120,17 +120,6 @@
         #leaderboard-toggle:active { transform: scale(0.95); }
         #leaderboard-toggle.visible { display: flex; }
 
-        /* --- CONTACT BUTTON STYLES --- */
-        #contact-btn {
-            position: fixed; bottom: 15px; right: 15px; z-index: 2005;
-            background: var(--dark); color: white; border: 2px solid rgba(255,255,255,0.25);
-            width: 52px; height: 52px; border-radius: 50%; font-size: 22px; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center;
-            text-decoration: none; transition: transform 0.2s ease, background-color 0.2s ease;
-        }
-        #contact-btn:hover { background: var(--primary); }
-        #contact-btn:active { transform: scale(0.92); }
-
         .settings-row { margin: 25px 0; }
         .settings-row-labels { display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; color: #555; margin-bottom: 10px; }
         #markerScaleSlider { width: 100%; height: 12px; cursor: pointer; accent-color: var(--accent); }
@@ -290,7 +279,6 @@
             #sidebar.transitioning { transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1); }
             .swipe-handle { display: block; }
             #mobile-toggle { display: block; }
-            #contact-btn { bottom: 85px; right: 15px; width: 46px; height: 46px; font-size: 19px; }
             .tutorial-title { font-size: 22px; }
             .tutorial-text { font-size: 17px; }
             .tutorial-icon { font-size: 48px; }
@@ -442,9 +430,42 @@
 <button id="mobile-toggle" onclick="toggleSidebar(true)">ניחוש 📊</button>
 <button id="settings-toggle" onclick="openSettings()" title="הגדרות תצוגה">⚙️</button>
 <button id="leaderboard-toggle" onclick="showVictoryOverlay()" title="טבלת המובילים">🏆</button>
-<!-- Replace your-email@example.com below with your real address -->
-<a id="contact-btn" href="mailto:your-email@example.com" title="צרו קשר">📧</a>
+<!-- Put this right below your Leaderboard <button> -->
 
+<div class="end-screen-feedback" style="margin-top: 15px; text-align: center; direction: rtl; font-family: inherit;">
+  
+  <!-- Option 1: Send input via Formspree -->
+  <form action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST" style="display: flex; flex-direction: column; gap: 8px; align-items: center; margin-bottom: 12px;">
+    <label for="discovery-input" style="font-weight: bold; font-size: 14px; color: #333;">
+      נשמח לדעת: איך שמעת על האתר?
+    </label>
+    
+    <div style="display: flex; gap: 6px; width: 100%; max-width: 320px; justify-content: center;">
+      <input 
+        type="text" 
+        id="discovery-input" 
+        name="how_did_you_hear" 
+        placeholder="תשובה..." 
+        required 
+        style="flex: 1; direction: rtl; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;"
+      />
+      <button 
+        type="submit" 
+        style="padding: 8px 16px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px;">
+        שליחה
+      </button>
+    </div>
+  </form>
+
+  <!-- Option 2: Direct Mailto Link -->
+  <div style="font-size: 13px;">
+    <a href="mailto:your-email@example.com" style="color: #007bff; text-decoration: underline;">
+      או לחץ כאן כדי לשלוח לי מייל ישיר
+    </a>
+  </div>
+
+</div>
+    
 <div id="sidebar">
     <div class="swipe-handle" id="swipeHandle"></div>
     <div class="stats-card">
