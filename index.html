@@ -437,14 +437,19 @@
     </div>
 </div>
 <!-- HTML Snippet -->
-<div id="info-contact-overlay" style="position: relative; z-index: 9999; display: none;">
-    <div class="modal" style="max-width: 350px;">
+<!-- Fullscreen overlay backdrop (centered for PC) -->
+<div id="info-contact-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
+    
+    <!-- Modal card (Fixed margins for mobile, max-width for PC) -->
+    <div class="modal" style="max-width: 350px; width: calc(100% - 32px); margin: 0 16px; box-sizing: border-box; background: #fff; padding: 20px; border-radius: 12px;">
         <h3 style="margin-top:0; color: var(--primary);">📧 צרו קשר</h3>
         <p style="font-size:14px; color:#555; line-height:1.5; margin-bottom: 20px;">יש לכם שאלות, הצעות או דיווח על תקלה? נשמח לשמוע מכם!</p>
+        
         <a href="mailto:isramaster.com@gmail.com" target="_blank" class="btn-main" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; box-sizing: border-box;">
             <i class="fa-solid fa-envelope"></i> isramaster.com@gmail.com
         </a>
-        <button class="btn-main btn-secondary" style="margin-top:10px; width: 100%; box-sizing: border-box;" onclick="closeContactInfo()">סגירה</button>
+        
+        <button class="btn-main btn-secondary" style="margin-top:10px; width: 100%; box-sizing: border-box;" onclick="toggleContactInfo(false)">סגירה</button>
     </div>
 </div>
 
@@ -1487,7 +1492,10 @@ function endGame(win, remaining, alreadyProcessed = false) {
 }
 
 function toggleContactInfo(show) {
-    document.getElementById('info-contact-overlay').style.display = show ? 'flex' : 'none';
+  const overlay = document.getElementById("info-contact-overlay");
+  if (overlay) {
+    overlay.style.display = show ? "flex" : "none";
+  }
 }
 
 function toggleSidebar(forceOpen) {
