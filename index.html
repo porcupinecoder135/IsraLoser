@@ -243,11 +243,6 @@
         .info-popover-row:hover { background: #f5f7fa; }
         .info-popover-label { font-size: 10.5px; color: #888; font-weight: 700; padding: 4px 8px 0; }
 
-        .player-count-summary {
-            text-align: center; font-size: 12.5px; font-weight: 800; color: #555;
-            background: #f5f7fa; border-radius: 10px; padding: 7px 8px; margin-bottom: 10px;
-        }
-
         .leaderboard-section { text-align: right; }
         .dopamine-card {
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
@@ -509,8 +504,6 @@
                 <button class="time-tab" onclick="switchLeaderboardTime('alltime', this)">🏆 כל הזמנים</button>
             </div>
             
-            <div id="player-count-summary" class="player-count-summary"></div>
-
             <div id="realLeaderboardContainer"></div>
 
             <div class="leaderboard-rules-box">
@@ -1215,9 +1208,6 @@ function saveInitialProfile() {
 function stayAnonymous() {
     markUserAnonymous();
     document.getElementById('user-profile-overlay').style.display = 'none';
-    if (pendingScore) {
-        recordAnonymousPlay();
-    }
     pendingScore = null;
 }
 
@@ -1226,42 +1216,6 @@ function switchLeaderboardTime(timeframe, btn) {
     btn.classList.add('active');
     currentLeaderboardFilter = timeframe;
     renderRealLeaderboard();
-}
-
-// Players who stay anonymous never appear on the leaderboard (no name/location to show),
-// but they should still count toward the "how many players played" totals.
-async function recordAnonymousPlay() {
-    try {
-        const playRef = db.ref('anonymousPlays').push();
-        await playRef.set({
-            dateKey: getDailyKey(),
-            timestamp: Date.now()
-        });
-    } catch (err) {
-        console.error('Failed to record anonymous play:', err);
-    }
-}
-
-async function getAnonymousPlayerCount(timeframe) {
-    try {
-        const snapshot = await db.ref('anonymousPlays').once('value');
-        const data = snapshot.val();
-        if (!data) return 0;
-        const records = Object.values(data);
-        const now = Date.now();
-        const todayKey = getDailyKey();
-
-        if (timeframe === 'today') {
-            return records.filter(r => r.dateKey === todayKey).length;
-        } else if (timeframe === 'week') {
-            const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-            return records.filter(r => now - r.timestamp <= sevenDaysMs).length;
-        }
-        return records.length; // alltime
-    } catch (err) {
-        console.error('Failed to load anonymous play count:', err);
-        return 0;
-    }
 }
 
 async function sendScoreToBackend(win, guesses) {
@@ -1284,18 +1238,6 @@ async function sendScoreToBackend(win, guesses) {
     }
 }
 
-// Updates the "X players played..." line above the leaderboard. Combines
-// unique named players (who opted into the leaderboard) with anonymous
-// players (who don't appear in it but should still be counted, one each).
-async function updatePlayerCountSummary(namedCount) {
-    const summaryEl = document.getElementById('player-count-summary');
-    if (!summaryEl) return;
-    const anonCount = await getAnonymousPlayerCount(currentLeaderboardFilter);
-    const total = namedCount + anonCount;
-    const labelMap = { today: 'שיחקו היום', week: 'שיחקו השבוע', alltime: 'שיחקו בסך הכל' };
-    summaryEl.innerText = `🎮 ${total} שחקנים ${labelMap[currentLeaderboardFilter] || ''}`;
-}
-
 async function renderRealLeaderboard() {
     const container = document.getElementById('realLeaderboardContainer');
     container.innerHTML = 'טוען נתונים...';
@@ -1306,7 +1248,6 @@ async function renderRealLeaderboard() {
 
         if (!data) {
             container.innerHTML = `<div class="empty-leaderboard">🎯 אין עדיין נתונים לתקופה זו.</div>`;
-            updatePlayerCountSummary(0);
             return;
         }
 
@@ -1321,9 +1262,6 @@ async function renderRealLeaderboard() {
                 if (a.won !== b.won) return b.won ? 1 : -1;
                 return a.guesses - b.guesses;
             });
-
-            const namedToday = new Set(records.map(r => r.userId || `${r.name}__${r.location}`)).size;
-            updatePlayerCountSummary(namedToday);
 
             if (records.length === 0) {
                 container.innerHTML = `<div class="empty-leaderboard">🎯 אין עדיין נתונים לתקופה זו.</div>`;
@@ -1359,7 +1297,6 @@ async function renderRealLeaderboard() {
 
             if (records.length === 0) {
                 container.innerHTML = `<div class="empty-leaderboard">🎯 אין עדיין נתונים לתקופה זו.</div>`;
-                updatePlayerCountSummary(0);
                 return;
             }
 
@@ -1380,8 +1317,6 @@ async function renderRealLeaderboard() {
                 const effectiveTries = rec.won ? rec.guesses : 10;
                 userStats[userKey].totalTries += effectiveTries;
             });
-
-            updatePlayerCountSummary(Object.keys(userStats).length);
 
             let userList = Object.values(userStats).map(u => ({
                 ...u,
@@ -1531,9 +1466,6 @@ function endGame(win, remaining, alreadyProcessed = false) {
         setTimeout(() => {
             document.getElementById('user-profile-overlay').style.display = 'flex';
         }, 4000);
-    } else if (scoreToSubmit && user.anonymous) {
-        // Already chose to stay anonymous on a past game - still count them as a player.
-        recordAnonymousPlay();
     }
 }
 
