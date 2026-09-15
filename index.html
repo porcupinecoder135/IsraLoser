@@ -438,11 +438,10 @@
 </div>
 <!-- HTML Snippet -->
 <!-- Fullscreen overlay backdrop (centered for PC) -->
-<div id="info-contact-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
-    
-    <!-- Modal card (Fixed margins for mobile, max-width for PC) -->
+<!-- 1. Contact Overlay Modal -->
+<div id="info-contact-overlay" style="display: none !important; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
     <div class="modal" style="max-width: 350px; width: calc(100% - 32px); margin: 0 16px; box-sizing: border-box; background: #fff; padding: 20px; border-radius: 12px;">
-        <h3 style="margin-top:0; color: var(--primary);">📧 צרו קשר</h3>
+        <h3 style="margin-top:0; color: var(--primary, #333);">📧 צרו קשר</h3>
         <p style="font-size:14px; color:#555; line-height:1.5; margin-bottom: 20px;">יש לכם שאלות, הצעות או דיווח על תקלה? נשמח לשמוע מכם!</p>
         
         <a href="mailto:isramaster.com@gmail.com" target="_blank" class="btn-main" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; box-sizing: border-box;">
@@ -452,6 +451,24 @@
         <button class="btn-main btn-secondary" style="margin-top:10px; width: 100%; box-sizing: border-box;" onclick="toggleContactInfo(false)">סגירה</button>
     </div>
 </div>
+
+<!-- 2. JavaScript (Placed directly below) -->
+<script>
+  function toggleContactInfo(show) {
+    const overlay = document.getElementById("info-contact-overlay");
+    if (overlay) {
+      if (show) {
+        overlay.style.setProperty("display", "flex", "important");
+      } else {
+        overlay.style.setProperty("display", "none", "important");
+      }
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    toggleContactInfo(false);
+  });
+</script>
 
 <script>
   // Check on page load if the user already closed it
@@ -1489,13 +1506,6 @@ function endGame(win, remaining, alreadyProcessed = false) {
             document.getElementById('user-profile-overlay').style.display = 'flex';
         }, 4000);
     }
-}
-
-function toggleContactInfo(show) {
-  const overlay = document.getElementById("info-contact-overlay");
-  if (overlay) {
-    overlay.style.display = show ? "flex" : "none";
-  }
 }
 
 function toggleSidebar(forceOpen) {
