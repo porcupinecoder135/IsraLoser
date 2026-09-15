@@ -120,6 +120,17 @@
         #leaderboard-toggle:active { transform: scale(0.95); }
         #leaderboard-toggle.visible { display: flex; }
 
+        /* --- CONTACT BUTTON STYLES --- */
+        #contact-btn {
+            position: fixed; bottom: 15px; right: 15px; z-index: 2005;
+            background: var(--dark); color: white; border: 2px solid rgba(255,255,255,0.25);
+            width: 52px; height: 52px; border-radius: 50%; font-size: 22px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center;
+            text-decoration: none; transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+        #contact-btn:hover { background: var(--primary); }
+        #contact-btn:active { transform: scale(0.92); }
+
         .settings-row { margin: 25px 0; }
         .settings-row-labels { display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; color: #555; margin-bottom: 10px; }
         #markerScaleSlider { width: 100%; height: 12px; cursor: pointer; accent-color: var(--accent); }
@@ -279,6 +290,7 @@
             #sidebar.transitioning { transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1); }
             .swipe-handle { display: block; }
             #mobile-toggle { display: block; }
+            #contact-btn { bottom: 85px; right: 15px; width: 46px; height: 46px; font-size: 19px; }
             .tutorial-title { font-size: 22px; }
             .tutorial-text { font-size: 17px; }
             .tutorial-icon { font-size: 48px; }
@@ -301,7 +313,7 @@
         <h3 style="margin-top:0; color: var(--primary);">👤 רוצה להופיע בטבלת המובילים?</h3>
         <p style="font-size:14px; color:#555; line-height:1.4;">ההרשמה משמשת אך ורק כדי להציג אותך בטבלת המובילים המשותפת. אפשר גם להישאר אנונימי/ת ולהמשיך לשחק בלי להירשם.</p>
         <input type="text" id="popNameInput" placeholder="שם פרטי..." style="margin-bottom: 10px; background: #f2f2f2; color: #222; border: 1px solid #ccc;">
-        <input type="text" id="popLocationInput" placeholder="מאיפה אתה?)" style="margin-bottom: 15px; background: #f2f2f2; color: #222; border: 1px solid #ccc;">
+        <input type="text" id="popLocationInput" placeholder="מאיפה אתה?" style="margin-bottom: 15px; background: #f2f2f2; color: #222; border: 1px solid #ccc;">
         <button class="btn-main" onclick="saveInitialProfile()">הרשמה לטבלת המובילים 🚀</button>
         <button class="btn-main btn-secondary" onclick="stayAnonymous()">הישאר אנונימי 🙈</button>
     </div>
@@ -430,6 +442,8 @@
 <button id="mobile-toggle" onclick="toggleSidebar(true)">ניחוש 📊</button>
 <button id="settings-toggle" onclick="openSettings()" title="הגדרות תצוגה">⚙️</button>
 <button id="leaderboard-toggle" onclick="showVictoryOverlay()" title="טבלת המובילים">🏆</button>
+<!-- Replace your-email@example.com below with your real address -->
+<a id="contact-btn" href="mailto:your-email@example.com" title="צרו קשר">📧</a>
 
 <div id="sidebar">
     <div class="swipe-handle" id="swipeHandle"></div>
@@ -513,11 +527,6 @@ if (!firebase.apps.length) {
 }
 const db = firebase.database();
 
-// --- SERVER-SYNCED TIME (prevents cheating by changing the device clock) ---
-// Firebase exposes the difference between the device clock and Google's servers.
-// We use that offset (instead of the raw device Date) for everything date-related,
-// so a player who fiddles with their phone's clock/timezone can't unlock tomorrow's
-// puzzle early or replay a past one.
 let serverTimeOffset = 0;
 
 function getServerNow() {
@@ -532,21 +541,16 @@ function initServerTime() {
             serverTimeOffset = snap.val() || 0;
             finish();
         }, () => finish());
-        // Don't block the app forever if we're offline on first load.
         setTimeout(finish, 2500);
     });
 }
 
-// --- ONE-TIME LEADERBOARD RESET ---
-// Wipes every past score so the leaderboard (today / week / all-time) starts fresh.
-// Guarded by a Firebase transaction so that out of all players loading the app,
-// only the very first one actually performs the deletion.
 async function resetLeaderboardIfNeeded() {
     try {
         const metaRef = db.ref('meta/leaderboardResetV1');
         const result = await metaRef.transaction((current) => {
             if (current === null) return { claimedAt: Date.now() };
-            return; // already claimed by someone else - abort, do nothing
+            return;
         });
         if (result && result.committed) {
             await db.ref('scores').remove();
@@ -642,7 +646,7 @@ sidebar.addEventListener('touchend', () => {
 
 map.on('click', () => { if(window.innerWidth <= 850) toggleSidebar(false); });
 
-const PROFILE_CHANGE_COOLDOWN_MS = 90 * 24 * 60 * 60 * 1000; // ~3 months
+const PROFILE_CHANGE_COOLDOWN_MS = 90 * 24 * 60 * 60 * 1000;
 
 function generateUserId() {
     return 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
@@ -660,7 +664,6 @@ function getUserProfile() {
     return profile;
 }
 
-// Used for the very first time someone signs up - no cooldown applies here.
 function saveUserProfile(name, location) {
     const profile = getUserProfile();
     profile.name = name.trim();
@@ -676,7 +679,6 @@ function markUserAnonymous() {
     localStorage.setItem('israeleUserProfile', JSON.stringify(profile));
 }
 
-// Can the player edit their name/location right now, or are they still in the 3-month cooldown?
 function getProfileChangeStatus() {
     const profile = getUserProfile();
     if (!profile.name || !profile.lastChangeAt) return { canChange: true, daysLeft: 0 };
@@ -686,8 +688,6 @@ function getProfileChangeStatus() {
     return { canChange: false, daysLeft };
 }
 
-// Pushes a renamed/relocated profile to every one of that player's past leaderboard
-// entries in Firebase, so the new name/location shows up on every device, not just this one.
 async function propagateProfileUpdate(userId, name, location) {
     try {
         const snapshot = await db.ref('scores').orderByChild('userId').equalTo(userId).once('value');
@@ -703,7 +703,6 @@ async function propagateProfileUpdate(userId, name, location) {
     }
 }
 
-// Applies a name/location change from the settings screen, enforcing the 3-month cooldown.
 function changeUserProfile(name, location) {
     const status = getProfileChangeStatus();
     if (!status.canChange) {
@@ -723,8 +722,6 @@ function getGameDayIndex() {
     return Math.floor(Math.abs(todayUTC - startUTC) / (1000 * 60 * 60 * 24));
 }
 
-// Reads the current (server-corrected) date as it appears on an Israeli clock,
-// regardless of the player's own device timezone or clock setting.
 function getIsraelDateParts(offsetDays = 0) {
     const t = getServerNow() - offsetDays * 24 * 60 * 60 * 1000;
     const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -738,7 +735,6 @@ function getDailyKey(offsetDays = 0) {
     return `v7-${year}-${month}-${day}`;
 }
 
-// Milliseconds remaining until the next puzzle unlocks (00:00 Israel time).
 function getMsUntilNextIsraelMidnight() {
     const now = getServerNow();
     const fmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -1176,8 +1172,6 @@ function saveInitialProfile() {
     renderRealLeaderboard();
 }
 
-// Player chose "stay anonymous" - remember that choice so we never nag them again,
-// and never send their result to the shared leaderboard.
 function stayAnonymous() {
     markUserAnonymous();
     document.getElementById('user-profile-overlay').style.display = 'none';
@@ -1262,7 +1256,6 @@ async function renderRealLeaderboard() {
                 `;
             });
         } else {
-            // 'week' or 'alltime'
             if (currentLeaderboardFilter === 'week') {
                 const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
                 records = records.filter(r => now - r.timestamp <= sevenDaysMs);
@@ -1273,7 +1266,6 @@ async function renderRealLeaderboard() {
                 return;
             }
 
-            // Aggregate statistics per unique user
             const userStats = {};
             records.forEach(rec => {
                 const userKey = `${rec.name.trim()}__${rec.location.trim()}`;
@@ -1286,7 +1278,6 @@ async function renderRealLeaderboard() {
                     };
                 }
                 userStats[userKey].totalGames += 1;
-                // If the player gave up (won === false), count as 10 tries
                 const effectiveTries = rec.won ? rec.guesses : 10;
                 userStats[userKey].totalTries += effectiveTries;
             });
@@ -1296,7 +1287,6 @@ async function renderRealLeaderboard() {
                 avgGuesses: u.totalTries / u.totalGames
             }));
 
-            // Sort ascending by average tries; tiebreak by most games played
             userList.sort((a, b) => {
                 if (a.avgGuesses !== b.avgGuesses) {
                     return a.avgGuesses - b.avgGuesses;
@@ -1425,7 +1415,6 @@ function endGame(win, remaining, alreadyProcessed = false) {
          map.flyTo([target.lat, target.lon], 12, { paddingTopLeft: sidebarPadding });
     }
 
-    // Always show the daily settlement (win/lose + stats) first.
     document.getElementById('leaderboard-toggle').classList.add('visible');
     showVictoryOverlay();
 
@@ -1433,8 +1422,6 @@ function endGame(win, remaining, alreadyProcessed = false) {
     if (scoreToSubmit && user.name && !user.anonymous) {
         sendScoreToBackend(scoreToSubmit.win, scoreToSubmit.guesses);
     } else if (scoreToSubmit && !user.name && !user.anonymous) {
-        // First-ever finish with no profile decision yet: let them see the result first,
-        // then invite them to join the leaderboard (or stay anonymous).
         pendingScore = scoreToSubmit;
         setTimeout(() => {
             document.getElementById('user-profile-overlay').style.display = 'flex';
@@ -1717,7 +1704,7 @@ function closeSettings() {
 
     if (isRealChange) {
         const ok = changeUserProfile(name || current.name, location || current.location);
-        if (!ok) return; // cooldown alert already shown; keep the settings panel open
+        if (!ok) return;
     }
     document.getElementById('settings-overlay').style.display = 'none';
 }
@@ -1739,7 +1726,7 @@ function applySavedMarkerScale() {
 applySavedMarkerScale();
 window.onload = async function() {
     await initServerTime();
-    resetLeaderboardIfNeeded(); // fire-and-forget, guarded so it only ever runs once
+    resetLeaderboardIfNeeded();
     loadData();
 };
 </script>
