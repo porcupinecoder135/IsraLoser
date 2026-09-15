@@ -128,9 +128,9 @@
             border-radius: 15px; margin-top: 15px; min-height: 90px;
         }
 
-        #setup-overlay, #how-to-play-overlay, #victory-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #tutorial-intro-overlay, #settings-overlay, #user-profile-overlay, #info-contact-overlay { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; backdrop-filter: blur(8px); }
+        #setup-overlay, #how-to-play-overlay, #victory-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #tutorial-intro-overlay, #settings-overlay, #user-profile-overlay { position: fixed; inset: 0; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; backdrop-filter: blur(8px); }
         #setup-overlay { background: radial-gradient(circle at center, #1a2a6c, #000); }
-        #how-to-play-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #settings-overlay, #user-profile-overlay, #info-contact-overlay { background: rgba(0,0,0,0.85); display: none; }
+        #how-to-play-overlay, #confirm-overlay, #clue-modal-overlay, #clues-box-overlay, #warning-modal-overlay, #settings-overlay, #user-profile-overlay { background: rgba(0,0,0,0.85); display: none; }
 
         #tutorial-intro-overlay { background: radial-gradient(circle at center, #1a2a6c, #000); z-index: 3200; display: none; }
         .tutorial-modal {
@@ -180,18 +180,8 @@
         .spotlight-tooltip .tutorial-text { font-size: 16.5px; margin: 0 0 12px 0; }
         .spotlight-tooltip .tutorial-dots { margin: 8px 0 14px 0; }
         
-        .modal { background: white; padding: 25px; border-radius: 25px; width: 85%; max-width: 380px; color: #333; box-shadow: 0 20px 40px rgba(0,0,0,0.4); max-height: 90vh; overflow-y: auto; box-sizing: border-box; position: relative; }
+        .modal { background: white; padding: 25px; border-radius: 25px; width: 85%; max-width: 380px; color: #333; box-shadow: 0 20px 40px rgba(0,0,0,0.4); max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
         
-        .info-btn {
-            position: absolute; top: 15px; right: 15px; width: 28px; height: 28px;
-            background: #eef2f5; border: 1px solid #cbd5e1; border-radius: 50%;
-            color: var(--primary); font-weight: bold; font-size: 14px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-family: serif; font-style: italic;
-            transition: all 0.2s ease;
-        }
-        .info-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
-
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 15px 0; }
         .stat-val { font-size: 18px; font-weight: 900; color: var(--primary); display: block; }
         .stat-lbl { font-size: 11px; color: #777; line-height: 1.2; font-weight: bold; }
@@ -231,6 +221,31 @@
             text-align: center;
             border: 1px dashed #cbd5e1;
             line-height: 1.35;
+        }
+
+        .info-corner-btn {
+            position: absolute; top: 12px; left: 12px; width: 30px; height: 30px;
+            border-radius: 50%; border: none; background: #eef2f5; color: var(--primary);
+            font-size: 15px; font-weight: 900; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; z-index: 5; padding: 0;
+        }
+        .info-corner-btn:active { transform: scale(0.95); }
+        .info-popover {
+            display: none; position: absolute; top: 48px; left: 12px; background: white;
+            border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); border: 1px solid #eef2f5;
+            padding: 8px; z-index: 10; min-width: 230px; text-align: right;
+        }
+        .info-popover.visible { display: block; }
+        .info-popover-row {
+            display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700;
+            color: var(--primary); cursor: pointer; padding: 8px; border-radius: 8px;
+        }
+        .info-popover-row:hover { background: #f5f7fa; }
+        .info-popover-label { font-size: 10.5px; color: #888; font-weight: 700; padding: 4px 8px 0; }
+
+        .player-count-summary {
+            text-align: center; font-size: 12.5px; font-weight: 800; color: #555;
+            background: #f5f7fa; border-radius: 10px; padding: 7px 8px; margin-bottom: 10px;
         }
 
         .leaderboard-section { text-align: right; }
@@ -436,62 +451,7 @@
         <button class="btn-main" style="margin-top:20px;" onclick="closeSettings()">שמירה וסגירה ✅</button>
     </div>
 </div>
-<!-- HTML Snippet -->
-<!-- Fullscreen overlay backdrop (centered for PC) -->
-<!-- 1. Contact Overlay Modal -->
-<div id="info-contact-overlay" style="display: none !important; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
-    <div class="modal" style="max-width: 350px; width: calc(100% - 32px); margin: 0 16px; box-sizing: border-box; background: #fff; padding: 20px; border-radius: 12px;">
-        <h3 style="margin-top:0; color: var(--primary, #333);">📧 צרו קשר</h3>
-        <p style="font-size:14px; color:#555; line-height:1.5; margin-bottom: 20px;">יש לכם שאלות, הצעות או דיווח על תקלה? נשמח לשמוע מכם!</p>
-        
-        <a href="mailto:isramaster.com@gmail.com" target="_blank" class="btn-main" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; box-sizing: border-box;">
-            <i class="fa-solid fa-envelope"></i> isramaster.com@gmail.com
-        </a>
-        
-        <button class="btn-main btn-secondary" style="margin-top:10px; width: 100%; box-sizing: border-box;" onclick="toggleContactInfo(false)">סגירה</button>
-    </div>
-</div>
 
-<!-- 2. JavaScript (Placed directly below) -->
-<script>
-  function toggleContactInfo(show) {
-    const overlay = document.getElementById("info-contact-overlay");
-    if (overlay) {
-      if (show) {
-        overlay.style.setProperty("display", "flex", "important");
-      } else {
-        overlay.style.setProperty("display", "none", "important");
-      }
-    }
-  }
-
-  document.addEventListener("DOMContentLoaded", function() {
-    toggleContactInfo(false);
-  });
-</script>
-
-<script>
-  // Check on page load if the user already closed it
-  document.addEventListener("DOMContentLoaded", function () {
-    const overlay = document.getElementById("info-contact-overlay");
-    const isClosed = localStorage.getItem("contactOverlayDismissed");
-
-    // Only show if the user hasn't closed it before
-    if (!isClosed) {
-      overlay.style.display = "block"; // or 'flex' depending on your layout
-    }
-  });
-
-  // Function to close and save preference
-  function closeContactInfo() {
-    const overlay = document.getElementById("info-contact-overlay");
-    overlay.style.display = "none";
-    
-    // Save state so it won't show again on refresh
-    localStorage.setItem("contactOverlayDismissed", "true");
-  }
-</script>
-    
 <button id="mobile-toggle" onclick="toggleSidebar(true)">ניחוש 📊</button>
 <button id="settings-toggle" onclick="openSettings()" title="הגדרות תצוגה">⚙️</button>
 <button id="leaderboard-toggle" onclick="showVictoryOverlay()" title="טבלת המובילים">🏆</button>
@@ -522,9 +482,15 @@
 <div id="map"></div>
 
 <div id="victory-overlay" style="display:none;">
-    <div class="modal" style="max-width: 440px; width: 90%;">
-        <button class="info-btn" onclick="toggleContactInfo(true)" title="מידע וצור קשר">i</button>
-        <h2 id="vic-title" style="margin-top: 10px;"></h2>
+    <div class="modal" style="max-width: 440px; width: 90%; position: relative;">
+        <button id="info-corner-btn" class="info-corner-btn" onclick="toggleInfoPopover(event)" title="פרטי יצירת קשר">ℹ️</button>
+        <div id="info-popover" class="info-popover">
+            <div class="info-popover-label">📬 יצירת קשר</div>
+            <div class="info-popover-row" onclick="openGmailContact()">
+                <span>📧</span><span>isramaster.com@gmail.com</span>
+            </div>
+        </div>
+        <h2 id="vic-title"></h2>
         <p id="vic-msg"></p>
         
         <div id="hints-count-summary" class="used-hints-summary"></div>
@@ -543,6 +509,8 @@
                 <button class="time-tab" onclick="switchLeaderboardTime('alltime', this)">🏆 כל הזמנים</button>
             </div>
             
+            <div id="player-count-summary" class="player-count-summary"></div>
+
             <div id="realLeaderboardContainer"></div>
 
             <div class="leaderboard-rules-box">
@@ -555,7 +523,7 @@
             <button class="btn-share btn-instagram" onclick="shareGame('instagram')">Instagram 📸</button>
         </div>
 
-        <button class="btn-main" style="background: var(--dark); margin-top: 15px;" onclick="hideOverlay()">פתיחת מפה 🗺️</button>
+        <button class="btn-main" style="background: var(--dark); margin-top: 15px;" onclick="hideOverlay()">סגירת מפה 🗺️</button>
         <div id="next-game-countdown" class="next-game-countdown">⏳ טוען...</div>
     </div>
 </div>
@@ -1247,6 +1215,9 @@ function saveInitialProfile() {
 function stayAnonymous() {
     markUserAnonymous();
     document.getElementById('user-profile-overlay').style.display = 'none';
+    if (pendingScore) {
+        recordAnonymousPlay();
+    }
     pendingScore = null;
 }
 
@@ -1255,6 +1226,42 @@ function switchLeaderboardTime(timeframe, btn) {
     btn.classList.add('active');
     currentLeaderboardFilter = timeframe;
     renderRealLeaderboard();
+}
+
+// Players who stay anonymous never appear on the leaderboard (no name/location to show),
+// but they should still count toward the "how many players played" totals.
+async function recordAnonymousPlay() {
+    try {
+        const playRef = db.ref('anonymousPlays').push();
+        await playRef.set({
+            dateKey: getDailyKey(),
+            timestamp: Date.now()
+        });
+    } catch (err) {
+        console.error('Failed to record anonymous play:', err);
+    }
+}
+
+async function getAnonymousPlayerCount(timeframe) {
+    try {
+        const snapshot = await db.ref('anonymousPlays').once('value');
+        const data = snapshot.val();
+        if (!data) return 0;
+        const records = Object.values(data);
+        const now = Date.now();
+        const todayKey = getDailyKey();
+
+        if (timeframe === 'today') {
+            return records.filter(r => r.dateKey === todayKey).length;
+        } else if (timeframe === 'week') {
+            const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+            return records.filter(r => now - r.timestamp <= sevenDaysMs).length;
+        }
+        return records.length; // alltime
+    } catch (err) {
+        console.error('Failed to load anonymous play count:', err);
+        return 0;
+    }
 }
 
 async function sendScoreToBackend(win, guesses) {
@@ -1277,6 +1284,18 @@ async function sendScoreToBackend(win, guesses) {
     }
 }
 
+// Updates the "X players played..." line above the leaderboard. Combines
+// unique named players (who opted into the leaderboard) with anonymous
+// players (who don't appear in it but should still be counted, one each).
+async function updatePlayerCountSummary(namedCount) {
+    const summaryEl = document.getElementById('player-count-summary');
+    if (!summaryEl) return;
+    const anonCount = await getAnonymousPlayerCount(currentLeaderboardFilter);
+    const total = namedCount + anonCount;
+    const labelMap = { today: 'שיחקו היום', week: 'שיחקו השבוע', alltime: 'שיחקו בסך הכל' };
+    summaryEl.innerText = `🎮 ${total} שחקנים ${labelMap[currentLeaderboardFilter] || ''}`;
+}
+
 async function renderRealLeaderboard() {
     const container = document.getElementById('realLeaderboardContainer');
     container.innerHTML = 'טוען נתונים...';
@@ -1287,6 +1306,7 @@ async function renderRealLeaderboard() {
 
         if (!data) {
             container.innerHTML = `<div class="empty-leaderboard">🎯 אין עדיין נתונים לתקופה זו.</div>`;
+            updatePlayerCountSummary(0);
             return;
         }
 
@@ -1301,6 +1321,9 @@ async function renderRealLeaderboard() {
                 if (a.won !== b.won) return b.won ? 1 : -1;
                 return a.guesses - b.guesses;
             });
+
+            const namedToday = new Set(records.map(r => r.userId || `${r.name}__${r.location}`)).size;
+            updatePlayerCountSummary(namedToday);
 
             if (records.length === 0) {
                 container.innerHTML = `<div class="empty-leaderboard">🎯 אין עדיין נתונים לתקופה זו.</div>`;
@@ -1336,6 +1359,7 @@ async function renderRealLeaderboard() {
 
             if (records.length === 0) {
                 container.innerHTML = `<div class="empty-leaderboard">🎯 אין עדיין נתונים לתקופה זו.</div>`;
+                updatePlayerCountSummary(0);
                 return;
             }
 
@@ -1356,6 +1380,8 @@ async function renderRealLeaderboard() {
                 const effectiveTries = rec.won ? rec.guesses : 10;
                 userStats[userKey].totalTries += effectiveTries;
             });
+
+            updatePlayerCountSummary(Object.keys(userStats).length);
 
             let userList = Object.values(userStats).map(u => ({
                 ...u,
@@ -1410,7 +1436,7 @@ function shareGame(platform) {
         resultEmojis = "🏳️ לא הצלחתי היום...";
     }
     
-    const textToShare = `IsraMaster האתגר היומי #יעד_${day}\n${resultEmojis}\n🛰️ ניסיונות: ${finalGuesses}/10\n🔮 רמזים שנוצלו: ${usedHintsCount}/2\n\nבואו לנסות גם אתם ב- isramaster.com! 🗺️✨`;
+    const textToShare = `IsraMaster האתגר היומי #יעד_${day}\n${resultEmojis}\n🛰️ ניסיונות: ${finalGuesses}/10\n🔮 רמזים שנוצלו: ${usedHintsCount}/2\n\nבואו לנסות גם אתם ב-isramaster.com! 🗺️✨`;
     
     if (platform === 'whatsapp') {
         const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(textToShare)}`;
@@ -1505,6 +1531,9 @@ function endGame(win, remaining, alreadyProcessed = false) {
         setTimeout(() => {
             document.getElementById('user-profile-overlay').style.display = 'flex';
         }, 4000);
+    } else if (scoreToSubmit && user.anonymous) {
+        // Already chose to stay anonymous on a past game - still count them as a player.
+        recordAnonymousPlay();
     }
 }
 
@@ -1556,6 +1585,24 @@ function showVictoryOverlay() {
 function hideOverlay() {
     document.getElementById('victory-overlay').style.display = 'none';
     if (nextGameCountdownInterval) { clearInterval(nextGameCountdownInterval); nextGameCountdownInterval = null; }
+    const popover = document.getElementById('info-popover');
+    if (popover) popover.classList.remove('visible');
+}
+
+// Small "contact info" popover in the corner of the end screen.
+function toggleInfoPopover(e) {
+    if (e) e.stopPropagation();
+    document.getElementById('info-popover').classList.toggle('visible');
+}
+document.addEventListener('click', function(e) {
+    const popover = document.getElementById('info-popover');
+    const btn = document.getElementById('info-corner-btn');
+    if (popover && popover.classList.contains('visible') && !popover.contains(e.target) && e.target !== btn) {
+        popover.classList.remove('visible');
+    }
+});
+function openGmailContact() {
+    window.open('https://mail.google.com/mail/?view=cm&fs=1&to=isramaster.com@gmail.com', '_blank');
 }
 function showConfirm() { if(!isGameOver) document.getElementById('confirm-overlay').style.display = 'flex'; }
 function closeConfirm() { document.getElementById('confirm-overlay').style.display = 'none'; }
