@@ -436,15 +436,16 @@
         <button class="btn-main" style="margin-top:20px;" onclick="closeSettings()">שמירה וסגירה ✅</button>
     </div>
 </div>
-
-<div id="info-contact-overlay">
-    <div class="modal" style="max-width: 350px;">
+<div id="info-contact-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: flex; align-items: center; justify-content: center;">
+    <div class="modal" style="max-width: 350px; width: 100%;">
         <h3 style="margin-top:0; color: var(--primary);">📧 צרו קשר</h3>
-        <p style="font-size:14px; color:#555; line-height:1.5; margin-bottom: 20px;">יש לכם שאלות, הצעות או דיווח על תקלה? נשמח לשמוע ממכם!</p>
-        <a href="mailto:isramaster.com@gmail.com" target="_blank" class="btn-main" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <p style="font-size:14px; color:#555; line-height:1.5; margin-bottom: 20px;">יש לכם שאלות, הצעות או דיווח על תקלה? נשמח לשמוע מכם!</p>
+        
+        <a href="mailto:isramaster.com@gmail.com" target="_blank" class="btn-main" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; box-sizing: border-box;">
             <i class="fa-solid fa-envelope"></i> isramaster.com@gmail.com
         </a>
-        <button class="btn-main btn-secondary" style="margin-top:10px;" onclick="toggleContactInfo(false)">סגירה</button>
+        
+        <button class="btn-main btn-secondary" style="margin-top:10px; width: 100%; box-sizing: border-box;" onclick="toggleContactInfo(false)">סגירה</button>
     </div>
 </div>
 
