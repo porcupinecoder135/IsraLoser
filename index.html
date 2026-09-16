@@ -239,6 +239,7 @@
         .info-popover-row {
             display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700;
             color: var(--primary); cursor: pointer; padding: 8px; border-radius: 8px;
+            text-decoration: none;
         }
         .info-popover-row:hover { background: #f5f7fa; }
         .info-popover-label { font-size: 10.5px; color: #888; font-weight: 700; padding: 4px 8px 0; }
@@ -481,9 +482,12 @@
         <button id="info-corner-btn" class="info-corner-btn" onclick="toggleInfoPopover(event)" title="פרטי יצירת קשר">ℹ️</button>
         <div id="info-popover" class="info-popover">
             <div class="info-popover-label">📬 יצירת קשר</div>
-            <div class="info-popover-row" onclick="openGmailContact()">
+            <a class="info-popover-row" href="mailto:isramaster.com@gmail.com">
                 <span>📧</span><span>isramaster.com@gmail.com</span>
-            </div>
+            </a>
+            <a class="info-popover-row" href="https://instagram.com/isramaster_com" target="_blank" rel="noopener">
+                <span>📸</span><span>isramaster_com</span>
+            </a>
         </div>
         <h2 id="vic-title"></h2>
         <p id="vic-msg"></p>
@@ -589,6 +593,7 @@ let attempts = 10;
 let isGameOver = false;
 let errorTimeout;
 let currentGuessesList = [];
+let guessShareData = [];
 let currentLeaderboardFilter = 'today';
 let pendingScore = null;
 
@@ -1121,6 +1126,10 @@ function processGuess(cityName, isRestoring = false, isClueGuess = false) {
     }
     updateCluesHubTriggerUI();
 
+    if (!isClueGuess) {
+        guessShareData.push({ dist: dist, bearing: bearing, isWin: cityName === target.name });
+    }
+
     let markerHtml = ``;
     if(isClueGuess) {
         markerHtml = `<div class="marker-bubble" style="border-color:var(--purple); background:#f8efff; color:var(--purple);"><div>✨ רמז: ${guess.name}</div><div class="marker-distance">${dist.toFixed(1)} ק"מ <span class="marker-arrow" style="transform:rotate(${bearing}deg)">⬆️</span></div></div><div class="marker-dot" style="background-color:var(--purple)"></div>`;
@@ -1359,35 +1368,171 @@ async function renderRealLeaderboard() {
     }
 }
     
+const CENSOR_BAR = "██████████";
+const COMPASS_ARROWS = ['⬆️','↗️','➡️','↘️','⬇️','↙️','⬅️','↖️'];
+
+function bearingToArrow(bearing) {
+    const idx = Math.round((((bearing % 360) + 360) % 360) / 45) % 8;
+    return COMPASS_ARROWS[idx];
+}
+
+function buildGameRecap() {
+    const wonGame = guessShareData.some(g => g.isWin);
+    const guessLines = guessShareData
+        .filter(g => !g.isWin)
+        .map(g => `${CENSOR_BAR} ${g.dist.toFixed(1)} ק"מ ${bearingToArrow(g.bearing)}`);
+    guessLines.push(wonGame ? "🎯" : "🏳️");
+    return { lines: guessLines, wonGame: wonGame };
+}
+
 function shareGame(platform) {
     const usedHintsCount = (unlockedClues.closestNeighborUsed ? 1 : 0) + (unlockedClues.fiveOptionsUsed ? 1 : 0);
     const finalGuesses = 10 - attempts;
     const day = getGameDayIndex() + 1;
-    
-    let resultEmojis = "";
-    if (attempts > 0 && isGameOver && document.getElementById('vic-title').innerText.includes("פגיעה")) {
-        resultEmojis = "🎯 פגעתי בול!";
-    } else {
-        resultEmojis = "🏳️ לא הצלחתי היום...";
-    }
-    
-    const textToShare = `IsraMaster האתגר היומי #יעד_${day}\n${resultEmojis}\n🛰️ ניסיונות: ${finalGuesses}/10\n🔮 רמזים שנוצלו: ${usedHintsCount}/2\n\nבואו לנסות גם אתם ב-isramaster.com! 🗺️✨`;
-    
+
+    const recap = buildGameRecap();
+
+    const textToShare = `IsraMaster האתגר היומי #יעד_${day}\n${recap.lines.join('\n')}\n\n🛰️ ניסיונות: ${finalGuesses}/10\n🔮 רמזים שנוצלו: ${usedHintsCount}/2\n\nבואו לנסות גם אתם ב-isramaster.com! 🗺️✨`;
+
     if (platform === 'whatsapp') {
         const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(textToShare)}`;
         window.open(url, '_blank');
     } else if (platform === 'instagram') {
-        const instagramUrl = `instagram://sharesheet?text=${encodeURIComponent(textToShare)}`;
-        window.location.href = instagramUrl;
-        
-        setTimeout(() => {
-            navigator.clipboard.writeText(textToShare).then(() => {
-                alert("📋 נתוני המשחק הועתקו ללוח! אם האפליקציה לא נפתחה אוטומטית, תוכלו לפתוח את האינסטגרם ולהדביק ישירות בסטורי שלכם 📸");
-            }).catch(err => {
-                console.error('שגיאה בהעתקה', err);
-            });
-        }, 800);
+        shareToInstagram(textToShare, day, finalGuesses, usedHintsCount, recap);
     }
+}
+
+function drawStoryImage(day, finalGuesses, usedHintsCount, recap) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1920;
+    const ctx = canvas.getContext('2d');
+
+    // Background
+    const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    bg.addColorStop(0, '#1a2a6c');
+    bg.addColorStop(1, '#2c3e50');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.textAlign = 'center';
+    ctx.direction = 'rtl';
+
+    // Title
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 72px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText('IsraMaster', canvas.width / 2, 260);
+    ctx.font = '700 40px "Segoe UI", system-ui, sans-serif';
+    ctx.fillStyle = '#f44336';
+    ctx.fillText(`האתגר היומי · יעד ${day}`, canvas.width / 2, 330);
+
+    // Card
+    const cardX = 90, cardY = 420, cardW = canvas.width - 180, cardH = 900;
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    roundRect(ctx, cardX, cardY, cardW, cardH, 40);
+    ctx.fill();
+
+    // Guess rows
+    let rowY = cardY + 100;
+    const rowGap = 130;
+    ctx.font = '700 44px "Segoe UI", system-ui, sans-serif';
+
+    guessShareData.filter(g => !g.isWin).forEach(g => {
+        // censor bar
+        ctx.fillStyle = '#0d1117';
+        roundRect(ctx, cardX + 90, rowY - 45, cardW - 300, 70, 16);
+        ctx.fill();
+
+        // distance text
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'right';
+        ctx.fillText(`${g.dist.toFixed(1)} ק"מ`, cardX + cardW - 60, rowY + 5);
+
+        // arrow (rotated to true bearing)
+        ctx.save();
+        ctx.translate(cardX + 55, rowY);
+        ctx.rotate((g.bearing * Math.PI) / 180);
+        ctx.font = '46px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('⬆️', 0, 16);
+        ctx.restore();
+
+        rowY += rowGap;
+    });
+
+    // Result emoji
+    ctx.textAlign = 'center';
+    ctx.font = '130px sans-serif';
+    ctx.fillText(recap.wonGame ? '🎯' : '🏳️', canvas.width / 2, rowY + 60);
+
+    // Stats
+    ctx.font = '700 40px "Segoe UI", system-ui, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(`🛰️ ניסיונות: ${finalGuesses}/10   🔮 רמזים: ${usedHintsCount}/2`, canvas.width / 2, cardY + cardH + 90);
+
+    // Branding
+    ctx.font = '900 50px "Segoe UI", system-ui, sans-serif';
+    ctx.fillStyle = '#f44336';
+    ctx.fillText('isramaster.com', canvas.width / 2, 1780);
+    ctx.font = '600 36px "Segoe UI", system-ui, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('🗺️ בואו לנסות גם אתם! ✨', canvas.width / 2, 1840);
+
+    return canvas;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+}
+
+function shareToInstagram(textToShare, day, finalGuesses, usedHintsCount, recap) {
+    const canvas = drawStoryImage(day, finalGuesses, usedHintsCount, recap);
+
+    canvas.toBlob(async (blob) => {
+        if (!blob) {
+            fallbackInstagramShare(textToShare);
+            return;
+        }
+        const file = new File([blob], 'isramaster-result.png', { type: 'image/png' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({
+                    files: [file],
+                    title: 'IsraMaster',
+                    text: textToShare
+                });
+                return;
+            } catch (err) {
+                if (err && err.name === 'AbortError') return; // user cancelled the share sheet
+                console.error('שגיאה בשיתוף', err);
+            }
+        }
+
+        // Fallback for browsers without file-sharing support: download the image + copy the text
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'isramaster-result.png';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        fallbackInstagramShare(textToShare);
+    }, 'image/png');
+}
+
+function fallbackInstagramShare(textToShare) {
+    navigator.clipboard.writeText(textToShare).then(() => {
+        alert("📸 התמונה הורדה והטקסט הועתק! פתחו את האינסטגרם, העלו את התמונה לסטורי שלכם והדביקו את הטקסט 📋");
+    }).catch(err => {
+        console.error('שגיאה בהעתקה', err);
+        alert("📸 התמונה הורדה! פתחו את האינסטגרם והעלו אותה לסטורי שלכם 📸");
+    });
 }
 
 function fireDopamineConfetti() {
@@ -1533,9 +1678,6 @@ document.addEventListener('click', function(e) {
         popover.classList.remove('visible');
     }
 });
-function openGmailContact() {
-    window.open('https://mail.google.com/mail/?view=cm&fs=1&to=isramaster.com@gmail.com', '_blank');
-}
 function showConfirm() { if(!isGameOver) document.getElementById('confirm-overlay').style.display = 'flex'; }
 function closeConfirm() { document.getElementById('confirm-overlay').style.display = 'none'; }
 
